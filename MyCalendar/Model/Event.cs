@@ -1,15 +1,16 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 
 namespace MyCalendar.Model
 {
     public class Event
     {
-        public int Id { get; set; }
+        public Guid EventID { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }
-        public DateTime Start { get; set; }
-        public DateTime? End { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
         public string ThemeColor { get; set; }
         public bool IsFullDay { get; set; }
     }
@@ -19,7 +20,7 @@ namespace MyCalendar.Model
         public EventMap()
         {
             // Primary Key
-            this.HasKey(t => t.Id);
+            this.HasKey(t => t.EventID);
 
             // Properties
             // Table & Column Mappings

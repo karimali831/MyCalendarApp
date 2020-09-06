@@ -9,6 +9,8 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<IEnumerable<Event>> GetAllAsync();
+        Task<bool> SaveEvent(Event e);
+        Task<bool> DeleteEvent(Guid eventId);
     }
 
     public class EventService : IEventService
@@ -23,6 +25,16 @@ namespace MyCalendar.Service
         public async Task<IEnumerable<Event>> GetAllAsync()
         {
             return await eventRepository.GetAllAsync();
+        }
+
+        public async Task<bool> SaveEvent(Event e)
+        {
+            return await eventRepository.InsertOrUpdateAsync(e);
+        }
+
+        public async Task<bool> DeleteEvent(Guid eventId)
+        {
+            return await eventRepository.DeleteAsync(eventId);
         }
     }
 }
