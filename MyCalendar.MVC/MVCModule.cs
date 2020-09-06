@@ -13,10 +13,10 @@ namespace MyCalendar.Ninject
         public override void Load()
         {
             // Services
-            Bind<ICalendarService>().To<CalendarService>();
+            Bind<IEventService>().To<EventService>();
 
             // Repositories
-            Bind<ICalendarRepository>().To<CalendarRepository>();
+            Bind<IEventRepository>().To<EventRepository>();
         }
     }
 

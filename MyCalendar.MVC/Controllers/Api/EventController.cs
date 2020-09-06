@@ -28,25 +28,23 @@ namespace MyCalendar.Website.Controllers.API
         }
     }
 
-    [RoutePrefix("api/Calendar")]
+    [RoutePrefix("api/events")]
     [CamelCaseControllerConfig]
-    public class CalendarController : ApiController
+    public class EventController : ApiController
     {
-        private readonly ICalendarService CalendarService;
+        private readonly IEventService eventService;
 
-        public CalendarController(
-            ICalendarService CalendarService)
+        public EventController(IEventService eventService)
         {
-            this.CalendarService = CalendarService ?? throw new ArgumentNullException(nameof(CalendarService));
+            this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
 
         [Route("all")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetCalendarAsync()
+        public async Task<HttpResponseMessage> GetEventsAsync()
         {
-            var Calendar = await CalendarService.GetAllAsync();
-
-            return Request.CreateResponse(HttpStatusCode.OK, new { Calendar = Calendar });
+            var events = await eventService.GetAllAsync();
+            return Request.CreateResponse(HttpStatusCode.OK, new { Events = events });
         }
 
     }

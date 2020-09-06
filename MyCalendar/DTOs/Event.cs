@@ -7,17 +7,17 @@ using System.Threading.Tasks;
 
 namespace MyCalendar.DTOs
 {
-    public class CalendarDTO
+    public class EventDTO
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Subject { get; set; }
 
-        public static CalendarDTO MapFrom(Calendar Calendar)
+        public static EventDTO MapFrom(Event e)
         {
-            return new CalendarDTO
+            return new EventDTO
             {
-                Id = Calendar.Id,
-                Name = Calendar.Name
+                Id = e.Id,
+                Subject = e.Subject
             };
         }
     }

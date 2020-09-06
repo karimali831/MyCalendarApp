@@ -1,6 +1,8 @@
-﻿using System;
+﻿using MyCalendar.Service;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -8,23 +10,23 @@ namespace MyCalendar.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IEventService eventService;
+
+        public HomeController(IEventService eventService)
+        {
+            this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+        }
+
         public ActionResult Index()
         {
             return View();
         }
 
-        public ActionResult About()
+        public async Task<JsonResult> GetEvents()
         {
-            ViewBag.Message = "Your application description page.";
+            var events = await eventService.GetAllAsync();
+            return new JsonResult { Data = events, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
 
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
         }
     }
 }

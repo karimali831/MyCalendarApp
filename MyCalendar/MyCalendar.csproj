@@ -102,11 +102,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DTOs\Finance.cs" />
-    <Compile Include="Model\Finance.cs" />
+    <Compile Include="DTOs\Event.cs" />
+    <Compile Include="Model\Event.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repository\Finance.cs" />
-    <Compile Include="Service\FinanceService.cs" />
+    <Compile Include="Repository\EventRepository.cs" />
+    <Compile Include="Service\EventService.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Enums\" />
