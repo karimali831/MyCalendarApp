@@ -11,6 +11,7 @@ namespace MyCalendar.Repository
 {
     public interface IEventRepository
     {
+        Task<Event> GetAsync(Guid eventId);
         Task<IEnumerable<Event>> GetAllAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> InsertOrUpdateAsync(Event e);
@@ -26,6 +27,14 @@ namespace MyCalendar.Repository
         public EventRepository(Func<IDbConnection> dbConnectionFactory)
         {
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
+        }
+
+        public async Task<Event> GetAsync(Guid eventId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE EventID = @eventId", new { eventId })).FirstOrDefault();
+            }
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync()
@@ -54,6 +63,7 @@ namespace MyCalendar.Repository
                         new
                         {
                             eventId = e.EventID,
+                            userId = e.UserID,
                             subject = e.Subject,
                             description = e.Description,
                             startDate = e.StartDate,

@@ -10,6 +10,7 @@ namespace MyCalendar.DTOs
     public class EventDTO
     {
         public Guid EventID { get; set; }
+        public Guid UserID { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime Start { get; set; }
@@ -22,6 +23,7 @@ namespace MyCalendar.DTOs
             return new EventDTO
             {
                 EventID = e.EventID,
+                UserID = e.UserID,
                 Subject = e.Subject,
                 Description = e.Description,
                 Start = e.StartDate,
@@ -36,6 +38,7 @@ namespace MyCalendar.DTOs
             return new Event
             {
                 EventID = e.EventID,
+                UserID = e.UserID,
                 Subject = e.Subject,
                 Description = e.Description,
                 StartDate = e.Start,

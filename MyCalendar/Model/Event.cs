@@ -7,6 +7,7 @@ namespace MyCalendar.Model
     public class Event
     {
         public Guid EventID { get; set; }
+        public Guid UserID { get; set; }
         public string Subject { get; set; }
         public string Description { get; set; }
         public DateTime StartDate { get; set; }

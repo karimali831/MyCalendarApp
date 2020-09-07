@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using MyCalendar.Model;
+using System;
+
 
 namespace MyCalendar.Website.ViewModels
 {
     public abstract class BaseVM
     {
-        public bool Authenticated { get; set; } = false;
-        public string Name { get; set; }
+        public User User { get; set; }
         public Exception Exception { get; set; }
     }
 }

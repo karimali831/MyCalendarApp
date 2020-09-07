@@ -24,7 +24,7 @@
                 <ul class="nav navbar-nav pull-right">
                     <li>
                         <a href="@Url.Action("Index", "Home")">
-                            <span class="glyphicon glyphicon-user"></span> @(Model != null && Model.Authenticated ? Model.Name : "Login")
+                            <span class="glyphicon glyphicon-user"></span> @(Model != null && Model.User.Authenticated ? Model.User.Name : "Login")
                         </a>
                     </li>
                 </ul>

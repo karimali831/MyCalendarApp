@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DFM.Utils;
+using System;
 using System.Data.Entity.ModelConfiguration;
 
 namespace MyCalendar.Model
@@ -10,6 +11,8 @@ namespace MyCalendar.Model
         public string Name { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
+        [DbIgnore]
+        public bool Authenticated { get; set; } = false;
     }
 
     public class UserMap : EntityTypeConfiguration<User>
