@@ -5,7 +5,8 @@ using System.Web;
 
 namespace MyCalendar.Website.ViewModels
 {
-    public class ErrorVM : BaseVM
+    public class CalendarVM : BaseVM
     {
+       
     }
 }

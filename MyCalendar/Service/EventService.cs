@@ -17,9 +17,9 @@ namespace MyCalendar.Service
     {
         private readonly IEventRepository eventRepository;
 
-        public EventService(IEventRepository calendarRepository)
+        public EventService(IEventRepository eventRepository)
         {
-            this.eventRepository = calendarRepository ?? throw new ArgumentNullException(nameof(eventRepository));
+            this.eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync()

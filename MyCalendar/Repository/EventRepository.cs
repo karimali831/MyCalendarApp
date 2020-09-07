@@ -36,8 +36,6 @@ namespace MyCalendar.Repository
             }
         }
 
-  
-
         public async Task<bool> EventExists(Guid eventId)
         {
             using (var sql = dbConnectionFactory())
@@ -52,8 +50,6 @@ namespace MyCalendar.Repository
             {
                 try
                 {
-                    var existing = await EventExists(e.EventID);
-
                     Func<Event, object> saveEvent = (Event e) =>
                         new
                         {
@@ -65,6 +61,8 @@ namespace MyCalendar.Repository
                             themeColor = e.ThemeColor,
                             isFullDay = e.IsFullDay
                         };
+
+                    var existing = await EventExists(e.EventID);
 
                     if (existing == false)
                     {

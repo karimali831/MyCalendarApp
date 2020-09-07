@@ -1,6 +1,7 @@
 ﻿using MyCalendar.DTOs;
 using MyCalendar.Model;
 using MyCalendar.Service;
+using MyCalendar.Website.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,14 +14,59 @@ namespace MyCalendar.Controllers
     public class HomeController : UserMvcController
     {
         private readonly IEventService eventService;
+        private readonly IUserService userService;
+        private readonly static string AuthenticationName = "iCalendarApp-Authentication";
 
-        public HomeController(IEventService eventService)
+        public HomeController(IEventService eventService, IUserService userService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        public ActionResult Index()
+        public async Task<ActionResult>  Index()
         {
+            var users = await userService.GetAllAsync();
+
+            if (Session[AuthenticationName] != null)
+            {
+                if (users.Select(x => x.Passcode.ToString()).Contains(Session[AuthenticationName].ToString()))
+                {
+                    return RedirectToAction("Calendar");
+                }
+            }
+
+            return View();
+        }
+
+        public async Task<ActionResult> Calendar()
+        {
+            var user = await userService.GetAsync(int.Parse(Session[AuthenticationName].ToString()));
+
+            if (user != null)
+            {
+                return View("Calendar",
+                    new CalendarVM
+                    {
+                        Name = user.Name,
+                        Authenticated = true
+                    });
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Index(int passcode)
+        {
+            var checkUser = await userService.GetAsync(passcode);
+
+            if (checkUser != null)
+            {
+                Session[AuthenticationName] = checkUser.Passcode;
+                return RedirectToAction("Calendar");
+            }
+
+            ViewBag.ErrorMessage = "The passcode was entered incorrectly";
             return View();
         }
 
