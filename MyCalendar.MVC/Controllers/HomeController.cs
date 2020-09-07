@@ -26,13 +26,11 @@ namespace MyCalendar.Controllers
 
             if (user != null)
             {
-                var users = (await GetUsers()).Where(x => x.UserID != user.UserID).ToList();
-
                 return View("Calendar", 
                     new CalendarVM 
                     { 
                         User = user,
-                        Users = users,
+                        Users = await GetUsers(),
                         Viewing = viewingId,
                         Combined = combined
                     });
@@ -102,7 +100,7 @@ namespace MyCalendar.Controllers
                     Settings = true, 
                     SettingsUpdated = status,
                     User = await GetUser(),
-                    Users = (await GetUsers()).ToList()
+                    Users = await GetUsers()
                 }
             );
         }

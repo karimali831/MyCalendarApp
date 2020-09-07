@@ -27,9 +27,17 @@ namespace MyCalendar.Controllers
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        public async Task<IEnumerable<User>> GetUsers()
+        public async Task<IList<User>> GetUsers()
         {
-            return await userService.GetAllAsync();
+            var users = await userService.GetAllAsync();
+            var user = await GetUser();
+
+            if (user != null)
+            {
+                users = users.Where(x => x.UserID != user.UserID);
+            }
+
+            return users.ToList();
         }
 
         public async Task<User> GetUser(int? passcode = null)
