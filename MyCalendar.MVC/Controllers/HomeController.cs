@@ -10,7 +10,7 @@ using System.Web.Mvc;
 
 namespace MyCalendar.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : UserMvcController
     {
         private readonly IEventService eventService;
 
