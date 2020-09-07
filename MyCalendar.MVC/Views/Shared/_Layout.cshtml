@@ -42,12 +42,22 @@
                                 <span class="glyphicon glyphicon-calendar"></span> Combined
                             </a>
                         </li>
+                        <li>
+                            <a style="@(Model.Combined ? "": "")" href="@Url.Action("Index", "Home")">
+                                <span class="glyphicon glyphicon-edit"></span> Settings
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Logout", "Home")">
+                                <span class="glyphicon glyphicon-log-out"></span> Logout
+                            </a>
+                        </li>
                     }
                     else
                     {
                         <li>
                             <a href="@Url.Action("Index", "Home")">
-                                <span class="glyphicon glyphicon-user"></span> Login
+                                <span class="glyphicon glyphicon-log-in"></span> Login
                             </a>
                         </li>
                     }

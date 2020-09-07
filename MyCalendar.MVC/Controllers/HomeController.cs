@@ -94,5 +94,12 @@ namespace MyCalendar.Controllers
             var status = e.UserID != userId ? false : await eventService.DeleteEvent(eventID);
             return new JsonResult { Data = new { status } };
         }
+
+        public ActionResult Logout()
+        {
+            LogoutUser();
+            return RedirectToAction("Index");
+        }
+
     }
 }

@@ -61,6 +61,11 @@ namespace MyCalendar.Controllers
             return null;
         }
 
+        public void LogoutUser()
+        {
+            Session.Remove(AuthenticationName);
+        }
+
         protected override void OnException(ExceptionContext filterContext)
         {
             filterContext.ExceptionHandled = true;
