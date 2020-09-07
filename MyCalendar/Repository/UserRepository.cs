@@ -13,7 +13,7 @@ namespace MyCalendar.Repository
     {
         Task<User> GetAsync(int passcode);
         Task<IEnumerable<User>> GetAllAsync();
-        Task<bool> UpdateAsync(User e);
+        Task<bool> UpdateAsync(User user);
     }
 
     public class UserRepository : IUserRepository
@@ -43,20 +43,20 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<bool> UpdateAsync(User e)
+        public async Task<bool> UpdateAsync(User user)
         {
             using (var sql = dbConnectionFactory())
             {
                 try
                 {
-                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE Passcode = @passcode", 
+                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE UserID = @userId", 
                         new
                         {
-                            userId = e.UserID,
-                            name = e.Name,
-                            email = e.Email,
-                            passcode = e.Passcode,
-                            phoneNumber = e.PhoneNumber
+                            userId = user.UserID,
+                            name = user.Name,
+                            email = user.Email,
+                            passcode = user.Passcode,
+                            phoneNumber = user.PhoneNumber
                         });
 
                     return true;

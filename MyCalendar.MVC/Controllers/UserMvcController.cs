@@ -66,6 +66,11 @@ namespace MyCalendar.Controllers
             Session.Remove(AuthenticationName);
         }
 
+        public async Task<bool> UpdateUser(User user)
+        {
+            return await userService.UpdateAsync(user);
+        }
+
         protected override void OnException(ExceptionContext filterContext)
         {
             filterContext.ExceptionHandled = true;

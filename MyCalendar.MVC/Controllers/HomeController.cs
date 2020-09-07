@@ -95,6 +95,25 @@ namespace MyCalendar.Controllers
             return new JsonResult { Data = new { status } };
         }
 
+        public async Task<ActionResult> Settings(int? status = null)
+        {
+            return View("Settings", 
+                new CalendarVM { 
+                    Settings = true, 
+                    SettingsUpdated = status,
+                    User = await GetUser(),
+                    Users = (await GetUsers()).ToList()
+                }
+            );
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Settings(CalendarVM model)
+        {
+            var status = await UpdateUser(model.User) == true ? 1 : 0;
+            return RedirectToAction("Settings", new { status });
+        }
+
         public ActionResult Logout()
         {
             LogoutUser();
