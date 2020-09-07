@@ -2,6 +2,7 @@
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MyCalendar.Service
@@ -9,7 +10,7 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync();
+        Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null);
         Task<bool> SaveEvent(Event e);
         Task<bool> DeleteEvent(Guid eventId);
     }
@@ -28,9 +29,16 @@ namespace MyCalendar.Service
             return await eventRepository.GetAsync(eventId);
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync()
+        public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null)
         {
-            return await eventRepository.GetAllAsync();
+            var events = await eventRepository.GetAllAsync();
+
+            if (userId.HasValue)
+            {
+                events = events.Where(x => x.UserID == userId);
+            }
+
+            return events;
         }
 
         public async Task<bool> SaveEvent(Event e)

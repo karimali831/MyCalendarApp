@@ -5,6 +5,8 @@ using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Security.Cryptography;
@@ -23,6 +25,11 @@ namespace MyCalendar.Controllers
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        }
+
+        public async Task<IEnumerable<User>> GetUsers()
+        {
+            return await userService.GetAllAsync();
         }
 
         public async Task<User> GetUser(int? passcode = null)

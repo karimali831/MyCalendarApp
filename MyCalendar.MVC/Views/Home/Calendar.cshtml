@@ -103,7 +103,8 @@
                 events = [];
                 $.ajax({
                     type: "GET",
-                    url: "/home/GetEvents",
+                    data: { 'viewingId': '@Model.Viewing', 'combined': '@Model.Combined'  },
+                    url: "/home/GetEvents/",
                     success: function (data) {
                         $.each(data, function (i, v) {
                             events.push({

@@ -20,13 +20,22 @@ namespace MyCalendar.Controllers
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
 
-        public async Task<ActionResult>  Index()
+        public async Task<ActionResult> Index(Guid? viewingId = null, bool combined = false)
         {
             var user = await GetUser();
 
             if (user != null)
             {
-                return View("Calendar", new CalendarVM { User = user });
+                var users = (await GetUsers()).Where(x => x.UserID != user.UserID).ToList();
+
+                return View("Calendar", 
+                    new CalendarVM 
+                    { 
+                        User = user,
+                        Users = users,
+                        Viewing = viewingId,
+                        Combined = combined
+                    });
             }
             
             return View();
@@ -46,9 +55,21 @@ namespace MyCalendar.Controllers
             return View();
         }
 
-        public async Task<JsonResult> GetEvents()
+        public async Task<JsonResult> GetEvents(Guid? viewingId = null, bool combined = false)
         {
-            var events = await eventService.GetAllAsync();
+            Guid? viewing = null; 
+
+            if (combined)
+            {
+                viewing = null;
+            }
+            else
+            {
+                viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
+            }
+
+
+            var events = await eventService.GetAllAsync(viewing);
             var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
             return new JsonResult { Data = dto, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
