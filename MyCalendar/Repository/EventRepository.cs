@@ -66,8 +66,8 @@ namespace MyCalendar.Repository
                             userId = e.UserID,
                             subject = e.Subject,
                             description = e.Description,
-                            startDate = e.StartDate,
-                            endDate = e.EndDate,
+                            startDate = e.StartDate.ToUniversalTime().AddHours(-1),
+                            endDate = e.EndDate.Value.ToUniversalTime().AddHours(-1),
                             themeColor = e.ThemeColor,
                             isFullDay = e.IsFullDay
                         };

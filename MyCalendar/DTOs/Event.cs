@@ -26,8 +26,8 @@ namespace MyCalendar.DTOs
                 UserID = e.UserID,
                 Subject = e.Subject,
                 Description = e.Description,
-                Start = e.StartDate,
-                End = e.EndDate,
+                Start = e.StartDate.ToLocalTime(),
+                End = e.EndDate.Value.ToLocalTime(),
                 ThemeColor = e.ThemeColor,
                 IsFullDay = e.IsFullDay
             };
@@ -41,8 +41,8 @@ namespace MyCalendar.DTOs
                 UserID = e.UserID,
                 Subject = e.Subject,
                 Description = e.Description,
-                StartDate = e.Start,
-                EndDate = e.End,
+                StartDate = e.Start.ToLocalTime(),
+                EndDate = e.End.Value.ToLocalTime(),
                 ThemeColor = e.ThemeColor,
                 IsFullDay = e.IsFullDay
             };

@@ -38,6 +38,12 @@ namespace MyCalendar.Service
                 events = events.Where(x => x.UserID == userId);
             }
 
+            foreach (var e in events)
+            {
+                e.StartDate.ToLocalTime().AddHours(-1);
+                e.EndDate.Value.ToLocalTime().AddHours(-1);
+            }
+
             return events;
         }
 
