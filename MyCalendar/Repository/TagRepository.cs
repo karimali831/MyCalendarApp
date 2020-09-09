@@ -12,7 +12,7 @@ namespace MyCalendar.Repository
     public interface ITagRepository
     {
         Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
-        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags);
+        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
         Task<bool> UserTagExists(Guid Id);
     }
 
@@ -44,40 +44,57 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags)
+        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID)
         {
             using (var sql = dbConnectionFactory())
             {
                 try
                 {
-                    await sql.ExecuteAsync($"DELETE FROM {TABLE} WHERE UserID = @userID", new { userID = tags.First().UserID });
-
-                    foreach (var tag in tags)
+                    if (tags.Any())
                     {
-                        Func<Tag, object> saveTag = (Tag t) =>
-                            new
+                        var userTags = await GetTagsByUserAsync(userID);
+                        var deletingTags = userTags.Select(x => x.Id).Except(tags.Select(x => x.Id));
+
+                        if (userTags.Any() && deletingTags.Any())
+                        {
+                            foreach (var tag in deletingTags)
                             {
-                                id = t.Id,
-                                userId = tags.First().UserID,
-                                typeId = t.TypeID,
-                                name = t.Name,
-                                themeColor = t.ThemeColor
-                            };
-
-                        var existing = await UserTagExists(tag.Id);
-
-                        if (existing == false)
-                        {
-                            tag.Id = Guid.NewGuid();
-                            await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveTag(tag));
+                                await sql.ExecuteAsync($"DELETE FROM {TABLE} WHERE Id = @TagID", new { TagID = tag });
+                            }
                         }
-                        else
+
+                        foreach (var tag in tags)
                         {
-                            await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE Id = @id", saveTag(tag));
+                            Func<Tag, object> saveTag = (Tag t) =>
+                                new
+                                {
+                                    id = t.Id,
+                                    userId = userID,
+                                    typeId = t.TypeID,
+                                    name = t.Name,
+                                    themeColor = t.ThemeColor
+                                };
+
+                            var existing = await UserTagExists(tag.Id);
+
+                            if (existing == false)
+                            {
+                                tag.Id = Guid.NewGuid();
+                                await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveTag(tag));
+                            }
+                            else
+                            {
+                                await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE Id = @id", saveTag(tag));
+                            }
                         }
+                        return true;
                     }
-
-                    return true;
+                    else
+                    {
+                        // no tags - all removed
+                        await sql.ExecuteAsync($"DELETE FROM {TABLE} WHERE UserID = @UserID", new { UserID = userID });
+                        return true;
+                    }
                 }
                 catch (Exception exp)
                 {

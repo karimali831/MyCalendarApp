@@ -31,6 +31,7 @@ namespace MyCalendar.Controllers
                     { 
                         User = user,
                         Users = await GetUsers(),
+                        UserTags = new TagsDTO { Tags = await GetUserTags() },
                         Viewing = viewingId,
                         Combined = combined
                     });
@@ -66,16 +67,16 @@ namespace MyCalendar.Controllers
                 viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
             }
 
-
             var events = await eventService.GetAllAsync(viewing);
-            var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
+            var dto = events.Select(b => DTOs.EventDTO.MapFrom(b)).ToList();
+
             return new JsonResult { Data = dto, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
         [HttpPost]
-        public async Task<JsonResult> SaveEvent(EventDTO e)
+        public async Task<JsonResult> SaveEvent(EventVM e)
         {
-            var dto = EventDTO.MapTo(e);
+            var dto = DTOs.EventDTO.MapFrom(e);
             dto.UserID = (await GetUser()).UserID;
 
             var status = await eventService.SaveEvent(dto);
@@ -127,6 +128,7 @@ namespace MyCalendar.Controllers
         public async Task<ActionResult> UpdateTags(TagsDTO tags)
         {
             var tagsA = new Dictionary<int, Tag>();
+            var userId = (await GetUser()).UserID;
 
             int z = 1;
             foreach (var item in tags.Id)
@@ -167,7 +169,7 @@ namespace MyCalendar.Controllers
             })
             .Where(x => !string.IsNullOrEmpty(x.Name));
 
-            var status = await UpdateUserTags(tags.Tags) == true ? 1 : 0;
+            var status = await UpdateUserTags(tags.Tags, userId) == true ? 1 : 0;
             return RedirectToAction("Settings", new { status });
         }
 

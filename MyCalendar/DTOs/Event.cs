@@ -7,44 +7,60 @@ using System.Threading.Tasks;
 
 namespace MyCalendar.DTOs
 {
+    public class EventVM
+    {
+        public Guid EventID { get; set; }
+        public Guid UserID { get; set; }
+        public Guid TagID { get; set; }
+        public string Description { get; set; }
+        public DateTime Start { get; set; }
+        public DateTime? End { get; set; }
+        public bool IsFullDay { get; set; }
+        public bool Tentative { get; set; }
+        public string ThemeColor { get; set; }
+        public string Subject { get; set; }
+    }
+
     public class EventDTO
     {
         public Guid EventID { get; set; }
         public Guid UserID { get; set; }
-        public string Subject { get; set; }
+        public Guid TagID { get; set; }
         public string Description { get; set; }
         public DateTime Start { get; set; }
         public DateTime? End { get; set; }
-        public string ThemeColor { get; set; }
         public bool IsFullDay { get; set; }
+        public bool Tentative { get; set; }
 
-        public static EventDTO MapFrom(Event e)
+        public static EventVM MapFrom(Event e)
         {
-            return new EventDTO
+            return new EventVM
             {
                 EventID = e.EventID,
                 UserID = e.UserID,
-                Subject = e.Subject,
+                TagID = e.TagID,
                 Description = e.Description,
                 Start = e.StartDate.ToLocalTime(),
                 End = e.EndDate.Value.ToLocalTime(),
-                ThemeColor = e.ThemeColor,
-                IsFullDay = e.IsFullDay
+                IsFullDay = e.IsFullDay,
+                Tentative = e.Tentative,
+                Subject = e.Subject,
+                ThemeColor = e.ThemeColor
             };
         }
 
-        public static Event MapTo(EventDTO e)
+        public static Model.EventDTO MapFrom(EventVM e)
         {
-            return new Event
+            return new Model.EventDTO
             {
                 EventID = e.EventID,
                 UserID = e.UserID,
-                Subject = e.Subject,
+                TagID = e.TagID,
                 Description = e.Description,
                 StartDate = e.Start.ToLocalTime(),
                 EndDate = e.End.Value.ToLocalTime(),
-                ThemeColor = e.ThemeColor,
-                IsFullDay = e.IsFullDay
+                IsFullDay = e.IsFullDay,
+                Tentative = e.Tentative
             };
         }
     }

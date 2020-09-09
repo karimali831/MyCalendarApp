@@ -1,4 +1,5 @@
-﻿using MyCalendar.Model;
+﻿using MyCalendar.DTOs;
+using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace MyCalendar.Service
     {
         Task<Event> GetAsync(Guid eventId);
         Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null);
-        Task<bool> SaveEvent(Event e);
+        Task<bool> SaveEvent(Model.EventDTO dto);
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
     }
@@ -50,9 +51,9 @@ namespace MyCalendar.Service
             return events;
         }
 
-        public async Task<bool> SaveEvent(Event e)
+        public async Task<bool> SaveEvent(Model.EventDTO dto)
         {
-            return await eventRepository.InsertOrUpdateAsync(e);
+            return await eventRepository.InsertOrUpdateAsync(dto);
         }
 
         public async Task<bool> DeleteEvent(Guid eventId)

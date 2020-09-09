@@ -1,10 +1,12 @@
 ﻿using Dapper;
 using DFM.Utils;
+using MyCalendar.DTOs;
 using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MyCalendar.Repository
@@ -14,7 +16,7 @@ namespace MyCalendar.Repository
         Task<Event> GetAsync(Guid eventId);
         Task<IEnumerable<Event>> GetAllAsync();
         Task<bool> EventExists(Guid eventId);
-        Task<bool> InsertOrUpdateAsync(Event e);
+        Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
         Task<bool> DeleteAsync(Guid eventId);
     }
 
@@ -23,6 +25,7 @@ namespace MyCalendar.Repository
         private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = "Events";
         private static readonly string[] FIELDS = typeof(Event).DapperFields();
+        private static readonly string[] DTOFIELDS = typeof(Model.EventDTO).DapperFields();
 
         public EventRepository(Func<IDbConnection> dbConnectionFactory)
         {
@@ -41,7 +44,13 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
+                string sqlTxt = $@"
+                    SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject
+                    FROM Events e
+                    LEFT JOIN Tags t
+                    ON e.TagID = t.Id";
+
+                return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
             }
         }
 
@@ -53,35 +62,35 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<bool> InsertOrUpdateAsync(Event e)
+        public async Task<bool> InsertOrUpdateAsync(Model.EventDTO dto)
         {
             using (var sql = dbConnectionFactory())
             {
                 try
                 {
-                    Func<Event, object> saveEvent = (Event e) =>
+                    Func<Model.EventDTO, object> saveEvent = (Model.EventDTO e) =>
                         new
                         {
                             eventId = e.EventID,
                             userId = e.UserID,
-                            subject = e.Subject,
                             description = e.Description,
                             startDate = e.StartDate.ToUniversalTime().AddHours(-1),
                             endDate = e.EndDate.Value.ToUniversalTime().AddHours(-1),
-                            themeColor = e.ThemeColor,
+                            tentative = e.Tentative,
+                            tagID = e.TagID,
                             isFullDay = e.IsFullDay
                         };
 
-                    var existing = await EventExists(e.EventID);
+                    var existing = await EventExists(dto.EventID);
 
                     if (existing == false)
                     {
-                        e.EventID = Guid.NewGuid();
-                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveEvent(e));
+                        dto.EventID = Guid.NewGuid();
+                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(dto));
                     }
                     else
                     {
-                        await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE EventID = @eventId", saveEvent(e));
+                        await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, DTOFIELDS, "")} WHERE EventID = @eventId", saveEvent(dto));
                     }
 
                     return true;

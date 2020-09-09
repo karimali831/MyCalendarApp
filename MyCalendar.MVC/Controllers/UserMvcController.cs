@@ -102,9 +102,9 @@ namespace MyCalendar.Controllers
             return await userService.UpdateAsync(user);
         }
 
-        public async Task<bool> UpdateUserTags(IEnumerable<Tag> tags)
+        public async Task<bool> UpdateUserTags(IEnumerable<Tag> tags, Guid userID)
         {
-            return await tagService.UpdateUserTagsAsync(tags);
+            return await tagService.UpdateUserTagsAsync(tags, userID);
         }
 
         protected override void OnException(ExceptionContext filterContext)

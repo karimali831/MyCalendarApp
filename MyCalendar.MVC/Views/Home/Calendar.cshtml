@@ -39,8 +39,13 @@
                 <form class="form-horizontal">
                     <input type="hidden" id="hdEventID" value="0" />
                     <div class="form-group">
-                        <label>Subject</label>
-                        <input type="text" id="txtSubject" class="form-control" />
+                        <label>Tag</label> @Html.ActionLink("(edit tags)", "Settings", "Home")
+                        <select id="ddTagID" class="form-control">
+                            @foreach (var tag in Model.UserTags.Tags)
+                            {
+                                <option value="@tag.Id">@tag.Name</option>
+                            }
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>Start</label>
@@ -50,10 +55,13 @@
                             </span>
                             <input type="text" id="txtStart" class="form-control" />
                         </div>
-                     </div>
+                    </div>
                     <div class="form-group">
-                        <div class="checkbox">
+                        <div class="checkbox checkbox-inline">
                             <label><input type="checkbox" id="chkIsFullDay" checked="checked" />  Is Full Day event</label>
+                        </div>
+                        <div class="checkbox checkbox-inline">
+                            <label><input type="checkbox" id="chkTentative" checked="checked" />  Tentative</label>
                         </div>
                     </div>
                     <div class="form-group" id="divEndDate" style="display:none">
@@ -68,16 +76,6 @@
                     <div class="form-group">
                         <label>Description</label>
                         <textarea id="txtDescription" rows="3" class="form-control"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Theme Color</label>
-                        <select id="ddThemeColor" class="form-control">
-                            <option value="">Default</option>
-                            <option value="red">Red</option>
-                            <option value="blue">Blue</option>
-                            <option value="black">Black</option>
-                            <option value="green">Green</option>
-                        </select>
                     </div>
                     <button type="button" id="btnSave" class="btn btn-success">Save</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -109,12 +107,14 @@
                         $.each(data, function (i, v) {
                             events.push({
                                 eventID: v.EventID,
+                                tagID: v.TagID,
                                 title: v.Subject,
                                 description: v.Description,
                                 start: moment(v.Start),
                                 end: v.End != null ? moment(v.End) : null,
                                 color: v.ThemeColor,
-                                allDay: v.IsFullDay
+                                allDay: v.IsFullDay,
+                                tentative: v.Tentative
                             });
                         })
 
@@ -162,6 +162,7 @@
                             start: start,
                             end: end,
                             allDay: false,
+                            tentative: false,
                             color: ''
                         };
                         openAddEditForm();
@@ -171,12 +172,12 @@
                     eventDrop: function (event) {
                         var data = {
                             EventID: event.eventID,
-                            Subject: event.title,
+                            TagID: event.tagID,
                             Start: event.start.format('DD/MM/YYYY HH:mm A'),
                             End: event.end != null ? event.end.format('DD/MM/YYYY HH:mm A') : null,
                             Description: event.description,
-                            ThemeColor: event.color,
-                            IsFullDay: event.allDay
+                            IsFullDay: event.allDay,
+                            Tentative: event.tentative
                         };
                         SaveEvent(data);
                     }
@@ -220,23 +221,20 @@
             function openAddEditForm() {
                 if (selectedEvent != null) {
                     $('#hdEventID').val(selectedEvent.eventID);
-                    $('#txtSubject').val(selectedEvent.title);
                     $('#txtStart').val(selectedEvent.start.format('DD/MM/YYYY HH:mm A'));
                     $('#chkIsFullDay').prop("checked", selectedEvent.allDay || false);
                     $('#chkIsFullDay').change();
+                    $('#chkTentative').prop("checked", selectedEvent.tentative || false);
+                    $('#chkTentative').change();
                     $('#txtEnd').val(selectedEvent.end != null ? selectedEvent.end.format('DD/MM/YYYY HH:mm A') : '');
                     $('#txtDescription').val(selectedEvent.description);
-                    $('#ddThemeColor').val(selectedEvent.color);
+                    $('#ddTagID').val(selectedEvent.tagID);
                 }
                 $('#myModal').modal('hide');
                 $('#myModalSave').modal();
             }
             $('#btnSave').click(function () {
                 //Validation/
-                if ($('#txtSubject').val().trim() == "") {
-                    alert('Subject required');
-                    return;
-                }
                 if ($('#txtStart').val().trim() == "") {
                     alert('Start date required');
                     return;
@@ -256,12 +254,12 @@
 
                 var data = {
                     EventID: $('#hdEventID').val(),
-                    Subject: $('#txtSubject').val().trim(),
+                    TagID: $('#ddTagID').val(),
                     Start: $('#txtStart').val().trim(),
                     End: $('#chkIsFullDay').is(':checked') ? null : $('#txtEnd').val().trim(),
                     Description: $('#txtDescription').val(),
-                    ThemeColor: $('#ddThemeColor').val(),
-                    IsFullDay: $('#chkIsFullDay').is(':checked')
+                    IsFullDay: $('#chkIsFullDay').is(':checked'),
+                    Tentative: $('#chkTentative').is(':checked')
                 }
                 SaveEvent(data);
                 // call function for submit data to the server

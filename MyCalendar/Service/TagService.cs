@@ -9,7 +9,7 @@ namespace MyCalendar.Service
     public interface ITagService
     {
         Task<IEnumerable<Tag>> GetUserTagsAsync(Guid userID);
-        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags);
+        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
     }
 
     public class TagService : ITagService
@@ -26,9 +26,9 @@ namespace MyCalendar.Service
             return await tagRepository.GetTagsByUserAsync(userID);
         }
 
-        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags)
+        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID)
         {
-            return await tagRepository.UpdateUserTagsAsync(tags);
+            return await tagRepository.UpdateUserTagsAsync(tags, userID);
         }
 
     }
