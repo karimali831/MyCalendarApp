@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using DFM.Utils;
+using MyCalendar.DTOs;
 using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace MyCalendar.Repository
         private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = "Users";
         private static readonly string[] FIELDS = typeof(User).DapperFields();
+        private static readonly string[] TAGSFIELDS = typeof(Tag).DapperFields();
 
         public UserRepository(Func<IDbConnection> dbConnectionFactory)
         {

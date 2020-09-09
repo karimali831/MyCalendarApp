@@ -33,16 +33,21 @@
                         {
                             foreach (var user in Model.Users)
                             {
-                            <li>
-                                <a style="@(user.UserID == Model.Viewing ? "color:#0094ff" : "")" href="@Url.Action("Index", "Home", new { viewingId = user.UserID })">
-                                    <span class="glyphicon glyphicon-calendar"></span> @user.Name
-                                </a>
-                            </li>
+                                <li>
+                                    <a style="@(user.UserID == Model.Viewing ? "color:#0094ff" : "")" href="@Url.Action("Index", "Home", new { viewingId = user.UserID })">
+                                        <span class="glyphicon glyphicon-calendar"></span> @user.Name
+                                    </a>
+                                </li>
                             }
                         }
                         <li>
                             <a style="@(Model.Combined ? "color:#0094ff": "")" href="@Url.Action("Index", "Home", new { combined = true })">
                                 <span class="glyphicon glyphicon-calendar"></span> Combined
+                            </a>
+                        </li>
+                        <li>
+                            <a style="@(Model.Overview ? "color:#0094ff": "")" href="@Url.Action("Index", "Home")">
+                                <span class="glyphicon glyphicon-check"></span> Overview
                             </a>
                         </li>
                         <li>

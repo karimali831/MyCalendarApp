@@ -15,12 +15,14 @@ namespace MyCalendar.Ninject
             // Services
             Bind<IEventService>().To<EventService>();
             Bind<IUserService>().To<UserService>();
+            Bind<ITagService>().To<TagService>();
+            Bind<ITypeService>().To<TypeService>();
 
             // Repositories
             Bind<IEventRepository>().To<EventRepository>();
             Bind<IUserRepository>().To<UserRepository>();
+            Bind<ITagRepository>().To<TagRepository>();
+            Bind<ITypeRepository>().To<TypeRepository>();
         }
     }
-
-
 }

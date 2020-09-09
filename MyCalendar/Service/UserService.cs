@@ -1,4 +1,5 @@
-﻿using MyCalendar.Model;
+﻿using MyCalendar.DTOs;
+using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
@@ -16,10 +17,12 @@ namespace MyCalendar.Service
     public class UserService : IUserService
     {
         private readonly IUserRepository userRepository;
+        private readonly ITagService tagService;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, ITagService tagService)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()

@@ -1,5 +1,7 @@
 ﻿using DFM.Utils;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
 
 namespace MyCalendar.Model

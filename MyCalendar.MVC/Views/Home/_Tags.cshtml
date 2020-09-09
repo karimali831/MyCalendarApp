@@ -1,0 +1,94 @@
+﻿@model MyCalendar.DTOs.TagsDTO
+@using (Html.BeginForm("UpdateTags", "Home"))
+{
+    <div class="jumbotron">
+        <h3><span class="glyphicon glyphicon-tags"> Tags</span></h3>
+        <hr />
+
+
+        <div class="after-add-more">
+            @foreach (var tag in Model.Tags)
+            {
+                <div class="input-group control-group">
+                    <div class="col-sm-3 nopadding" style="width: 250px">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="name" name="name[]" value="@tag.Name" placeholder="Name">
+                        </div>
+                    </div>
+                    <div class="col-sm-3 nopadding" style="width: 250px">
+                        <div class="form-group">
+                            <select class="form-control" id="themeColor" name="themeColor[]">
+                                <option value="" @(tag.ThemeColor == "" ? "selected" : "")>Default Theme</option>
+                                <option value="red" @(tag.ThemeColor == "red" ? "selected" : "")>Red Theme</option>
+                                <option value="orange" @(tag.ThemeColor == "orange" ? "selected" : "")>Orange Theme</option>
+                                <option value="blue" @(tag.ThemeColor == "blue" ? "selected" : "")>Blue Theme</option>
+                                <option value="black" @(tag.ThemeColor == "black" ? "selected" : "")>Black Theme</option>
+                                <option value="green" @(tag.ThemeColor == "green" ? "selected" : "")>Green Theme</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-3 nopadding" style="width: 250px">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <select class="form-control" id="typeID" name="typeID[]">
+                                    @foreach (var type in Model.Types)
+                                    {
+                                        <option value="@type.Id" @(type.Id == tag.TypeID ? "selected" : "")>@type.Name</option>
+                                    }
+                                </select>
+                                <div class="input-group-btn">
+                                    <button class="btn btn-danger remove" type="button"> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                                </div>
+                                <input type="hidden" name="Id[]" value="@tag.Id" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clear"></div>
+                </div>
+            }
+            <button class="btn btn-success add-more pull-right" type="button"> <span class="glyphicon glyphicon-plus" aria-hidden="true">  Add</span></button>
+        </div>
+
+        <!-- Copy Fields -->
+        <div class="copy hide">
+            <div class="control-group input-group" style="margin-top:10px">
+                <div class="col-sm-3 nopadding" style="width: 250px">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="name" name="name[]" value="" placeholder="Name">
+                    </div>
+                </div>
+                <div class="col-sm-3 nopadding" style="width: 250px">
+                    <div class="form-group">
+                        <select class="form-control" id="themeColor" name="themeColor[]">
+                            <option value="">Default Theme</option>
+                            <option value="red">Red Theme</option>
+                            <option value="organge">Orange Theme</option>
+                            <option value="blue">Blue Theme</option>
+                            <option value="black">Black Theme</option>
+                            <option value="green">Green Theme</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-sm-3 nopadding" style="width: 250px">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <select class="form-control" id="typeId" name="typeID[]">
+                                @foreach (var type in Model.Types)
+                                {
+                                    <option value="@type.Id">@type.Name</option>
+                                }
+                            </select>
+                            <div class="input-group-btn">
+                                <button class="btn btn-danger remove" type="button"> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Id[]" value="" />
+                    </div>
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
+        @Html.HiddenFor(x => x.UserID)
+        <button type="submit" class="btn btn-primary">Update</button>
+    </div>
+}

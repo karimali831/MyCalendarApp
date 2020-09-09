@@ -15,7 +15,7 @@ namespace MyCalendar.Controllers
     {
         private readonly IEventService eventService;
 
-        public HomeController(IEventService eventService, IUserService userService) : base(userService)
+        public HomeController(IEventService eventService, IUserService userService, ITagService tagService) : base(userService, tagService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
@@ -95,20 +95,79 @@ namespace MyCalendar.Controllers
 
         public async Task<ActionResult> Settings(int? status = null)
         {
-            return View("Settings", 
-                new CalendarVM { 
-                    Settings = true, 
-                    SettingsUpdated = status,
-                    User = await GetUser(),
-                    Users = await GetUsers()
+            var user = await GetUser();
+
+            var viewModel = new CalendarVM
+            {
+                Settings = true,
+                SettingsUpdated = status,
+                User = user,
+                Users = await GetUsers(),
+                UserTags = new TagsDTO
+                {
+                    UserID = user.UserID,
+                    Tags = await GetUserTags(),
+                    Types = await eventService.GetTypes()
+
                 }
-            );
+            };
+
+            return View("Settings", viewModel);
         }
 
         [HttpPost]
         public async Task<ActionResult> Settings(CalendarVM model)
         {
             var status = await UpdateUser(model.User) == true ? 1 : 0;
+            return RedirectToAction("Settings", new { status });
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> UpdateTags(TagsDTO tags)
+        {
+            var tagsA = new Dictionary<int, Tag>();
+
+            int z = 1;
+            foreach (var item in tags.Id)
+            {
+                tagsA.Add(z, new Tag { Id = item });
+                z++;
+            }
+
+            int i = 1;
+            foreach (var item in tags.Name)
+            {
+
+                tagsA[i].Name = item;
+                i++;
+            }
+
+            int a = 1;
+            foreach (var item in tags.ThemeColor)
+            {
+                tagsA[a].ThemeColor = item;
+                a++;
+            }
+
+            int t = 1;
+            foreach (var item in tags.TypeID)
+            {
+                tagsA[t].TypeID = item;
+                t++;
+            }
+
+            tags.Tags = tagsA.Values.Select(x => new Tag
+            {
+                Id = x.Id,
+                UserID = tags.UserID,
+                Name = x.Name,
+                ThemeColor = x.ThemeColor,
+                TypeID = x.TypeID
+            })
+            .Where(x => !string.IsNullOrEmpty(x.Name));
+
+            var status = await UpdateUserTags(tags.Tags) == true ? 1 : 0;
             return RedirectToAction("Settings", new { status });
         }
 

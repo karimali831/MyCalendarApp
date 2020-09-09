@@ -13,15 +13,18 @@ namespace MyCalendar.Service
         Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null);
         Task<bool> SaveEvent(Event e);
         Task<bool> DeleteEvent(Guid eventId);
+        Task<IEnumerable<Types>> GetTypes();
     }
 
     public class EventService : IEventService
     {
         private readonly IEventRepository eventRepository;
+        private readonly ITypeService typeService;
 
-        public EventService(IEventRepository eventRepository)
+        public EventService(IEventRepository eventRepository, ITypeService typeService)
         {
             this.eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
+            this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
         }
 
         public async Task<Event> GetAsync(Guid eventId)
@@ -55,6 +58,11 @@ namespace MyCalendar.Service
         public async Task<bool> DeleteEvent(Guid eventId)
         {
             return await eventRepository.DeleteAsync(eventId);
+        }
+
+        public async Task<IEnumerable<Types>> GetTypes()
+        {
+            return await typeService.GetAllAsync();
         }
     }
 }

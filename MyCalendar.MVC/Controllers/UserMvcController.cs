@@ -1,6 +1,7 @@
 ﻿
 using DFM.ExceptionHandling;
 using DFM.ExceptionHandling.Sentry;
+using MyCalendar.DTOs;
 using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
@@ -19,12 +20,14 @@ namespace MyCalendar.Controllers
     {
         private readonly IExceptionHandlerService exceptionHandlerService;
         private readonly IUserService userService;
+        private readonly ITagService tagService;
         private readonly string AuthenticationName = "iCalendarApp-Authentication";
 
-        public UserMvcController(IUserService userService)
+        public UserMvcController(IUserService userService, ITagService tagService)
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
         }
 
         public async Task<IList<User>> GetUsers()
@@ -39,6 +42,26 @@ namespace MyCalendar.Controllers
 
             return users.ToList();
         }
+
+        public async Task<IEnumerable<Tag>> GetUserTags()
+        {
+            var user = await GetUser();
+
+            if (user == null)
+            {
+                return Enumerable.Empty<Tag>();
+            }
+
+            var userTags = await tagService.GetUserTagsAsync(user.UserID);
+            
+            if (userTags != null)
+            {
+                return userTags;
+            }
+
+            return Enumerable.Empty<Tag>();
+        }
+
 
         public async Task<User> GetUser(int? passcode = null)
         {
@@ -77,6 +100,11 @@ namespace MyCalendar.Controllers
         public async Task<bool> UpdateUser(User user)
         {
             return await userService.UpdateAsync(user);
+        }
+
+        public async Task<bool> UpdateUserTags(IEnumerable<Tag> tags)
+        {
+            return await tagService.UpdateUserTagsAsync(tags);
         }
 
         protected override void OnException(ExceptionContext filterContext)
