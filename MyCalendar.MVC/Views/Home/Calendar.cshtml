@@ -108,7 +108,7 @@
                             events.push({
                                 eventID: v.EventID,
                                 tagID: v.TagID,
-                                title: v.Subject,
+                                title: v.Subject != null ? v.Subject : v.Description,
                                 description: v.Description,
                                 start: moment(v.Start),
                                 end: v.End != null ? moment(v.End) : null,
@@ -148,7 +148,13 @@
                         if (calEvent.end != null) {
                             $description.append($('<p/>').html('<b>End:</b>' + calEvent.end.format("DD-MMM-YYYY HH:mm a")));
                         }
-                        $description.append($('<p/>').html('<b>Description:</b>' + calEvent.description));
+                        if (calEvent.description != null) {
+                            $description.append($('<p/>').html('<b>Description:</b>' + calEvent.description));
+                        }
+                        if (calEvent.tentative) {
+                            $description.append($('<p/>').html('<b>Tentative</b>: Yes'));
+                        }
+
                         $('#myModal #pDetails').empty().html($description);
 
                         $('#myModal').modal();

@@ -36,7 +36,7 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE EventID = @eventId", new { eventId })).FirstOrDefault();
+                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)} WHERE EventID = @eventId", new { eventId })).FirstOrDefault();
             }
         }
 
