@@ -74,6 +74,10 @@ namespace MyCalendar.Controllers
                     Session[AuthenticationName] = user.Passcode;
                     return user;
                 }
+                else
+                {
+                    RedirectToAction("Index");
+                }
             }
             else
             {
@@ -86,6 +90,14 @@ namespace MyCalendar.Controllers
                         user.Authenticated = true;
                         return user;
                     }
+                    else
+                    {
+                        RedirectToAction("Index");
+                    }
+                }
+                else
+                {
+                    RedirectToAction("Index");
                 }
             }
 

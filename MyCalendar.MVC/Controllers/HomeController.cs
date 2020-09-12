@@ -54,6 +54,7 @@ namespace MyCalendar.Controllers
             return View();
         }
 
+
         public async Task<JsonResult> GetEvents(Guid? viewingId = null, bool combined = false)
         {
             Guid? viewing = null; 
@@ -76,6 +77,11 @@ namespace MyCalendar.Controllers
         [HttpPost]
         public async Task<JsonResult> SaveEvent(EventVM e)
         {
+            if ((await GetUser()) == null)
+            {
+                return new JsonResult { Data = new { status = false, responseText = "You are not logged-in" } };
+            }
+
             var dto = DTOs.EventDTO.MapFrom(e);
             dto.UserID = (await GetUser()).UserID;
 
@@ -86,6 +92,11 @@ namespace MyCalendar.Controllers
         [HttpPost]
         public async Task<JsonResult> DeleteEvent(Guid eventID)
         {
+            if ((await GetUser()) == null)
+            {
+                return new JsonResult { Data = new { status = false, responseText = "You are not logged-in" } };
+            }
+
             // check the event was created by the user
             var e = await eventService.GetAsync(eventID);
             var userId = (await GetUser()).UserID;
@@ -127,6 +138,7 @@ namespace MyCalendar.Controllers
         [HttpPost]
         public async Task<ActionResult> UpdateTags(TagsDTO tags)
         {
+
             var tagsA = new Dictionary<int, Tag>();
             var userId = (await GetUser()).UserID;
 

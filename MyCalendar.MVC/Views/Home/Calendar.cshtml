@@ -106,7 +106,8 @@
                                 end: v.End != null ? moment(v.End) : null,
                                 color: v.ThemeColor,
                                 allDay: v.IsFullDay,
-                                tentative: v.Tentative
+                                tentative: v.Tentative,
+                                duration: v.Duration
                             });
                         })
 
@@ -140,6 +141,9 @@
                         $description.append($('<p/>').html('<b>Start:</b> ' + calEvent.start.format("DD-MMM-YYYY HH:mm a")));
                         if (calEvent.end != null) {
                             $description.append($('<p/>').html('<b>End:</b> ' + calEvent.end.format("DD-MMM-YYYY HH:mm a")));
+                        }
+                        if (calEvent.duration != "") {
+                            $description.append($('<p/>').html('<b>Duration:</b> ' + calEvent.duration));
                         }
                         if (calEvent.description != null) {
                             $description.append($('<p/>').html('<b>Description:</b> ' + calEvent.description));
@@ -198,6 +202,10 @@
                                 //Refresh the calender
                                 FetchEventAndRenderCalendar();
                                 $('#myModal').modal('hide');
+                            }
+                            else {
+                                alert(data.responseText)
+                                window.location.reload(false);
                             }
                         },
                         error: function () {
@@ -273,6 +281,10 @@
                             //Refresh the calender
                             FetchEventAndRenderCalendar();
                             $('#myModalSave').modal('hide');
+                        }
+                        else {
+                            alert(data.responseText)
+                            window.location.reload(false); 
                         }
                     },
                     error: function () {

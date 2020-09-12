@@ -1,4 +1,5 @@
 ﻿using MyCalendar.Model;
+using MyFinances.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace MyCalendar.DTOs
         public Guid UserID { get; set; }
         public Guid TagID { get; set; }
         public string Description { get; set; }
+        public string Duration { get; set; }
         public DateTime Start { get; set; }
         public DateTime? End { get; set; }
         public bool IsFullDay { get; set; }
@@ -45,7 +47,8 @@ namespace MyCalendar.DTOs
                 IsFullDay = e.IsFullDay,
                 Tentative = e.Tentative,
                 Subject = e.Subject,
-                ThemeColor = e.ThemeColor
+                ThemeColor = e.ThemeColor,
+                Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value.ToLocalTime(), e.StartDate.ToLocalTime()) : string.Empty
             };
         }
 
