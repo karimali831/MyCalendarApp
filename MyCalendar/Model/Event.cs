@@ -23,7 +23,7 @@ namespace MyCalendar.Model
     {
         public Guid EventID { get; set; }
         public Guid UserID { get; set; }
-        public Guid TagID { get; set; }
+        public Guid? TagID { get; set; }
         public string Description { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }

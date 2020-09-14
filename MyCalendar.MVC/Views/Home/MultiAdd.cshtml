@@ -2,25 +2,27 @@
 @using MyCalendar.Website.ViewModels
 @using MyCalendar.Enum
 
-@using (Html.BeginForm())
+
+@using (Html.BeginForm("MultiAdd"))
 {
+
     @Html.Partial("_Status", new CalendarVM { UpdateStatus = Model.UpdateStatus })
     <div class="jumbotron">
         <h3><span class="glyphicon glyphicon-calendar"> Scheduler</span></h3>
         <hr />
         <div class="form-group">
-            <label for="dates">How many dates?</label>
-            <select id="dates" name="dates" class="form-control" onchange="doIt(this,'@Url.Action("MultiAdd", "Home")')">
-                <option value="1">1 Date</option>
-                @for (int i = 2; i <= 10; i++)
+            <label for="dates"><span class="glyphicon glyphicon-time"></span> How many dates?</label>
+            <select id="dates" name="dates" class="form-control" onchange="selectDates(this,'@Url.Action("MultiAdd", "Home")')">
+                <option value="">-- select quantity --</option>
+                @for (int i = 1; i <= 10; i++)
                 {
                     <option value="@i" selected="@(i == Model.Dates ? true : false)">@i Dates</option>
                 }
             </select>
         </div>
         <div class="form-group">
-            <label for="tag">Tag</label> @Html.ActionLink("(edit tags)", "Settings", "Home")
-            <select id="tag" name="TagId" class="form-control" required>
+            <label for="tag"><span class="glyphicon glyphicon-tag"></span> Tag</label>
+            <select id="tag" name="TagId" class="form-control" required onchange="selectTag(this,'@Url.Action("MultiAdd", "Home")')">
                 <option value="">-- select tag --</option>
                 @foreach (var tag in Model.UserTags.Tags)
                 {
@@ -28,28 +30,33 @@
                 }
             </select>
         </div>
-        <br />
-        @for (int i = 1; i <= Model.Dates; i++)
+        @if (Model.TagID != null && Model.Dates > 0)
         {
-            <h4><span class="glyphicon glyphicon-time"></span> Select Date @i</h4>
-            <hr />
-            <div class="form-group">
-                <label for="start">Start</label>
-                <input type="datetime-local" id="start" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : DateTime.UtcNow.ToLocalTime().AddDays(i-1).ToString("yyy-MM-ddTHH:mm"))" required />
-            </div>
-            <div class="form-group" id="divEndDate">
-                <label for="end">End</label>
-                <input type="datetime-local" id="end" name="EndDate[]" class="form-control" value="@(Model.EndDate != null  && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : DateTime.UtcNow.ToLocalTime().AddDays(i-1).AddHours(2).ToString("yyy-MM-ddTHH:mm"))" required />
-            </div>
+            for (int i = 0; i < Model.Dates; i++)
+            {
+                <hr />
+                <div class="form-group">
+                    <label for="start">Start Date #@(i+1)</label>
+                    <input type="datetime-local" id="start" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : DateTime.UtcNow.ToLocalTime().AddDays(i - 1).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
+                </div>
+                <div class="form-group" id="divEndDate">
+                    <label for="end">End Date #@(i+1)</label>
+                    <input type="datetime-local" id="end" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : DateTime.UtcNow.ToLocalTime().AddDays(i - 1).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary">Update</button>
         }
-        <button type="submit" class="btn btn-primary">Update</button>
     </div>
 }
 
 @section Scripts{
     <script type="text/javascript">
-        function doIt(item, baseUrl) {
-            window.location.href = baseUrl + '?dates=' + item.value;
+        function selectDates(item, baseUrl) {
+            window.location.href = baseUrl + '?dates=' + item.value + '&tagId=@Model.TagID';
+        }
+        function selectTag(item, baseUrl) {
+            window.location.href = baseUrl + '?tagId=' + item.value + '&dates=@Model.Dates';
         }
     </script>
 

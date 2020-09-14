@@ -118,8 +118,8 @@ namespace MyCalendar.Repository
                                 eventId = Guid.NewGuid(),
                                 userId = e.UserID,
                                 description = e.Description,
-                                startDate = e.StartDate.ToUniversalTime().AddHours(-1),
-                                endDate = e.EndDate.Value.ToUniversalTime().AddHours(-1),
+                                startDate = e.StartDate.ToUniversalTime(),
+                                endDate = e.EndDate.Value.ToUniversalTime(),
                                 tentative = e.Tentative,
                                 tagID = e.TagID,
                                 isFullDay = e.IsFullDay

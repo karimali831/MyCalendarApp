@@ -71,7 +71,7 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
+               viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
             }
 
             var events = await eventService.GetAllAsync(viewing);
@@ -111,7 +111,8 @@ namespace MyCalendar.Controllers
             return new JsonResult { Data = new { status } };
         }
 
-        public async Task<ActionResult> MultiAdd(int dates = 1, Status? updateResponse = null, string updateMsg = null)
+ 
+        public async Task<ActionResult> MultiAdd(int dates = 0, Guid? tagId = null)
         {
             var user = await GetUser();
 
@@ -122,13 +123,24 @@ namespace MyCalendar.Controllers
 
             var viewModel = new SchedulerVM
             {
+                Dates = dates,
+                TagID = tagId,
                 User = user,
                 Users = await GetUsers(),
                 UserTags = new TagsDTO { Tags = await GetUserTags() },
-                MenuItem = new MenuItem  { MultiAdd = true },
-                UpdateStatus = (UpdateResponse: updateResponse, UpdateMsg: updateMsg),
-                Dates = dates
+                MenuItem = new MenuItem  { MultiAdd = true }
             };
+
+            var scheduler = (SchedulerVM)TempData["scheduler"];
+
+            if (scheduler != null)
+            {
+                viewModel.Dates = scheduler.Dates;
+                viewModel.StartDate = scheduler.StartDate;
+                viewModel.EndDate = scheduler.EndDate;
+                viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
+                viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
+            }
 
             return View("MultiAdd", viewModel);
         }
@@ -168,7 +180,7 @@ namespace MyCalendar.Controllers
                 model.Events = events.Values.Select(x => new Model.EventDTO
                 {
                     UserID = user.UserID,
-                    TagID = model.TagID,
+                    TagID = model.TagID ?? null,
                     StartDate = x.StartDate,
                     EndDate = x.EndDate
                 })
@@ -182,9 +194,13 @@ namespace MyCalendar.Controllers
                     }
                 }
 
+
+                model.UpdateStatus = (status.UpdateResponse, status.UpdateMsg);
+                TempData["scheduler"] = model;
+
                 if (status.UpdateResponse == Status.Failed)
                 {
-                    return RedirectToAction("MultiAdd", new { dates = model.Dates, updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+                    return RedirectToAction("MultiAdd");
                 }
                 else
                 {
@@ -199,7 +215,7 @@ namespace MyCalendar.Controllers
                     }
                     else
                     {
-                        return RedirectToAction("MultiAdd", new { dates = model.Dates, updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+                        return RedirectToAction("MultiAdd");
                     }
                 }
             }
