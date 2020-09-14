@@ -17,6 +17,7 @@ namespace MyCalendar.Repository
         Task<IEnumerable<Event>> GetAllAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
+        Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteAsync(Guid eventId);
     }
 
@@ -93,6 +94,40 @@ namespace MyCalendar.Repository
                         await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, DTOFIELDS, "")} WHERE EventID = @eventId", saveEvent(dto));
                     }
 
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
+            }
+        }
+
+        public async Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    foreach (var e in dto)
+                    {
+                        Func<Model.EventDTO, object> saveEvent = (Model.EventDTO e) =>
+                            new
+                            {
+                                eventId = Guid.NewGuid(),
+                                userId = e.UserID,
+                                description = e.Description,
+                                startDate = e.StartDate.ToUniversalTime().AddHours(-1),
+                                endDate = e.EndDate.Value.ToUniversalTime().AddHours(-1),
+                                tentative = e.Tentative,
+                                tagID = e.TagID,
+                                isFullDay = e.IsFullDay
+                            };
+
+                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(e));
+
+                    }
                     return true;
                 }
                 catch (Exception exp)

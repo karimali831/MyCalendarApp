@@ -27,8 +27,8 @@ namespace MyCalendar.Model
         public string Description { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
-        public bool IsFullDay { get; set; }
-        public bool Tentative { get; set; }
+        public bool IsFullDay { get; set; } = false;
+        public bool Tentative { get; set; } = false;
     }
 
     public class EventMap : EntityTypeConfiguration<Event>

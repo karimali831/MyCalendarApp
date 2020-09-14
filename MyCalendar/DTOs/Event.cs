@@ -1,10 +1,6 @@
-﻿using MyCalendar.Model;
-using MyFinances.Helpers;
+﻿using MyCalendar.Helpers;
+using MyCalendar.Model;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MyCalendar.DTOs
 {

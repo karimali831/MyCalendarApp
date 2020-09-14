@@ -223,6 +223,7 @@
     <Compile Include="GlobalExceptionHandler.cs" />
     <Compile Include="MVCModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\SchedulerVM.cs" />
     <Compile Include="ViewModels\CalendarVM.cs" />
     <Compile Include="ViewModels\BaseVM.cs" />
     <Compile Include="ViewModels\Error.cs" />
@@ -230,6 +231,8 @@
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\bootstrap_lumen.min.css" />
+    <Content Include="Content\bootstrap_sandstone.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -267,6 +270,8 @@
     <Content Include="Views\Home\Calendar.cshtml" />
     <Content Include="Views\Home\Settings.cshtml" />
     <Content Include="Views\Home\_Tags.cshtml" />
+    <Content Include="Views\Home\MultiAdd.cshtml" />
+    <Content Include="Views\Home\_Status.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

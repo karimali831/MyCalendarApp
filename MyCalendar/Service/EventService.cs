@@ -13,6 +13,7 @@ namespace MyCalendar.Service
         Task<Event> GetAsync(Guid eventId);
         Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null);
         Task<bool> SaveEvent(Model.EventDTO dto);
+        Task<bool> SaveEvents(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
     }
@@ -54,6 +55,11 @@ namespace MyCalendar.Service
         public async Task<bool> SaveEvent(Model.EventDTO dto)
         {
             return await eventRepository.InsertOrUpdateAsync(dto);
+        }
+
+        public async Task<bool> SaveEvents(IEnumerable<Model.EventDTO> dto)
+        {
+            return await eventRepository.MultiInsertAsync(dto);
         }
 
         public async Task<bool> DeleteEvent(Guid eventId)

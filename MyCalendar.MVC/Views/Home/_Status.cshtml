@@ -1,0 +1,35 @@
+﻿@model MyCalendar.Website.ViewModels.CalendarVM
+@using MyCalendar.Enum
+
+@if (Model.UpdateStatus.UpdateResponse != null)
+{
+    if (Model.UpdateStatus.UpdateResponse == Status.Success)
+    {
+        <div class="alert alert-success" role="alert">
+            <div class="col-auto align-self-start">
+                <div class="glyphicon glyphicon-ok"></div>
+                @(string.IsNullOrEmpty(Model.UpdateStatus.UpdateMsg) ? "Action successful" : Model.UpdateStatus.UpdateMsg)
+            </div>
+        </div>
+    }
+
+    if (Model.UpdateStatus.UpdateResponse == Status.Failed)
+    {
+        <div class="alert alert-danger" role="alert">
+            <div class="col-auto align-self-start">
+                <div class="glyphicon glyphicon-remove"></div>
+                @(string.IsNullOrEmpty(Model.UpdateStatus.UpdateMsg) ? "Action unsuccessful" : Model.UpdateStatus.UpdateMsg)
+            </div>
+        </div>
+    }
+
+    if (Model.UpdateStatus.UpdateResponse == Status.NotLoggedIn)
+    {
+        <div class="alert alert-danger" role="alert">
+            <div class="col-auto align-self-start">
+                <div class="glyphicon glyphicon-remove"></div>
+                @(string.IsNullOrEmpty(Model.UpdateStatus.UpdateMsg) ? "You are not logged-in!" : Model.UpdateStatus.UpdateMsg)
+            </div>
+        </div>
+    }
+}

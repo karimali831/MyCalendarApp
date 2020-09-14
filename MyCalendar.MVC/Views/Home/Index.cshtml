@@ -1,22 +1,20 @@
-﻿@using MyFinances.Helpers
+﻿@using MyCalendar.Website.ViewModels 
+@using MyCalendar.Helpers
+@using MyCalendar.Enum
+
 @{
     ViewBag.Title = "Authenticate";
 }
 
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
-    <div class="alert alert-danger" role="alert">
-        <div class="col-auto align-self-start">
-            <div class="glyphicon glyphicon-exclamation-sign"></div>
-            @ViewBag.ErrorMessage
-        </div>
-    </div>
+    @Html.Partial("_Status", new CalendarVM { UpdateStatus = (Status.Failed, ViewBag.ErrorMessage) })
 }
 
 @using (Html.BeginForm())
 {
     <div class="form-group">
         <input type="password" style="width: 180px; display: inline" class="form-control" name="passcode" placeholder="Enter passcode" />
-        <input type="submit"  class="btn btn-primary" value="Enter App" />
+        <input type="submit" class="btn btn-primary" value="Enter App" />
     </div>
 }

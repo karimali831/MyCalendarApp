@@ -1,4 +1,5 @@
 ﻿using MyCalendar.DTOs;
+using MyCalendar.Enum;
 using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
@@ -6,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace MyCalendar.Controllers
@@ -20,24 +20,30 @@ namespace MyCalendar.Controllers
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
 
-        public async Task<ActionResult> Index(Guid? viewingId = null, bool combined = false)
+        public async Task<ActionResult> Index(Guid? viewingId = null, bool combined = false, Status? updateResponse = null, string updateMsg = null)
         {
             var user = await GetUser();
 
-            if (user != null)
+            if (user == null)
             {
-                return View("Calendar", 
-                    new CalendarVM 
-                    { 
-                        User = user,
-                        Users = await GetUsers(),
-                        UserTags = new TagsDTO { Tags = await GetUserTags() },
-                        Viewing = viewingId,
-                        Combined = combined
-                    });
+                return View();
             }
-            
-            return View();
+
+            var viewModel = new CalendarVM
+            {
+                User = user,
+                Users = await GetUsers(),
+                UserTags = new TagsDTO { Tags = await GetUserTags() },
+                UpdateStatus = (updateResponse, updateMsg),
+                MenuItem = new MenuItem
+                {
+                    Home = viewingId == null && combined == false ? true : false,
+                    Viewing = viewingId,
+                    Combined = combined
+                }
+            };
+
+            return View("Calendar", viewModel);
         }
 
         [HttpPost]
@@ -105,14 +111,111 @@ namespace MyCalendar.Controllers
             return new JsonResult { Data = new { status } };
         }
 
-        public async Task<ActionResult> Settings(int? status = null)
+        public async Task<ActionResult> MultiAdd(int dates = 1, Status? updateResponse = null, string updateMsg = null)
         {
             var user = await GetUser();
 
+            if (user == null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var viewModel = new SchedulerVM
+            {
+                User = user,
+                Users = await GetUsers(),
+                UserTags = new TagsDTO { Tags = await GetUserTags() },
+                MenuItem = new MenuItem  { MultiAdd = true },
+                UpdateStatus = (UpdateResponse: updateResponse, UpdateMsg: updateMsg),
+                Dates = dates
+            };
+
+            return View("MultiAdd", viewModel);
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult> MultiAdd(SchedulerVM model)
+        {
+            var user = await GetUser();
+
+            (Status? UpdateResponse, string UpdateMsg) status = (null, null);
+
+            if (user == null)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                var events = new Dictionary<int, Model.EventDTO>();
+                var userId = (await GetUser()).UserID;
+
+                int z = 1;
+                foreach (var item in model.StartDate)
+                {
+                    events.Add(z, new Model.EventDTO { StartDate = item });
+                    z++;
+                }
+
+                int i = 1;
+                foreach (var item in model.EndDate)
+                {
+
+                    events[i].EndDate = item;
+                    i++;
+                }
+
+                model.Events = events.Values.Select(x => new Model.EventDTO
+                {
+                    UserID = user.UserID,
+                    TagID = model.TagID,
+                    StartDate = x.StartDate,
+                    EndDate = x.EndDate
+                })
+                .Where(x => x.StartDate != null && x.EndDate != null);
+
+                foreach (var e in model.Events)
+                {
+                    if (e.StartDate > e.EndDate)
+                    {
+                        status = (Status.Failed, "Invalid end date");
+                    }
+                }
+
+                if (status.UpdateResponse == Status.Failed)
+                {
+                    return RedirectToAction("MultiAdd", new { dates = model.Dates, updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+                }
+                else
+                {
+                    status = await eventService.SaveEvents(model.Events)
+                        ? (Status.Success, "Scheduler has been saved and your calendar has been updated")
+                        : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
+
+                    if (status.UpdateResponse == Status.Success)
+                    {
+                        return RedirectToAction("Index", new { viewingId = (Guid?)null, combined = false, updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+
+                    }
+                    else
+                    {
+                        return RedirectToAction("MultiAdd", new { dates = model.Dates, updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+                    }
+                }
+            }
+        }
+
+        public async Task<ActionResult> Settings(Status? updateResponse = null, string updateMsg = "")
+        {
+            var user = await GetUser();
+
+            if (user == null)
+            {
+                return RedirectToAction("Index");
+            }
+
             var viewModel = new CalendarVM
             {
-                Settings = true,
-                SettingsUpdated = status,
                 User = user,
                 Users = await GetUsers(),
                 UserTags = new TagsDTO
@@ -121,7 +224,9 @@ namespace MyCalendar.Controllers
                     Tags = await GetUserTags(),
                     Types = await eventService.GetTypes()
 
-                }
+                },
+                UpdateStatus = (UpdateResponse: updateResponse, UpdateMsg: updateMsg),
+                MenuItem = new MenuItem { Settings = true }
             };
 
             return View("Settings", viewModel);
@@ -130,59 +235,74 @@ namespace MyCalendar.Controllers
         [HttpPost]
         public async Task<ActionResult> Settings(CalendarVM model)
         {
-            var status = await UpdateUser(model.User) == true ? 1 : 0;
-            return RedirectToAction("Settings", new { status });
+            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(model.User) == true 
+                ? (Status.Success, "Your profile has been saved successfully")
+                : (Status.Failed, "There was an issue with updating your profile");
+
+            return RedirectToAction("Settings", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
         }
 
 
         [HttpPost]
         public async Task<ActionResult> UpdateTags(TagsDTO tags)
         {
+            (Status? UpdateResponse, string UpdateMsg) status = (null, null);
 
-            var tagsA = new Dictionary<int, Tag>();
-            var userId = (await GetUser()).UserID;
+            var user = await GetUser();
 
-            int z = 1;
-            foreach (var item in tags.Id)
+            if ((await GetUser()) == null)
             {
-                tagsA.Add(z, new Tag { Id = item });
-                z++;
+                status = (Status.NotLoggedIn, null);
+            }
+            else
+            {
+                var tagsA = new Dictionary<int, Tag>();
+
+                int z = 1;
+                foreach (var item in tags.Id)
+                {
+                    tagsA.Add(z, new Tag { Id = item });
+                    z++;
+                }
+
+                int i = 1;
+                foreach (var item in tags.Name)
+                {
+
+                    tagsA[i].Name = item;
+                    i++;
+                }
+
+                int a = 1;
+                foreach (var item in tags.ThemeColor)
+                {
+                    tagsA[a].ThemeColor = item;
+                    a++;
+                }
+
+                int t = 1;
+                foreach (var item in tags.TypeID)
+                {
+                    tagsA[t].TypeID = item;
+                    t++;
+                }
+
+                tags.Tags = tagsA.Values.Select(x => new Tag
+                {
+                    Id = x.Id,
+                    UserID = tags.UserID,
+                    Name = x.Name,
+                    ThemeColor = x.ThemeColor,
+                    TypeID = x.TypeID
+                })
+                .Where(x => !string.IsNullOrEmpty(x.Name));
+
+                status = await UpdateUserTags(tags.Tags, user.UserID)
+                    ? (Status.Success, "Your tags has been updated successfully")
+                    : (Status.Failed, "There was an issue updating your tags");
             }
 
-            int i = 1;
-            foreach (var item in tags.Name)
-            {
-
-                tagsA[i].Name = item;
-                i++;
-            }
-
-            int a = 1;
-            foreach (var item in tags.ThemeColor)
-            {
-                tagsA[a].ThemeColor = item;
-                a++;
-            }
-
-            int t = 1;
-            foreach (var item in tags.TypeID)
-            {
-                tagsA[t].TypeID = item;
-                t++;
-            }
-
-            tags.Tags = tagsA.Values.Select(x => new Tag
-            {
-                Id = x.Id,
-                UserID = tags.UserID,
-                Name = x.Name,
-                ThemeColor = x.ThemeColor,
-                TypeID = x.TypeID
-            })
-            .Where(x => !string.IsNullOrEmpty(x.Name));
-
-            var status = await UpdateUserTags(tags.Tags, userId) == true ? 1 : 0;
-            return RedirectToAction("Settings", new { status });
+            return RedirectToAction("Settings", new { updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
         }
 
         public ActionResult Logout()

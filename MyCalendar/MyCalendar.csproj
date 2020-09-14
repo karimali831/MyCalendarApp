@@ -107,6 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\Event.cs" />
+    <Compile Include="Enums\Status.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Model\Tag.cs" />
     <Compile Include="DTOs\Tags.cs" />
@@ -123,9 +124,7 @@
     <Compile Include="Service\UserService.cs" />
     <Compile Include="Service\EventService.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Enums\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
