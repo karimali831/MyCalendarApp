@@ -1,11 +1,9 @@
 ﻿@model MyCalendar.Website.ViewModels.SchedulerVM
 @using MyCalendar.Website.ViewModels
-@using MyCalendar.Enum
-
+@using MyCalendar.Helpers
 
 @using (Html.BeginForm("MultiAdd"))
 {
-
     @Html.Partial("_Status", new CalendarVM { UpdateStatus = Model.UpdateStatus })
     <div class="jumbotron">
         <h3><span class="glyphicon glyphicon-calendar"> Scheduler</span></h3>
@@ -37,11 +35,11 @@
                 <hr />
                 <div class="form-group">
                     <label for="start">Start Date #@(i+1)</label>
-                    <input type="datetime-local" id="start" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : DateTime.UtcNow.ToLocalTime().AddDays(i - 1).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
+                    <input type="datetime-local" id="start" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i - 1).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
                 <div class="form-group" id="divEndDate">
                     <label for="end">End Date #@(i+1)</label>
-                    <input type="datetime-local" id="end" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : DateTime.UtcNow.ToLocalTime().AddDays(i - 1).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
+                    <input type="datetime-local" id="end" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i - 1).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
             }
 

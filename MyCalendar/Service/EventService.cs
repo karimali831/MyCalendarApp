@@ -1,5 +1,4 @@
-﻿using MyCalendar.DTOs;
-using MyCalendar.Model;
+﻿using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NodaTime;
+using NodaTime.Extensions;
+using System;
 
 namespace MyCalendar.Helpers
 {
@@ -38,6 +40,21 @@ namespace MyCalendar.Helpers
             }
 
             return rtnString;
+        }
+
+        public static DateTime DateTime(string timezone = "Europe/London")
+        {
+            var zone = NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId(timezone);
+            var zonedClock = SystemClock.Instance.InZone(zone);
+            //bool isDST = zonedDateTime.IsDaylightSavingTime();
+            return zonedClock.GetCurrentZonedDateTime().ToDateTimeUnspecified();
+        }
+
+        public static DateTime FromTimeZoneToUtc(this DateTime dt, string timezone = "Europe/London")
+        {
+            var tz = DateTimeZoneProviders.Tzdb[timezone];
+            var local = LocalDateTime.FromDateTime(dt);
+            return local.InZoneLeniently(tz).ToDateTimeUtc();
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using DFM.Utils;
 using MyCalendar.DTOs;
+using MyCalendar.Helpers;
 using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
@@ -118,8 +119,8 @@ namespace MyCalendar.Repository
                                 eventId = Guid.NewGuid(),
                                 userId = e.UserID,
                                 description = e.Description,
-                                startDate = e.StartDate.ToUniversalTime(),
-                                endDate = e.EndDate.Value.ToUniversalTime(),
+                                startDate = Utils.FromTimeZoneToUtc(e.StartDate),
+                                endDate = Utils.FromTimeZoneToUtc(e.EndDate.Value),
                                 tentative = e.Tentative,
                                 tagID = e.TagID,
                                 isFullDay = e.IsFullDay
