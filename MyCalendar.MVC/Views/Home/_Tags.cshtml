@@ -13,16 +13,9 @@
                             <input type="text" class="form-control" id="name" name="name[]" value="@tag.Name" placeholder="Name">
                         </div>
                     </div>
-                    <div class="col-sm-3 nopadding" style="width: 250px">
+                    <div class="col-sm-3 nopadding" style="width: 100px">
                         <div class="form-group">
-                            <select class="form-control" id="themeColor" name="themeColor[]">
-                                <option value="" @(tag.ThemeColor == "" ? "selected" : "")>Default Theme</option>
-                                <option value="red" @(tag.ThemeColor == "red" ? "selected" : "")>Red Theme</option>
-                                <option value="orange" @(tag.ThemeColor == "orange" ? "selected" : "")>Orange Theme</option>
-                                <option value="blue" @(tag.ThemeColor == "blue" ? "selected" : "")>Blue Theme</option>
-                                <option value="black" @(tag.ThemeColor == "black" ? "selected" : "")>Black Theme</option>
-                                <option value="green" @(tag.ThemeColor == "green" ? "selected" : "")>Green Theme</option>
-                            </select>
+                            <input type="color" class="form-control" id="themeColor" name="themeColor[]" value="@tag.ThemeColor" placeholder="Pick colour" />
                         </div>
                     </div>
                     <div class="col-sm-3 nopadding" style="width: 250px">
@@ -55,16 +48,9 @@
                         <input type="text" class="form-control" id="name" name="name[]" value="" placeholder="Name">
                     </div>
                 </div>
-                <div class="col-sm-3 nopadding" style="width: 250px">
+                <div class="col-sm-3 nopadding" style="width: 100px">
                     <div class="form-group">
-                        <select class="form-control" id="themeColor" name="themeColor[]">
-                            <option value="">Default Theme</option>
-                            <option value="red">Red Theme</option>
-                            <option value="organge">Orange Theme</option>
-                            <option value="blue">Blue Theme</option>
-                            <option value="black">Black Theme</option>
-                            <option value="green">Green Theme</option>
-                        </select>
+                        <input type="color" class="form-control" id="themeColor" name="themeColor[]" value="" placeholder="Pick colour" />
                     </div>
                 </div>
                 <div class="col-sm-3 nopadding" style="width: 250px">
