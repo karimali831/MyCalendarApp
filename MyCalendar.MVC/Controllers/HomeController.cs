@@ -83,15 +83,42 @@ namespace MyCalendar.Controllers
         [HttpPost]
         public async Task<JsonResult> SaveEvent(EventVM e)
         {
+            var status = false;
+
             if ((await GetUser()) == null)
             {
-                return new JsonResult { Data = new { status = false, responseText = "You are not logged-in" } };
+                return new JsonResult { Data = new { status, responseText = "You are not logged-in" } };
             }
 
             var dto = DTOs.EventDTO.MapFrom(e);
             dto.UserID = (await GetUser()).UserID;
 
-            var status = await eventService.SaveEvent(dto);
+            if (string.IsNullOrEmpty(e.SplitDates))
+            {
+                status = await eventService.SaveEvent(dto);
+            }
+            else
+            {
+                var events = new List<Model.EventDTO>();
+
+                for (var date = e.Start; date <= e.End; date = date.AddDays(1))
+                {
+                    events.Add(new Model.EventDTO
+                    {
+                        StartDate = date,
+                        EndDate = new DateTime(date.Year, date.Month, date.Day, e.End.Value.Hour, e.End.Value.Minute, 0),
+                        Description = dto.Description,
+                        EventID = dto.EventID,
+                        IsFullDay = dto.IsFullDay,
+                        TagID = dto.TagID,
+                        Tentative = dto.Tentative,
+                        UserID = dto.UserID
+                    });
+                }
+
+                status = await eventService.SaveEvents(events);
+            }
+
             return new JsonResult { Data = new { status } };
         }
 
@@ -143,6 +170,11 @@ namespace MyCalendar.Controllers
             }
 
             return View("MultiAdd", viewModel);
+        }
+
+        public ActionResult NewCalendar()
+        {
+            return View();
         }
 
 

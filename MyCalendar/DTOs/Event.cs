@@ -17,6 +17,7 @@ namespace MyCalendar.DTOs
         public bool Tentative { get; set; }
         public string ThemeColor { get; set; }
         public string Subject { get; set; }
+        public string SplitDates { get; set; }
     }
 
     public class EventDTO
