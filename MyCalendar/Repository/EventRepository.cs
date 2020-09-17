@@ -76,8 +76,8 @@ namespace MyCalendar.Repository
                             eventId = e.EventID,
                             userId = e.UserID,
                             description = e.Description,
-                            startDate = e.StartDate.ToUniversalTime().AddHours(-1),
-                            endDate = e.EndDate.Value.ToUniversalTime().AddHours(-1),
+                            startDate = e.StartDate,
+                            endDate = e.EndDate ?? null,
                             tentative = e.Tentative,
                             tagID = e.TagID,
                             isFullDay = e.IsFullDay
@@ -120,7 +120,7 @@ namespace MyCalendar.Repository
                                 userId = e.UserID,
                                 description = e.Description,
                                 startDate = Utils.FromTimeZoneToUtc(e.StartDate),
-                                endDate = Utils.FromTimeZoneToUtc(e.EndDate.Value),
+                                endDate = e.EndDate.HasValue ? Utils.FromTimeZoneToUtc(e.EndDate.Value) : (DateTime?)null,
                                 tentative = e.Tentative,
                                 tagID = e.TagID,
                                 isFullDay = e.IsFullDay

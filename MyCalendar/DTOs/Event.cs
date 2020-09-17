@@ -40,12 +40,12 @@ namespace MyCalendar.DTOs
                 TagID = e.TagID,
                 Description = e.Description,
                 Start = e.StartDate.ToLocalTime(),
-                End = e.EndDate.Value.ToLocalTime(),
+                End = e.EndDate.HasValue ? e.EndDate.Value.ToLocalTime() : (DateTime?)null,
                 IsFullDay = e.IsFullDay,
                 Tentative = e.Tentative,
                 Subject = e.Subject,
                 ThemeColor = e.ThemeColor,
-                Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value.ToLocalTime(), e.StartDate.ToLocalTime()) : string.Empty
+                Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value, e.StartDate) : string.Empty
             };
         }
 
@@ -57,8 +57,8 @@ namespace MyCalendar.DTOs
                 UserID = e.UserID,
                 TagID = e.TagID,
                 Description = e.Description,
-                StartDate = e.Start.ToLocalTime(),
-                EndDate = e.End.Value.ToLocalTime(),
+                StartDate = Utils.FromTimeZoneToUtc(e.Start),
+                EndDate =  e.End.HasValue ? Utils.FromTimeZoneToUtc(e.End.Value) : (DateTime?)null,
                 IsFullDay = e.IsFullDay,
                 Tentative = e.Tentative
             };

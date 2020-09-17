@@ -93,7 +93,9 @@ namespace MyCalendar.Controllers
             var dto = DTOs.EventDTO.MapFrom(e);
             dto.UserID = (await GetUser()).UserID;
 
-            if (string.IsNullOrEmpty(e.SplitDates))
+            var daysBetweenDays = e.End.HasValue ? (e.End.Value.Date - e.Start.Date).Days : 0;
+
+            if (string.IsNullOrEmpty(e.SplitDates) || daysBetweenDays == 0 || e.IsFullDay)
             {
                 status = await eventService.SaveEvent(dto);
             }

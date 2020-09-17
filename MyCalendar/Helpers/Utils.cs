@@ -45,16 +45,28 @@ namespace MyCalendar.Helpers
         public static DateTime DateTime(string timezone = "Europe/London")
         {
             var zone = NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId(timezone);
-            var zonedClock = SystemClock.Instance.InZone(zone);
+            var zonedDateTime = SystemClock.Instance.InZone(zone);
             //bool isDST = zonedDateTime.IsDaylightSavingTime();
-            return zonedClock.GetCurrentZonedDateTime().ToDateTimeUnspecified();
+            return zonedDateTime.GetCurrentZonedDateTime().ToDateTimeUnspecified();
         }
 
-        public static DateTime FromTimeZoneToUtc(this DateTime dt, string timezone = "Europe/London")
+        public static DateTime FromTimeZoneToUtc(this DateTime dateTime, string timezone = "Europe/London")
         {
-            var tz = DateTimeZoneProviders.Tzdb[timezone];
-            var local = LocalDateTime.FromDateTime(dt);
-            return local.InZoneLeniently(tz).ToDateTimeUtc();
+            DateTimeZone zone = DateTimeZoneProviders.Tzdb[timezone];
+            var localtime = LocalDateTime.FromDateTime(dateTime);
+            var zonedtime = localtime.InZoneLeniently(zone);
+            return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
+        }
+
+        public static DateTime FromUtcToTimeZone(this DateTime dateTime, string timezone = "Europe/London")
+        {
+            IDateTimeZoneProvider timeZoneProvider = DateTimeZoneProviders.Tzdb;
+            var utcTimeZone = timeZoneProvider["UTC"];
+            var dateTimeFromDb = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Millisecond);
+            var zonedDbDateTime = utcTimeZone.AtLeniently(LocalDateTime.FromDateTime(dateTimeFromDb));
+            var usersTimezone = timeZoneProvider[timezone];
+            var usersZonedDateTime = zonedDbDateTime.WithZone(usersTimezone);
+            return usersZonedDateTime.ToDateTimeUnspecified();
         }
     }
 }

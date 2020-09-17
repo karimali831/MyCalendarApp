@@ -1,4 +1,5 @@
-﻿using MyCalendar.Model;
+﻿using MyCalendar.Helpers;
+using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
@@ -40,12 +41,6 @@ namespace MyCalendar.Service
             if (userId.HasValue)
             {
                 events = events.Where(x => x.UserID == userId);
-            }
-
-            foreach (var e in events)
-            {
-                e.StartDate.ToLocalTime().AddHours(-1);
-                e.EndDate.Value.ToLocalTime().AddHours(-1);
             }
 
             return events;

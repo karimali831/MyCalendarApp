@@ -52,7 +52,7 @@
                     <div class="form-group" id="divSplitDates" style="display:none">
                         <label>Split dates into multiple events?</label> 
                         <select id="splitDates" class="form-control">
-                            <option value="">-- select times --</option>
+                            <option value="" selected>-- select times --</option>
                             <option value="05:45-12:00">5:45am-12pm</option>
                             <option value="08:00-17:00">8am-5pm</option>
                             <option value="09:00-17:00">9am-5pm</option>
@@ -259,7 +259,7 @@
             function hideSplitDates(startDate, endDate) {
                 var diff = endDate.diff(startDate, 'days');
 
-                if (diff > 1) {
+                if (diff > 0) {
                     $('#divSplitDates').show();
                 }
                 else {
@@ -278,7 +278,7 @@
                     $('#txtEnd').val(selectedEvent.end != null ? selectedEvent.end.format('YYYY-MM-DD[T]HH:mm') : '');
                     $('#txtDescription').val(selectedEvent.description);
                     $('#ddTagID').val(selectedEvent.tagID);
-
+                    $('#splitDates').val('');
                     hideSplitDates(moment(selectedEvent.start), moment(selectedEvent.end))
                 }
                 $('#myModal').modal('hide');
