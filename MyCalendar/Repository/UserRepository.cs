@@ -15,6 +15,7 @@ namespace MyCalendar.Repository
         Task<User> GetAsync(int passcode);
         Task<IEnumerable<User>> GetAllAsync();
         Task<bool> UpdateAsync(User user);
+        Task<User> GetByUserIDAsync(Guid userID);
     }
 
     public class UserRepository : IUserRepository
@@ -34,6 +35,14 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Passcode = @passcode", new { passcode })).FirstOrDefault();
+            }
+        }
+
+        public async Task<User> GetByUserIDAsync(Guid userID)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE UserID = @userID", new { userID })).FirstOrDefault();
             }
         }
 

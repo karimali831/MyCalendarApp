@@ -1,4 +1,5 @@
-﻿using MyCalendar.Model;
+﻿using MyCalendar.Enums;
+using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
 
@@ -10,8 +11,10 @@ namespace MyCalendar.DTOs
         public IEnumerable<Types> Types { get; set; }
         public IEnumerable<Tag> Tags { get; set; }
         public Guid[] Id { get; set; }
+        public Guid[] UserCreatedId { get; set; }
         public string[] Name { get; set; }
         public string[] ThemeColor { get; set; }
         public int[] TypeID { get; set; }
+        public TagPrivacy[] Privacy { get; set; } 
     }
 }

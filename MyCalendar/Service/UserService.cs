@@ -12,8 +12,9 @@ namespace MyCalendar.Service
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
+        Task<User> GetByUserIDAsync(Guid userID);
     }
-
+    ;
     public class UserService : IUserService
     {
         private readonly IUserRepository userRepository;
@@ -32,12 +33,17 @@ namespace MyCalendar.Service
 
         public async Task<User> GetAsync(int passcode)
         {
-            return await userRepository.GetAsync(passcode);
+            return await userRepository.GetAsync(passcode); 
         }
 
         public async Task<bool> UpdateAsync(User user)
         {
             return await userRepository.UpdateAsync(user);
+        }
+
+        public async Task<User> GetByUserIDAsync(Guid userID)
+        {
+            return await userRepository.GetByUserIDAsync(userID);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using NodaTime;
 using NodaTime.Extensions;
 using System;
+using System.Collections.Generic;
 
 namespace MyCalendar.Helpers
 {
@@ -56,6 +57,24 @@ namespace MyCalendar.Helpers
             var localtime = LocalDateTime.FromDateTime(dateTime);
             var zonedtime = localtime.InZoneLeniently(zone);
             return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
+        }
+
+        public static IList<KeyValuePair<string, string>> TimePresets()
+        {
+            return new List<KeyValuePair<string, string>>() {
+                new KeyValuePair<string, string>("05:45-12:00", "5:45am-12pm"),
+                new KeyValuePair<string, string>("08:00-17:00", "8am-5pm"),
+                new KeyValuePair<string, string>("09:00-17:00", "9am-5pm"),
+                new KeyValuePair<string, string>("09:00-18:00", "9am-6pm"),
+                new KeyValuePair<string, string>("12:00-20:00", "12pm-8pm"),
+                new KeyValuePair<string, string>("17:00-22:00", "5pm-10pm"),
+                new KeyValuePair<string, string>("18:00-22:00", "6pm-10pm")
+            };
+        }
+
+        public static DateTime FromUtcToLocalTime(this DateTime dateTime)
+        {
+            return dateTime.ToLocalTime();
         }
 
         public static DateTime FromUtcToTimeZone(this DateTime dateTime, string timezone = "Europe/London")

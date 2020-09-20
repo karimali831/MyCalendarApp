@@ -20,6 +20,7 @@ namespace MyCalendar.Repository
         Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
         Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteAsync(Guid eventId);
+        Task<bool> EventsByTagExist(Guid tagID);
     }
 
     public class EventRepository : IEventRepository
@@ -47,7 +48,7 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject
+                    SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, t.Privacy
                     FROM Events e
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id";
@@ -61,6 +62,14 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE EventID = @EventId", new { EventID = eventId});
+            }
+        }
+
+        public async Task<bool> EventsByTagExist(Guid tagID)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE TagID = @tagId", new { @tagID });
             }
         }
 

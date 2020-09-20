@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DFM.Utils;
+using MyCalendar.Enums;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 
@@ -11,6 +13,9 @@ namespace MyCalendar.Model
         public int TypeID { get; set; }
         public string Name { get; set; }
         public string ThemeColor { get; set; }
+        public TagPrivacy Privacy { get; set; }
+        [DbIgnore]
+        public bool UpdateDisabled { get; set; }
     }
 
     public class TagMap : EntityTypeConfiguration<Types>

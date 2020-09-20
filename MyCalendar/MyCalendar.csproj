@@ -114,6 +114,7 @@
   <ItemGroup>
     <Compile Include="DTOs\Event.cs" />
     <Compile Include="Enums\Status.cs" />
+    <Compile Include="Enums\TagPrivacy.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Model\Tag.cs" />
     <Compile Include="DTOs\Tags.cs" />

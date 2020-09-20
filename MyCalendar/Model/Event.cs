@@ -1,6 +1,6 @@
 ﻿using DFM.Utils;
+using MyCalendar.Enums;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
 
 namespace MyCalendar.Model
@@ -17,6 +17,7 @@ namespace MyCalendar.Model
         public string ThemeColor { get; set; }
         public bool IsFullDay { get; set; }
         public bool Tentative { get; set; }
+        public TagPrivacy? Privacy { get; set; }
     }
 
     public class EventDTO

@@ -1,5 +1,6 @@
 ﻿using MyCalendar.DTOs;
 using MyCalendar.Enum;
+using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
@@ -29,8 +30,27 @@ namespace MyCalendar.Controllers
                 return View();
             }
 
+            var getUserCurrentActivity = (await eventService.GetAllAsync())
+                .Where(x => (Utils.DateTime() >= Utils.FromUtcToLocalTime(x.StartDate) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToLocalTime(x.EndDate.Value)) ||
+                    (!x.EndDate.HasValue && Utils.FromUtcToLocalTime(x.StartDate).Date == Utils.DateTime().Date));
+
+            var currentActivity = new List<string>();
+
+            if (getUserCurrentActivity != null && getUserCurrentActivity.Any())
+            {
+                foreach (var activity in getUserCurrentActivity)
+                {
+                    string getName = (await GetUserByID(activity.UserID)).Name;
+                    string label = (await GetTag(activity.TagID))?.Name ?? activity.Description;
+                    string finishing = (activity.EndDate.HasValue ? "finishing at " + Utils.FromUtcToLocalTime(activity.EndDate.Value).ToString("HH:mm") : "until end of the day");
+
+                    currentActivity.Add(string.Format("{0} @ {1} {2}", getName, label, finishing));
+                }
+            }
+
             var viewModel = new CalendarVM
             {
+                CurrentActivity = currentActivity,
                 User = user,
                 Users = await GetUsers(),
                 UserTags = new TagsDTO { Tags = await GetUserTags() },
@@ -141,7 +161,7 @@ namespace MyCalendar.Controllers
         }
 
  
-        public async Task<ActionResult> MultiAdd(int dates = 0, Guid? tagId = null)
+        public async Task<ActionResult> MultiAdd(int dates = 0, Guid? tagId = null, string times = null)
         {
             var user = await GetUser();
 
@@ -154,6 +174,7 @@ namespace MyCalendar.Controllers
             {
                 Dates = dates,
                 TagID = tagId,
+                Times = times,
                 User = user,
                 Users = await GetUsers(),
                 UserTags = new TagsDTO { Tags = await GetUserTags() },

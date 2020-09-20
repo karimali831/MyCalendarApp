@@ -43,6 +43,11 @@ namespace MyCalendar.Controllers
             return users.ToList();
         }
 
+        public async Task<Tag> GetTag(Guid tagID)
+        {
+            return await tagService.GetAsync(tagID);
+        }
+
         public async Task<IEnumerable<Tag>> GetUserTags()
         {
             var user = await GetUser();
@@ -60,6 +65,11 @@ namespace MyCalendar.Controllers
             }
 
             return Enumerable.Empty<Tag>();
+        }
+
+        public async Task<User> GetUserByID(Guid userID)
+        {
+            return await userService.GetByUserIDAsync(userID);
         }
 
 

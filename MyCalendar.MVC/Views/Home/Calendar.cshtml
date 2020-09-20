@@ -1,9 +1,20 @@
 ﻿@model MyCalendar.Website.ViewModels.CalendarVM
+@using MyCalendar.Helpers
 @{
     ViewBag.Title = "Index";
 }
 
 @Html.Partial("_Status", Model)
+
+@if (Model.CurrentActivity.Any())
+{
+    <div class="alert alert-info" role="alert">
+        @foreach (var activity in Model.CurrentActivity)
+        {
+            <span>@activity</span><br />
+        }
+    </div>
+}
 
 <div id="calender"></div>
 <div id="myModal" class="modal fade" role="dialog">
@@ -50,16 +61,13 @@
                         </select>
                     </div>
                     <div class="form-group" id="divSplitDates" style="display:none">
-                        <label>Split dates into multiple events?</label> 
+                        <label>Split dates into multiple events?</label>
                         <select id="splitDates" class="form-control">
                             <option value="" selected>-- select times --</option>
-                            <option value="05:45-12:00">5:45am-12pm</option>
-                            <option value="08:00-17:00">8am-5pm</option>
-                            <option value="09:00-17:00">9am-5pm</option>
-                            <option value="09:00-18:00">9am-6pm</option>
-                            <option value="12:00-20:00">12pm-8pm</option>
-                            <option value="17:00-22:00">5pm-10pm</option>
-                            <option value="18:00-22:00">6pm-10pm</option>
+                            @foreach (var preset in Utils.TimePresets())
+                            {
+                                <option value="@preset.Key">@preset.Value</option>
+                            }
                         </select>
                     </div>
                     <div class="form-group">
@@ -72,9 +80,6 @@
                         </div>
                         <div class="checkbox checkbox-inline">
                             <label><input type="checkbox" id="chkTentative" checked="checked" />  Tentative</label>
-                        </div>
-                        <div class="checkbox checkbox-inline">
-                            <label><input type="checkbox" id="" checked="checked" disabled />  Share</label>
                         </div>
                     </div>
                     <div class="form-group" id="divEndDate" style="display:none">
@@ -251,7 +256,7 @@
                 var startDate = moment($('#txtStart').val(), "YYYY-MM-DD[T]HH:mm").format('YYYY-MM-DD[T]' + result[0]);
                 var endDate = moment($('#txtEnd').val(), "YYYY-MM-DD[T]HH:mm").format('YYYY-MM-DD[T]' + result[1]);
 
-                if ($(this).val() != '') { 
+                if ($(this).val() != '') {
                     $('#txtStart').val(startDate);
                     $('#txtEnd').val(endDate);
                 }

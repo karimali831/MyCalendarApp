@@ -1,4 +1,5 @@
-﻿using MyCalendar.Helpers;
+﻿using MyCalendar.Enums;
+using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
@@ -11,11 +12,12 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null);
+        Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null);
         Task<bool> SaveEvent(Model.EventDTO dto);
         Task<bool> SaveEvents(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
+        Task<bool> EventsByTagExist(Guid tagID);
     }
 
     public class EventService : IEventService
@@ -34,13 +36,29 @@ namespace MyCalendar.Service
             return await eventRepository.GetAsync(eventId);
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null)
         {
             var events = await eventRepository.GetAllAsync();
 
             if (userId.HasValue)
             {
-                events = events.Where(x => x.UserID == userId);
+                if (viewing.HasValue)
+                {
+                    if (userId == viewing)
+                    {
+                        events = events.Where(x => x.UserID == userId || x.Privacy == TagPrivacy.Shared);
+                    }
+
+                    else
+                    {
+                        events = events.Where(x => (x.UserID == viewing && x.Privacy != TagPrivacy.Private) || x.Privacy == TagPrivacy.Shared);
+                    }
+                }
+                //combined
+                else
+                {
+                    events = events.Where(x => (x.UserID != userId && x.Privacy != TagPrivacy.Private) || x.UserID == userId || x.Privacy == TagPrivacy.Shared);
+                }
             }
 
             return events;
@@ -64,6 +82,11 @@ namespace MyCalendar.Service
         public async Task<IEnumerable<Types>> GetTypes()
         {
             return await typeService.GetAllAsync();
+        }
+
+        public async Task<bool> EventsByTagExist(Guid tagID)
+        {
+            return await eventRepository.EventsByTagExist(tagID);
         }
     }
 }
