@@ -1,4 +1,5 @@
 ﻿using MyCalendar.Enums;
+using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
@@ -38,7 +39,9 @@ namespace MyCalendar.Service
 
         public async Task<IEnumerable<Event>> GetCurrentActivityAsync()
         {
-            return await eventRepository.GetCurrentActivityAsync();
+            return (await eventRepository.GetCurrentActivityAsync())
+                .Where(x => (Utils.DateTime() >= Utils.FromUtcToTimeZone(x.StartDate) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToTimeZone(x.EndDate.Value)) ||
+                        (!x.EndDate.HasValue && Utils.FromUtcToTimeZone(x.StartDate).Date == Utils.DateTime().Date));
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null)

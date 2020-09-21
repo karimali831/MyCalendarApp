@@ -56,19 +56,15 @@ namespace MyCalendar.Service
 
         public async Task<List<string>> CurrentUserActivity(IEnumerable<Event> events)
         {
-            var getUserCurrentActivity = events
-                .Where(x => (Utils.DateTime() >= Utils.FromUtcToLocalTime(x.StartDate) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToLocalTime(x.EndDate.Value)) ||
-                    (!x.EndDate.HasValue && Utils.FromUtcToLocalTime(x.StartDate).Date == Utils.DateTime().Date));
-
             var currentActivity = new List<string>();
 
-            if (getUserCurrentActivity != null && getUserCurrentActivity.Any())
+            if (events != null && events.Any())
             {
-                foreach (var activity in getUserCurrentActivity)
+                foreach (var activity in events)
                 {
                     string getName = (await GetByUserIDAsync(activity.UserID)).Name;
                     string label = (await GetUserTagAysnc(activity.TagID))?.Name ?? activity.Description;
-                    string finishing = (activity.EndDate.HasValue ? "finishing at " + Utils.FromUtcToLocalTime(activity.EndDate.Value).ToString("HH:mm") : "until end of the day");
+                    string finishing = (activity.EndDate.HasValue ? "finishing at " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "until end of the day");
 
                     currentActivity.Add(string.Format("{0} @ {1} {2}", getName, label, finishing));
                 }

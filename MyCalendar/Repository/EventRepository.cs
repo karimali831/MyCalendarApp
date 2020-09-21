@@ -62,7 +62,7 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)} WHERE GETDATE() >= StartDate AND GETDATE() < EndDate")).ToArray();
+                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)}")).ToArray();
             }
         }
 
