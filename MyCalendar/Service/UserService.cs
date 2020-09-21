@@ -1,8 +1,9 @@
-﻿using MyCalendar.DTOs;
+﻿using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MyCalendar.Service
@@ -13,6 +14,8 @@ namespace MyCalendar.Service
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
+        Task<Tag> GetUserTagAysnc(Guid tagID);
+        Task<List<string>> CurrentUserActivity(IEnumerable<Event> events);
     }
     ;
     public class UserService : IUserService
@@ -44,6 +47,34 @@ namespace MyCalendar.Service
         public async Task<User> GetByUserIDAsync(Guid userID)
         {
             return await userRepository.GetByUserIDAsync(userID);
+        }
+
+        public async Task<Tag> GetUserTagAysnc(Guid tagID)
+        {
+            return await tagService.GetAsync(tagID);
+        }
+
+        public async Task<List<string>> CurrentUserActivity(IEnumerable<Event> events)
+        {
+            var getUserCurrentActivity = events
+                .Where(x => (Utils.DateTime() >= Utils.FromUtcToLocalTime(x.StartDate) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToLocalTime(x.EndDate.Value)) ||
+                    (!x.EndDate.HasValue && Utils.FromUtcToLocalTime(x.StartDate).Date == Utils.DateTime().Date));
+
+            var currentActivity = new List<string>();
+
+            if (getUserCurrentActivity != null && getUserCurrentActivity.Any())
+            {
+                foreach (var activity in getUserCurrentActivity)
+                {
+                    string getName = (await GetByUserIDAsync(activity.UserID)).Name;
+                    string label = (await GetUserTagAysnc(activity.TagID))?.Name ?? activity.Description;
+                    string finishing = (activity.EndDate.HasValue ? "finishing at " + Utils.FromUtcToLocalTime(activity.EndDate.Value).ToString("HH:mm") : "until end of the day");
+
+                    currentActivity.Add(string.Format("{0} @ {1} {2}", getName, label, finishing));
+                }
+            }
+
+            return currentActivity;
         }
     }
 }

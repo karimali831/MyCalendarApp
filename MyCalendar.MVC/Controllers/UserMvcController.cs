@@ -1,16 +1,13 @@
 ﻿
 using DFM.ExceptionHandling;
 using DFM.ExceptionHandling.Sentry;
-using MyCalendar.DTOs;
 using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -43,11 +40,6 @@ namespace MyCalendar.Controllers
             return users.ToList();
         }
 
-        public async Task<Tag> GetTag(Guid tagID)
-        {
-            return await tagService.GetAsync(tagID);
-        }
-
         public async Task<IEnumerable<Tag>> GetUserTags()
         {
             var user = await GetUser();
@@ -67,9 +59,9 @@ namespace MyCalendar.Controllers
             return Enumerable.Empty<Tag>();
         }
 
-        public async Task<User> GetUserByID(Guid userID)
+        public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events)
         {
-            return await userService.GetByUserIDAsync(userID);
+            return await userService.CurrentUserActivity(events);
         }
 
 

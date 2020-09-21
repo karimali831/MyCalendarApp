@@ -1,5 +1,4 @@
 ﻿using MyCalendar.Enums;
-using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
@@ -18,6 +17,7 @@ namespace MyCalendar.Service
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
         Task<bool> EventsByTagExist(Guid tagID);
+        Task<IEnumerable<Event>> GetCurrentActivityAsync();
     }
 
     public class EventService : IEventService
@@ -34,6 +34,11 @@ namespace MyCalendar.Service
         public async Task<Event> GetAsync(Guid eventId)
         {
             return await eventRepository.GetAsync(eventId);
+        }
+
+        public async Task<IEnumerable<Event>> GetCurrentActivityAsync()
+        {
+            return await eventRepository.GetCurrentActivityAsync();
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null)

@@ -6,16 +6,7 @@
 
 @Html.Partial("_Status", Model)
 
-@if (Model.CurrentActivity.Any())
-{
-    <div class="alert alert-info" role="alert">
-        @foreach (var activity in Model.CurrentActivity)
-        {
-            <span>@activity</span><br />
-        }
-    </div>
-}
-
+<div id="currentActivity" class="alert alert-info" role="alert" style="display: none"></div>
 <div id="calender"></div>
 <div id="myModal" class="modal fade" role="dialog">
     <div class="modal-dialog">
@@ -108,16 +99,18 @@
     <script>
         $(document).ready(function () {
             var events = [];
+            var activity = [];
             var selectedEvent = null;
             FetchEventAndRenderCalendar();
             function FetchEventAndRenderCalendar() {
                 events = [];
+                activity = [];
                 $.ajax({
                     type: "GET",
                     data: { 'viewingId': '@(Model.MenuItem.Viewing.HasValue ? Model.MenuItem.Viewing.Value : (Guid?)null)', 'combined': '@Model.MenuItem.Combined'  },
                     url: "/home/GetEvents/",
                     success: function (data) {
-                        $.each(data, function (i, v) {
+                        $.each(data.events, function (i, v) {
                             events.push({
                                 eventID: v.EventID,
                                 tagID: v.TagID,
@@ -131,13 +124,30 @@
                                 duration: v.Duration
                             });
                         })
-
+                        $.each(data.currentActivity, function (i, v) {
+                            activity.push({ activity: v });
+                        })
+                        CurrentUserActivity(activity);
                         GenerateCalender(events);
                     },
                     error: function (error) {
                         alert('failed');
                     }
                 })
+            }
+
+            function CurrentUserActivity(activity) {
+                if (!jQuery.isEmptyObject(activity)) {
+                    $('#currentActivity').show();
+                    $('#currentActivity').empty();
+                    $.each(activity, function (i, v) {
+                        $('#currentActivity').append('<div>' + v.activity + '</div>')
+                    })
+                }
+                else {
+                    $('#currentActivity').hide();
+                    $('#currentActivity').empty();
+                }
             }
 
             function GenerateCalender(events) {

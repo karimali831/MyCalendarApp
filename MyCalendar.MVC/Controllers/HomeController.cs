@@ -30,27 +30,8 @@ namespace MyCalendar.Controllers
                 return View();
             }
 
-            var getUserCurrentActivity = (await eventService.GetAllAsync())
-                .Where(x => (Utils.DateTime() >= Utils.FromUtcToLocalTime(x.StartDate) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToLocalTime(x.EndDate.Value)) ||
-                    (!x.EndDate.HasValue && Utils.FromUtcToLocalTime(x.StartDate).Date == Utils.DateTime().Date));
-
-            var currentActivity = new List<string>();
-
-            if (getUserCurrentActivity != null && getUserCurrentActivity.Any())
-            {
-                foreach (var activity in getUserCurrentActivity)
-                {
-                    string getName = (await GetUserByID(activity.UserID)).Name;
-                    string label = (await GetTag(activity.TagID))?.Name ?? activity.Description;
-                    string finishing = (activity.EndDate.HasValue ? "finishing at " + Utils.FromUtcToLocalTime(activity.EndDate.Value).ToString("HH:mm") : "until end of the day");
-
-                    currentActivity.Add(string.Format("{0} @ {1} {2}", getName, label, finishing));
-                }
-            }
-
             var viewModel = new CalendarVM
             {
-                CurrentActivity = currentActivity,
                 User = user,
                 Users = await GetUsers(),
                 UserTags = new TagsDTO { Tags = await GetUserTags() },
@@ -83,7 +64,8 @@ namespace MyCalendar.Controllers
 
         public async Task<JsonResult> GetEvents(Guid? viewingId = null, bool combined = false)
         {
-            Guid? viewing = null; 
+            Guid? viewing = null;
+            Guid userID = (await GetUser()).UserID;
 
             if (combined)
             {
@@ -94,10 +76,14 @@ namespace MyCalendar.Controllers
                viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
             }
 
-            var events = await eventService.GetAllAsync(viewing);
+
+            var events = await eventService.GetAllAsync(userID, viewing);
+            var activeEvents = await eventService.GetCurrentActivityAsync();
+
+            var currentActivity = await CurrentUserActivity(activeEvents);
             var dto = events.Select(b => DTOs.EventDTO.MapFrom(b)).ToList();
 
-            return new JsonResult { Data = dto, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+            return new JsonResult { Data = new { events = dto, currentActivity }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
         [HttpPost]
@@ -319,6 +305,13 @@ namespace MyCalendar.Controllers
         {
             (Status? UpdateResponse, string UpdateMsg) status = (null, null);
 
+            tags.Id = tags.Id.Reverse().Skip(1).Reverse().ToArray();
+            tags.Name = tags.Name.Reverse().Skip(1).Reverse().ToArray();
+            tags.ThemeColor = tags.ThemeColor.Reverse().Skip(1).Reverse().ToArray();
+            tags.TypeID = tags.TypeID.Reverse().Skip(1).Reverse().ToArray();
+            tags.Privacy = tags.Privacy.Reverse().Skip(1).Reverse().ToArray();
+            tags.UserCreatedId = tags.UserCreatedId.Reverse().Skip(1).Reverse().ToArray();
+
             var user = await GetUser();
 
             if ((await GetUser()) == null)
@@ -329,14 +322,14 @@ namespace MyCalendar.Controllers
             {
                 var tagsA = new Dictionary<int, Tag>();
 
-                int z = 1;
+                int z = 0;
                 foreach (var item in tags.Id)
                 {
                     tagsA.Add(z, new Tag { Id = item });
                     z++;
                 }
 
-                int i = 1;
+                int i = 0;
                 foreach (var item in tags.Name)
                 {
 
@@ -344,29 +337,43 @@ namespace MyCalendar.Controllers
                     i++;
                 }
 
-                int a = 1;
+                int a = 0;
                 foreach (var item in tags.ThemeColor)
                 {
                     tagsA[a].ThemeColor = item;
                     a++;
                 }
 
-                int t = 1;
+                int t = 0;
                 foreach (var item in tags.TypeID)
                 {
                     tagsA[t].TypeID = item;
                     t++;
                 }
 
+                int b = 0;
+                foreach (var item in tags.Privacy)
+                {
+                    tagsA[b].Privacy = item;
+                    b++;
+                }
+
+                int c = 0;
+                foreach (var item in tags.UserCreatedId)
+                {
+                    tagsA[c].UserID = item;
+                    c++;
+                }
+
                 tags.Tags = tagsA.Values.Select(x => new Tag
                 {
                     Id = x.Id,
-                    UserID = tags.UserID,
+                    UserID = x.UserID,
                     Name = x.Name,
                     ThemeColor = x.ThemeColor,
-                    TypeID = x.TypeID
-                })
-                .Where(x => !string.IsNullOrEmpty(x.Name));
+                    TypeID = x.TypeID,
+                    Privacy = x.Privacy
+                });
 
                 status = await UpdateUserTags(tags.Tags, user.UserID)
                     ? (Status.Success, "Your tags has been updated successfully")

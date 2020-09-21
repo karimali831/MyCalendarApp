@@ -1,5 +1,4 @@
-﻿using DFM.Utils;
-using MyCalendar.Enums;
+﻿using MyCalendar.Enums;
 using System;
 using System.Data.Entity.ModelConfiguration;
 

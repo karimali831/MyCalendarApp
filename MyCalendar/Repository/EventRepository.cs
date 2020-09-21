@@ -16,6 +16,7 @@ namespace MyCalendar.Repository
     {
         Task<Event> GetAsync(Guid eventId);
         Task<IEnumerable<Event>> GetAllAsync();
+        Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
         Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto);
@@ -54,6 +55,14 @@ namespace MyCalendar.Repository
                     ON e.TagID = t.Id";
 
                 return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
+            }
+        }
+
+        public async Task<IEnumerable<Event>> GetCurrentActivityAsync()
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)} WHERE GETDATE() >= StartDate AND GETDATE() < EndDate")).ToArray();
             }
         }
 
