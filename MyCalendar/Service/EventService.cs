@@ -40,7 +40,7 @@ namespace MyCalendar.Service
         public async Task<IEnumerable<Event>> GetCurrentActivityAsync()
         {
             return (await eventRepository.GetCurrentActivityAsync())
-                .Where(x => (Utils.DateTime() >= Utils.FromUtcToTimeZone(x.StartDate) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToTimeZone(x.EndDate.Value)) ||
+                .Where(x => (Utils.DateTime() >= Utils.FromUtcToTimeZone(x.StartDate.AddHours(-4)) && x.EndDate.HasValue && Utils.DateTime() < Utils.FromUtcToTimeZone(x.EndDate.Value)) ||
                         (!x.EndDate.HasValue && Utils.FromUtcToTimeZone(x.StartDate).Date == Utils.DateTime().Date));
         }
 

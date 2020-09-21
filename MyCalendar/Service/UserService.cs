@@ -64,9 +64,17 @@ namespace MyCalendar.Service
                 {
                     string getName = (await GetByUserIDAsync(activity.UserID)).Name;
                     string label = (await GetUserTagAysnc(activity.TagID))?.Name ?? activity.Description;
-                    string finishing = (activity.EndDate.HasValue ? "finishing at " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "until end of the day");
+                    string finishing = (activity.EndDate.HasValue ? "finishing " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
+                    string starting = Utils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
 
-                    currentActivity.Add(string.Format("{0} @ {1} {2}", getName, label, finishing));
+                    if (Utils.DateTime() >= Utils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && Utils.DateTime() < Utils.FromUtcToTimeZone(activity.StartDate))
+                    {
+                        currentActivity.Add(string.Format("{0} has an upcoming event today - {1} starting {2}", getName, label, starting));
+                    }
+                    else
+                    {
+                        currentActivity.Add(string.Format("{0} currently at event - {1} {2}", getName, label, finishing));
+                    }
                 }
             }
 
