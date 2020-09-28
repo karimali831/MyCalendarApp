@@ -1,5 +1,5 @@
 ﻿using MyCalendar.DTOs;
-using MyCalendar.Enum;
+using MyCalendar.Enums;
 using MyCalendar.Model;
 using System;
 using System.Collections.Generic;

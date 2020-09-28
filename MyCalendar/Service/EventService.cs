@@ -1,4 +1,5 @@
-﻿using MyCalendar.Enums;
+﻿using MyCalendar.DTOs;
+using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Repository;
@@ -12,11 +13,12 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null);
+        Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null, DateFilter filter = null);
         Task<bool> SaveEvent(Model.EventDTO dto);
         Task<bool> SaveEvents(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
+        Task<Types> GetTypeAsync(int Id);
         Task<bool> EventsByTagExist(Guid tagID);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
     }
@@ -44,9 +46,9 @@ namespace MyCalendar.Service
                         (!x.EndDate.HasValue && Utils.FromUtcToTimeZone(x.StartDate).Date == Utils.DateTime().Date));
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null, DateFilter filter = null)
         {
-            var events = await eventRepository.GetAllAsync();
+            var events = await eventRepository.GetAllAsync(filter);
 
             if (userId.HasValue)
             {
@@ -95,6 +97,11 @@ namespace MyCalendar.Service
         public async Task<bool> EventsByTagExist(Guid tagID)
         {
             return await eventRepository.EventsByTagExist(tagID);
+        }
+
+        public async Task<Types> GetTypeAsync(int Id)
+        {
+            return await typeService.GetAsync(Id);
         }
     }
 }

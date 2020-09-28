@@ -15,7 +15,7 @@ namespace MyCalendar.Repository
     public interface IEventRepository
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync();
+        Task<IEnumerable<Event>> GetAllAsync(DateFilter filter = null);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
@@ -44,7 +44,7 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync()
+        public async Task<IEnumerable<Event>> GetAllAsync(DateFilter filter = null)
         {
             using (var sql = dbConnectionFactory())
             {
@@ -52,7 +52,9 @@ namespace MyCalendar.Repository
                     SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, t.Privacy
                     FROM Events e
                     LEFT JOIN Tags t
-                    ON e.TagID = t.Id";
+                    ON e.TagID = t.Id
+                    {(filter != null && filter.Frequency.HasValue ? " WHERE " + Utils.FilterDateSql(filter) : null)}
+                    ORDER BY StartDate DESC"; 
 
                 return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
             }

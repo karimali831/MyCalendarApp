@@ -1,5 +1,5 @@
 ﻿using MyCalendar.DTOs;
-using MyCalendar.Enum;
+using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Service;
@@ -61,11 +61,10 @@ namespace MyCalendar.Controllers
             return View();
         }
 
-
         public async Task<JsonResult> GetEvents(Guid? viewingId = null, bool combined = false)
         {
             Guid? viewing = null;
-            Guid userID = (await GetUser()).UserID;
+            var user = await GetUser();
 
             if (combined)
             {
@@ -77,12 +76,22 @@ namespace MyCalendar.Controllers
             }
 
 
-            var events = await eventService.GetAllAsync(userID, viewing);
-            var activeEvents = await eventService.GetCurrentActivityAsync();
-
-            var currentActivity = await CurrentUserActivity(activeEvents);
+            var events = await eventService.GetAllAsync(user.UserID, viewing);
             var dto = events.Select(b => DTOs.EventDTO.MapFrom(b)).ToList();
 
+            if (dto != null && dto.Any() && combined)
+            {
+                foreach (var e in dto)
+                {
+                    var initial = (await GetUserById(e.UserID)).Name.Substring(0, 1);
+                    e.Description = $"({initial}) {e.Description}";
+                    e.Subject = $"({initial}) {e.Subject}";
+                }
+            }
+
+            var activeEvents = await eventService.GetCurrentActivityAsync();
+            var currentActivity = await CurrentUserActivity(activeEvents);
+ 
             return new JsonResult { Data = new { events = dto, currentActivity }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
@@ -381,6 +390,96 @@ namespace MyCalendar.Controllers
             }
 
             return RedirectToAction("Settings", new { updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+        }
+
+        public async Task<ActionResult> Overview(DateFrequency? frequency =  null, int? interval = null, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            var user = await GetUser();
+            var users = await GetUsers();
+
+            if (user == null)
+            {
+                return RedirectToAction("Index");
+            }
+
+            string currentMonth = Utils.DateTime().ToString("MMMM");
+
+            var dateFilter = new DateFilter
+            {
+                Frequency = frequency ?? Utils.ParseEnum<DateFrequency>(currentMonth),
+                Interval = interval ?? 1,
+                FromDateRange = fromDate ?? Utils.DateTime(),
+                ToDateRange = toDate ?? Utils.DateTime()
+            };
+
+            var events = (await eventService.GetAllAsync(userId: null, viewing: null, filter: dateFilter))
+                .Where(x => x.UserID == user.UserID)
+                .GroupBy(x => x.TagID);
+
+            var hoursWorkedInTag = new List<HoursWorkedInTag>();
+
+            if (events != null && events.Any())
+            {
+                foreach (var e in events)
+                {
+                    if (e.Key != Guid.Empty)
+                    {
+                        var tag = await GetTag(e.Key);
+                        var type = await eventService.GetTypeAsync(tag.TypeID);
+                        string userName = "You";
+                        bool multiUser = false;
+
+                        if (tag.Privacy == TagPrivacy.Shared)
+                        {
+                            userName += ", " + string.Join(", ", users.Select(x => x.Name));
+                            multiUser = true;
+                        }
+
+                        double minutesWorked = e.Sum(x => x.EndDate.HasValue ? Utils.MinutesBetweenDates(x.EndDate.Value, x.StartDate) : 1440);
+
+                        if (minutesWorked > 0)
+                        {
+                            int hoursFromMinutes = Utils.GetHoursFromMinutes(minutesWorked);
+                            int calculateHours = hoursFromMinutes >= 4 ? hoursFromMinutes / 4 : 0;
+                            string averaged = calculateHours >= 1 ? $" averaging {calculateHours} hour{(calculateHours > 1 ? "s" : "")} a week" : "";
+                            string text;
+
+                            if (dateFilter.Frequency == DateFrequency.Upcoming)
+                            {
+                                string multipleEvents = e.Count() > 1 ? "have upcoming events totalling" : "have an upcoming event for";
+                                text = string.Format($"{userName} {multipleEvents} {Utils.HoursDurationFromMinutes(minutesWorked)} with {tag.Name}");
+                            }
+                            else
+                            {
+                                text = string.Format($"{userName} spent {Utils.HoursDurationFromMinutes(minutesWorked)} {averaged} with {tag.Name}");
+                            }
+
+                            if (tag.Name == "Flex")
+                            {
+                                text += $" earning approx £{hoursFromMinutes * 13}";
+                            }
+
+                            hoursWorkedInTag.Add(new HoursWorkedInTag
+                            {
+                                Text = text,
+                                MultiUsers = multiUser,
+                                Color = tag.ThemeColor,
+                                TypeName = type.Name
+                            });
+                        }
+                    }
+                }
+            }
+
+            return View("Overview", 
+                new OverviewVM { 
+                    User = user,
+                    Users = await GetUsers(),
+                    MenuItem = new MenuItem { Overview = true },
+                    Filter = dateFilter, 
+                    HoursWorkedInTag = hoursWorkedInTag 
+            });
+
         }
 
         public ActionResult Logout()

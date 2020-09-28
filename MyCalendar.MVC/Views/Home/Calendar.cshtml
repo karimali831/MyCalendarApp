@@ -47,7 +47,7 @@
                             <option value="">-- select tag --</option>
                             @foreach (var tag in Model.UserTags.Tags)
                             {
-                                <option value="@tag.Id">@tag.Name</option>
+                                <option value="@tag.Id">@tag.Name (@tag.Privacy)</option>
                             }
                         </select>
                     </div>
@@ -169,6 +169,15 @@
                     eventLimit: true,
                     eventColor: '#378006',
                     events: events,
+                    eventRender: function (eventObj, $el) {
+                        $el.popover({
+                            title: eventObj.title,
+                            content: eventObj.description,
+                            trigger: 'hover',
+                            placement: 'top',
+                            container: 'body'
+                        });
+                    },
                     eventClick: function (calEvent, jsEvent, view) {
                         selectedEvent = calEvent;
                         $('#myModal #eventTitle').text(calEvent.title);

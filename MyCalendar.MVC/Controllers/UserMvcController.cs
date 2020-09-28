@@ -25,6 +25,8 @@ namespace MyCalendar.Controllers
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
+
+            //userService.DoWorkAsync();
         }
 
         public async Task<IList<User>> GetUsers()
@@ -38,6 +40,11 @@ namespace MyCalendar.Controllers
             }
 
             return users.ToList();
+        }
+
+        public async Task<Tag> GetTag(Guid tagId)
+        {
+            return await tagService.GetAsync(tagId);
         }
 
         public async Task<IEnumerable<Tag>> GetUserTags()
@@ -64,6 +71,10 @@ namespace MyCalendar.Controllers
             return await userService.CurrentUserActivity(events);
         }
 
+        public async Task<User> GetUserById(Guid userID)
+        {
+            return await userService.GetByUserIDAsync(userID);
+        }
 
         public async Task<User> GetUser(int? passcode = null)
         {

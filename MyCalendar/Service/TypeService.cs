@@ -9,6 +9,7 @@ namespace MyCalendar.Service
     public interface ITypeService
     {
         Task<IEnumerable<Types>> GetAllAsync();
+        Task<Types> GetAsync(int Id);
     }
 
     public class TypeService : ITypeService
@@ -23,6 +24,11 @@ namespace MyCalendar.Service
         public async Task<IEnumerable<Types>> GetAllAsync()
         {
             return await typeRepository.GetAllAsync();
+        }
+
+        public async Task<Types> GetAsync(int Id)
+        {
+            return await typeRepository.GetAsync(Id);
         }
     }
 }

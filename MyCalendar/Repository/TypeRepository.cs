@@ -12,6 +12,7 @@ namespace MyCalendar.Repository
     public interface ITypeRepository
     {
         Task<IEnumerable<Types>> GetAllAsync();
+        Task<Types> GetAsync(int Id);
     }
 
     public class TypeRepository : ITypeRepository
@@ -31,6 +32,14 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
+            }
+        }
+
+        public async Task<Types> GetAsync(int Id)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id", new { Id })).FirstOrDefault();
             }
         }
 

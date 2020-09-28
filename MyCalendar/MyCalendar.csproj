@@ -112,7 +112,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DTOs\DateFilter.cs" />
     <Compile Include="DTOs\Event.cs" />
+    <Compile Include="Enums\DateFrequency.cs" />
     <Compile Include="Enums\Status.cs" />
     <Compile Include="Enums\TagPrivacy.cs" />
     <Compile Include="Helpers\Utils.cs" />

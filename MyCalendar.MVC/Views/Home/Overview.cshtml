@@ -1,0 +1,75 @@
+﻿@using MyCalendar.Enums
+@using MyCalendar.Helpers
+@model MyCalendar.Website.ViewModels.OverviewVM
+@{
+    ViewBag.Title = "Overview";
+    ViewBag.Frequency = ((DateFrequency)Model.Filter.Frequency);
+}
+
+    <div class="jumbotron">
+        <h3><span class="glyphicon glyphicon-stats"> Overview</span></h3>
+        <hr />
+
+        @using (Html.BeginForm("Overview", "Home", FormMethod.Get, new { @class = "form-inline" }))
+        {
+            <div class="form-group">
+                <select class="form-control" onchange='location.href = this.value' style = "width:150px">
+                    @foreach (DateFrequency frequency in Enum.GetValues(typeof(DateFrequency)))
+                    {
+                        <option value="@Url.Action("Overview", "Home", new { frequency = frequency, interval = Model.Filter.Interval })" selected="@(Model.Filter.Frequency == frequency ? true : false)">@frequency</option>
+                    }
+                </select>
+            </div>
+
+            if (Model.Filter.Frequency.ToString().Contains("Last"))
+            {
+                <div class="form-group">
+                    <select class="form-control" onchange='location.href = this.value'  style = "width:80px">
+                        @for (int i = 1; i <= 30; i++)
+                        {
+                            <option value="@Url.Action("Overview", "Home", new { frequency = Model.Filter.Frequency, interval = i })" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
+                        }
+                    </select>
+                </div>
+            }
+
+            if (Model.Filter.Frequency == DateFrequency.DateRange)
+            {
+                <div class="form-group">
+                    @Html.TextBoxFor(x => x.Filter.FromDateRange, "{0:yyyy-MM-dd}", new { Name = "fromDate", style = "width:150px", @class = "form-control", required = "required", @type = "date" })
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { Name = "toDate", style = "width:150px", @class = "form-control", required = "required", @type = "date" })
+                </div>
+            }
+            <input type="hidden" name="frequency" value="@Model.Filter.Frequency" />
+            <input type="hidden" name="interval" value="@Model.Filter.Interval" />
+            <button type="submit" class="btn btn-primary">Show Me</button>
+        }
+
+        @if (Model.HoursWorkedInTag != null && Model.HoursWorkedInTag.Any())
+        {
+            <ul class="list-group">
+                @foreach (var e in Model.HoursWorkedInTag)
+                {
+                    <li class="list-group-item" style="background: @e.Color; color: @Utils.ContrastColor(e.Color)">
+                        @if (e.MultiUsers)
+                        {
+                            <span class="glyphicon glyphicon-user small" style="text-indent: -11px;"></span>
+                            <span class="glyphicon glyphicon-user small" style="text-indent: -8px;"></span>
+                        }
+                        else
+                        {
+                            <span class="glyphicon glyphicon-tag small"></span>
+                        }
+                       <small>@e.Text<span style="float: right">#@e.TypeName</span></small>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>Nothing found</p>
+        }
+    </div>
+
