@@ -1,4 +1,5 @@
-﻿using MyCalendar.Model;
+﻿using Cronofy;
+using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,8 @@ using System.Web;
 
 namespace MyCalendar.Website.ViewModels
 {
-    public class CalendarVM : BaseVM
+    public class SettingsVM : BaseVM
     {
+        public IEnumerable<Types> Types { get; set; }
     }
 }

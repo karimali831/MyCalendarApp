@@ -1,6 +1,9 @@
 ﻿
 using DFM.ExceptionHandling;
 using DFM.ExceptionHandling.Sentry;
+using MyCalendar.DTOs;
+using MyCalendar.Enums;
+using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
@@ -8,7 +11,10 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http.Filters;
 using System.Web.Mvc;
 
 namespace MyCalendar.Controllers
@@ -18,28 +24,40 @@ namespace MyCalendar.Controllers
         private readonly IExceptionHandlerService exceptionHandlerService;
         private readonly IUserService userService;
         private readonly ITagService tagService;
-        private readonly string AuthenticationName = "iCalendarApp-Authentication";
+        protected readonly ICronofyService cronofyService;
+        protected readonly string AuthenticationName = "iCalendarApp-Authentication";
+        public BaseVM BaseVM { get; set; }
 
-        public UserMvcController(IUserService userService, ITagService tagService)
+        public UserMvcController(IUserService userService, ICronofyService cronofyService, ITagService tagService)
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
+            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
 
             //userService.DoWorkAsync();
         }
 
+        private async Task<BaseVM> getViewModel(MenuItem menuItem, Status? updateResponse = null, string updateMsg = null)
+        {
+            var user = await GetUser();
+            var users = await GetUsers();
+            var userTags = await GetUserTags();
+
+            return new BaseVM
+            {
+                User = user,
+                Users = users,
+                UserTags = new TagsDTO { Tags = userTags },
+                UpdateStatus = (updateResponse, updateMsg),
+                MenuItem = menuItem,
+                CronofyCalendarAuthUrl = cronofyService.GetAuthUrl()
+            };
+        }
+
         public async Task<IList<User>> GetUsers()
         {
-            var users = await userService.GetAllAsync();
-            var user = await GetUser();
-
-            if (user != null)
-            {
-                users = users.Where(x => x.UserID != user.UserID);
-            }
-
-            return users.ToList();
+            return await userService.GetUsers();
         }
 
         public async Task<Tag> GetTag(Guid tagId)
@@ -49,21 +67,7 @@ namespace MyCalendar.Controllers
 
         public async Task<IEnumerable<Tag>> GetUserTags()
         {
-            var user = await GetUser();
-
-            if (user == null)
-            {
-                return Enumerable.Empty<Tag>();
-            }
-
-            var userTags = await tagService.GetUserTagsAsync(user.UserID);
-            
-            if (userTags != null)
-            {
-                return userTags;
-            }
-
-            return Enumerable.Empty<Tag>();
+            return await userService.GetUserTags();
         }
 
         public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events)
@@ -78,48 +82,21 @@ namespace MyCalendar.Controllers
 
         public async Task<User> GetUser(int? passcode = null)
         {
-            if (passcode.HasValue)
-            {
-                var user = await userService.GetAsync(passcode.Value);
-
-                if (user != null)
-                {
-                    Session[AuthenticationName] = user.Passcode;
-                    return user;
-                }
-                else
-                {
-                    RedirectToAction("Index");
-                }
-            }
-            else
-            {
-                if (Session[AuthenticationName] != null)
-                {
-                    var user = await userService.GetAsync(int.Parse(Session[AuthenticationName].ToString()));
-
-                    if (user != null)
-                    {
-                        user.Authenticated = true;
-                        return user;
-                    }
-                    else
-                    {
-                        RedirectToAction("Index");
-                    }
-                }
-                else
-                {
-                    RedirectToAction("Index");
-                }
-            }
-
-            return null;
+            return await userService.GetUser(passcode);
         }
 
         public void LogoutUser()
         {
-            Session.Remove(AuthenticationName);
+            var appCookie = Request.Cookies.Get(AuthenticationName);
+
+            if (appCookie != null)
+            {
+                HttpCookie cookie = new HttpCookie(AuthenticationName)
+                {
+                    Expires = DateTime.Now.AddDays(-1)
+                };
+                Response.Cookies.Set(cookie);
+            }
         }
 
         public async Task<bool> UpdateUser(User user)
@@ -132,20 +109,71 @@ namespace MyCalendar.Controllers
             return await tagService.UpdateUserTagsAsync(tags, userID);
         }
 
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var cronofyCookie = Request.Cookies.Get(CronofyService.CookieName);
+            var appCookie = Request.Cookies.Get(AuthenticationName);
+
+            if (appCookie != null)
+            {
+                if (cronofyCookie == null)
+                {
+                    //filterContext.Result = new RedirectResult("/home");
+                }
+                else if (!cronofyService.LoadUser(cronofyCookie.Value))
+                {
+                    Response.Cookies.Remove(CronofyService.CookieName);
+                    filterContext.Result = new RedirectResult("/home");
+                }
+            }
+
+            base.OnActionExecuting(filterContext);
+        }
+
+        protected override void OnActionExecuted(ActionExecutedContext filterContext)
+        {
+            var appCookie = Request.Cookies.Get(AuthenticationName);
+
+            if (appCookie == null)
+            {
+                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl != "/home/login")
+                {
+                    filterContext.Result = new RedirectResult("/home/login");
+                }
+            }
+
+            base.OnActionExecuted(filterContext);
+        }
+
+        protected async virtual Task BaseViewModel(MenuItem menuItem, Status? updateResponse = null, string updateMsg = null)
+        {
+            ViewData[nameof(BaseVM)] = await getViewModel(menuItem, updateResponse, updateMsg);
+        }
+
         protected override void OnException(ExceptionContext filterContext)
         {
+            var ex = filterContext.Exception;
             filterContext.ExceptionHandled = true;
 
-            exceptionHandlerService.ReportException(filterContext.Exception).Submit();
+            exceptionHandlerService.ReportException(ex).Submit();
+
+            if (ex is CredentialsInvalidError)
+            {
+                Response.Cookies.Remove(CronofyService.CookieName);
+                filterContext.Result = new RedirectResult("/home");
+                filterContext.ExceptionHandled = true;
+            }
 
             filterContext.Result = new ViewResult
             {
                 ViewName = "~/Views/Shared/Error.cshtml",
                 ViewData = new ViewDataDictionary(filterContext.Controller.ViewData)
                 {
-                    Model = new ErrorVM { Exception = filterContext.Exception }
+                    Model = new ErrorVM { Exception = ex }
                 }
             };
+
+            base.OnException(filterContext);
         }
     }
 }

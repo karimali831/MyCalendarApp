@@ -1,0 +1,85 @@
+﻿@model MyCalendar.Website.ViewModels.CronofyVM
+@using MyCalendar.Helpers
+
+<h2>@Model.EventVM.Calendar.Name - New Event</h2>
+
+<div class="well">
+    @using (Html.BeginForm("NewEvent", "Cronofy", FormMethod.Post, new { @class = "form-horizontal" }))
+    {
+        @Model.EventVM.ResponseError()
+
+        @Html.ValidationSummary(true);
+
+        @Html.HiddenFor(model => model.EventVM.CalendarId)
+        <fieldset>
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventVM.EventId, new { @class = "control-label col-lg-2" })
+                <div class="col-lg-10">
+                    @Html.TextBoxFor(model => model.EventVM.EventId, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.EventVM.EventId)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventVM.Summary, new { @class = "control-label col-lg-2" })
+                <div class="col-lg-10">
+                    @Html.TextBoxFor(model => model.EventVM.Summary, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.EventVM.Summary)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventVM.Description, new { @class = "control-label col-lg-2" })
+                <div class="col-lg-10">
+                    @Html.TextBoxFor(model => model.EventVM.Description, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.EventVM.Description)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventVM.Start, new { @class = "control-label col-lg-2" })
+                <div class="col-lg-10">
+                    @Html.TextBoxFor(model => model.EventVM.Start, new { @class = "form-control", type = "datetime-local" })
+                    @Html.ValidationMessageFor(model => model.EventVM.Start)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventVM.End, new { @class = "control-label col-lg-2" })
+                <div class="col-lg-10">
+                    @Html.TextBoxFor(model => model.EventVM.End, new { @class = "form-control", type = "datetime-local" })
+                    @Html.ValidationMessageFor(model => model.EventVM.End)
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.EventVM.LocationDescription, new { @class = "control-label col-lg-2" })
+                <div class="col-lg-10">
+                    @Html.TextBoxFor(model => model.EventVM.LocationDescription, new { @class = "form-control" })
+                </div>
+            </div>
+
+            @if (Model.EventVM.Calendar.Profile.ProviderName == "apple" || Model.EventVM.Calendar.Profile.ProviderName == "google")
+            {
+                <div class="form-group">
+                    @Html.LabelFor(model => model.EventVM.Latitude, new { @class = "control-label col-lg-2" })
+                    <div class="col-lg-10">
+                        @Html.TextBoxFor(model => model.EventVM.Latitude, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.EventVM.Latitude)
+                    </div>
+                    @Html.LabelFor(model => model.EventVM.Longitude, new { @class = "control-label col-lg-2" })
+                    <div class="col-lg-10">
+                        @Html.TextBoxFor(model => model.EventVM.Longitude, new { @class = "form-control" })
+                        @Html.ValidationMessageFor(model => model.EventVM.Longitude)
+                    </div>
+                </div>
+            }
+
+            <div class="form-group">
+                <div class="col-lg-10">
+                    <input type="submit" value="Create" class="btn btn-success btn-primary" />
+                </div>
+            </div>
+        </fieldset>
+    }
+</div>

@@ -1,33 +1,37 @@
-﻿@model MyCalendar.Website.ViewModels.CalendarVM
+﻿@model MyCalendar.Website.ViewModels.SettingsVM
+@using MyCalendar.Website.ViewModels
+@{
+    var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
+}
 
 @using (Html.BeginForm())
 {
-    @Html.Partial("_Status", Model);
+    @Html.Partial("_Status", BaseViewModel);
     <div class="jumbotron">
         <h3><span class="glyphicon glyphicon-user"> Profile</span></h3>
         <hr />
         <div class="form-group">
             @Html.LabelFor(x => x.User.Name)
-            @Html.TextBoxFor(s => s.User.Name, new { @class = "form-control", @type = "text", @placeholder = "Name", @required = "required" })
+            @Html.TextBoxFor(s => s.User.Name, new { @Value = BaseViewModel.User.Name, @class = "form-control", @type = "text", @placeholder = "Name", @required = "required" })
         </div>
         <div class="form-group">
             @Html.LabelFor(x => x.User.Passcode, "Login Passcode") <font color="red"><small>(changing this will log you out)</small></font>
-            @Html.TextBoxFor(s => s.User.Passcode, new { @class = "form-control", @type = "number", @placeholder = "Passcode", @required = "required" })
+            @Html.TextBoxFor(s => s.User.Passcode, new { @Value = BaseViewModel.User.Passcode, @class = "form-control", @type = "number", @placeholder = "Passcode", @required = "required" })
         </div>
         <div class="form-group">
             @Html.LabelFor(x => x.User.Email)
-            @Html.TextBoxFor(s => s.User.Email, new { @class = "form-control", @type = "text", @placeholder = "Email" })
+            @Html.TextBoxFor(s => s.User.Email, new { @Value = BaseViewModel.User.Email, @class = "form-control", @type = "text", @placeholder = "Email" })
         </div>
         <div class="form-group">
             @Html.LabelFor(x => x.User.PhoneNumber)
-            @Html.TextBoxFor(s => s.User.PhoneNumber, new { @class = "form-control", @type = "text", @placeholder = "Phone number" })
+            @Html.TextBoxFor(s => s.User.PhoneNumber, new { @Value = BaseViewModel.User.PhoneNumber, @class = "form-control", @type = "text", @placeholder = "Phone number" })
         </div>
-        @Html.HiddenFor(x => x.User.UserID)
+        @Html.HiddenFor(x => x.User.UserID, new { @Value = BaseViewModel.User.UserID })
         <button type="submit" class="btn btn-primary">Update</button>
     </div>
 }
 
-@Html.Partial("_Tags", Model.UserTags)
+@Html.Partial("_Tags", new MyCalendar.DTOs.TagsDTO { Tags = BaseViewModel.UserTags.Tags, Types = Model.Types, UserID = BaseViewModel.User.UserID })
 
 @section Scripts{
     <script type="text/javascript">

@@ -3,8 +3,13 @@ using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MyCalendar.Service
 {
@@ -14,14 +19,20 @@ namespace MyCalendar.Service
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
+        User GetByCronofyIDAsync(string cronofyUid);
         Task<Tag> GetUserTagAysnc(Guid tagID);
         Task<List<string>> CurrentUserActivity(IEnumerable<Event> events);
+        Task<IList<User>> GetUsers();
+        Task<User> GetUser(int? passcode = null);
+        Task<IEnumerable<Tag>> GetUserTags();
+        //Task DoWorkAsync();
     }
     ;
     public class UserService : IUserService
     {
-        private readonly IUserRepository userRepository;
+        protected readonly IUserRepository userRepository;
         private readonly ITagService tagService;
+        private readonly string AuthenticationName = "iCalendarApp-Authentication";
 
         public UserService(IUserRepository userRepository, ITagService tagService)
         {
@@ -49,9 +60,72 @@ namespace MyCalendar.Service
             return await userRepository.GetByUserIDAsync(userID);
         }
 
+        public User GetByCronofyIDAsync(string cronofyUid)
+        {
+            return userRepository.GetByCronofyIDAsync(cronofyUid);
+        }
+
         public async Task<Tag> GetUserTagAysnc(Guid tagID)
         {
             return await tagService.GetAsync(tagID);
+        }
+
+
+        public async Task<User> GetUser(int? passcode = null)
+        {
+            var appCookie = HttpContext.Current.Request.Cookies.Get(AuthenticationName);
+
+            if (passcode.HasValue)
+            {
+                return await GetAsync(passcode.Value);
+            }
+            else
+            {
+                if (appCookie != null)
+                {
+                    var user = await GetAsync(int.Parse(appCookie.Value));
+
+                    if (user != null)
+                    {
+                        user.Authenticated = true;
+                        return user;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public async Task<IList<User>> GetUsers()
+        {
+            var users = await GetAllAsync();
+            var user = await GetUser();
+
+            if (user != null)
+            {
+                users = users.Where(x => x.UserID != user.UserID);
+            }
+
+            return users.ToList();
+        }
+
+        public async Task<IEnumerable<Tag>> GetUserTags()
+        {
+            var user = await GetUser();
+
+            if (user == null)
+            {
+                return Enumerable.Empty<Tag>();
+            }
+
+            var userTags = await tagService.GetUserTagsAsync(user.UserID);
+
+            if (userTags != null)
+            {
+                return userTags;
+            }
+
+            return Enumerable.Empty<Tag>();
         }
 
         public async Task<List<string>> CurrentUserActivity(IEnumerable<Event> events)
@@ -80,5 +154,62 @@ namespace MyCalendar.Service
 
             return currentActivity;
         }
+
+        //public Task DoWorkAsync() // No async because the method does not need await
+        //{
+        //    return Task.Run(() =>
+        //    {
+        //        SendMail("Hello world", "karimali831@googlemail.com", "TEST");
+        //    });
+        //}
+
+        //public static bool SendMail(string subject, string to, string body)
+        //{
+        //    string fromMailAddress = ConfigurationManager.AppSettings["MailAddress"];
+        //    string fromMailPassword = ConfigurationManager.AppSettings["MailPassword"];
+        //    string fromMailName = ConfigurationManager.AppSettings["MailName"];
+
+        //    fromMailAddress = "admin@karim-ali.co.uk";
+        //    fromMailPassword = "Xra63400*";
+        //    fromMailName = "iCalendarApp";
+
+
+        //    var networkConfig = new NetworkCredential(fromMailAddress, fromMailPassword);
+        //    var mailServer = new SmtpClient()
+        //    {
+        //        //Host = ConfigurationManager.AppSettings["SmtpHost"],
+        //        Host = "mail.karim-ali.co.uk",
+        //        UseDefaultCredentials = false,
+        //        Credentials = networkConfig
+        //    };
+        //    if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["SmtpPort"]))
+        //        mailServer.Port = Convert.ToInt32(ConfigurationManager.AppSettings["SmtpPort"]);
+
+        //    mailServer.Port = 465;
+
+        //    var message = new MailMessage()
+        //    {
+        //        Subject = subject,
+        //        SubjectEncoding = Encoding.UTF8,
+        //        IsBodyHtml = true,
+        //        BodyEncoding = Encoding.UTF8,
+        //    };
+
+        //    //message send config
+        //    message.To.Add(new MailAddress(to));
+        //    message.From = new MailAddress(fromMailAddress, fromMailName);
+        //    message.Body = body;
+
+        //    try
+        //    {
+        //        mailServer.SendAsync(message, null);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return false;
+        //    }
+
+        //    return true;
+        //}
     }
 }

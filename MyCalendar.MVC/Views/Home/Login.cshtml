@@ -1,5 +1,4 @@
 ﻿@using MyCalendar.Website.ViewModels 
-@using MyCalendar.Helpers
 @using MyCalendar.Enums
 
 @{
@@ -8,10 +7,10 @@
 
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
-    @Html.Partial("_Status", new CalendarVM { UpdateStatus = (Status.Failed, ViewBag.ErrorMessage) })
+    @Html.Partial("_Status", new BaseVM { UpdateStatus = (Status.Failed, ViewBag.ErrorMessage) })
 }
 
-@using (Html.BeginForm())
+@using (Html.BeginForm("Index", "Home"))
 {
     <div class="form-group">
         <input type="password" style="width: 180px; display: inline" class="form-control" name="passcode" placeholder="Enter passcode" />

@@ -43,9 +43,12 @@
                         <div class="form-group">
                             <div class="input-group">
                                 <select class="form-control" id="typeID" name="typeID[]" style="width: 160px" disabled="@tag.UpdateDisabled">
-                                    @foreach (var type in Model.Types)
+                                    @if (Model.Types != null && Model.Types.Any())
                                     {
+                                        foreach (var type in Model.Types)
+                                        {
                                         <option value="@type.Id" @(type.Id == tag.TypeID ? "selected" : "")>@type.Name</option>
+                                        }
                                     }
                                 </select>
                                 <div class="input-group-btn">
@@ -96,9 +99,12 @@
                     <div class="form-group">
                         <div class="input-group">
                             <select class="form-control" id="typeId" name="typeID[]" style="width: 160px">
-                                @foreach (var type in Model.Types)
+                                @if (Model.Types != null && Model.Types.Any())
                                 {
-                                    <option value="@type.Id">@type.Name</option>
+                                    foreach (var type in Model.Types)
+                                    {
+                                        <option value="@type.Id">@type.Name</option>
+                                    }
                                 }
                             </select>
                             <div class="input-group-btn">

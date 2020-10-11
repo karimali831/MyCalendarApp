@@ -1,9 +1,8 @@
-﻿@model MyCalendar.Website.ViewModels.CalendarVM
-@using MyCalendar.Helpers
+﻿@using MyCalendar.Helpers
+@using MyCalendar.Website.ViewModels
 @{
-    ViewBag.Title = "Index";
+    var Model = ViewData[nameof(BaseVM)] as BaseVM;
 }
-
 @Html.Partial("_Status", Model)
 
 <div id="currentActivity" class="alert alert-info" role="alert" style="display: none"></div>
@@ -170,9 +169,10 @@
                     eventColor: '#378006',
                     events: events,
                     eventRender: function (eventObj, $el) {
+                        var end = moment(eventObj.end);
                         $el.popover({
-                            title: eventObj.title,
-                            content: eventObj.description,
+                            title: eventObj.title + (end.isValid() ? " until " + end.format('HH:mm') : " all day"),
+                            content: (eventObj.description == eventObj.title ? "" : eventObj.description),
                             trigger: 'hover',
                             placement: 'top',
                             container: 'body'

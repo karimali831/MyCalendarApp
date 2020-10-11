@@ -16,6 +16,8 @@ namespace MyCalendar.Repository
         Task<IEnumerable<User>> GetAllAsync();
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
+        User GetByCronofyIDAsync(string cronofyUid);
+        Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
     }
 
     public class UserRepository : IUserRepository
@@ -46,6 +48,15 @@ namespace MyCalendar.Repository
             }
         }
 
+        public User GetByCronofyIDAsync(string cronofyUid)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (sql.Query<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE CronofyUid = @cronofyUid", new { cronofyUid })).FirstOrDefault();
+            }
+        }
+
+
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             using (var sql = dbConnectionFactory())
@@ -63,11 +74,38 @@ namespace MyCalendar.Repository
                     await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE UserID = @userId", 
                         new
                         {
-                            userId = user.UserID,
-                            name = user.Name,
-                            email = user.Email,
-                            passcode = user.Passcode,
-                            phoneNumber = user.PhoneNumber
+                            user.UserID,
+                            user.Name,
+                            user.Email,
+                            user.Passcode,
+                            user.PhoneNumber,
+                            user.CronofyUid,
+                            user.AccessToken,
+                            user.RefreshToken
+                        });
+
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
+            }
+        }
+
+        public async Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE CronofyUID=@cronofyUid",
+                        new
+                        {
+                            accessToken,
+                            refreshToken,
+                            cronofyUid
                         });
 
                     return true;

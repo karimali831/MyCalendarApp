@@ -17,6 +17,7 @@ namespace MyCalendar.Ninject
             Bind<IUserService>().To<UserService>();
             Bind<ITagService>().To<TagService>();
             Bind<ITypeService>().To<TypeService>();
+            Bind<ICronofyService>().To<CronofyService>();
 
             // Repositories
             Bind<IEventRepository>().To<EventRepository>();

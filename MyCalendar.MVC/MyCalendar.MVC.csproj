@@ -48,6 +48,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Cronofy, Version=0.28.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cronofy.0.28.1\lib\net35\Cronofy.dll</HintPath>
+    </Reference>
     <Reference Include="Dapper, Version=1.60.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Dapper.1.60.6\lib\net451\Dapper.dll</HintPath>
     </Reference>
@@ -78,6 +81,9 @@
     </Reference>
     <Reference Include="NodaTime, Version=3.0.0.0, Culture=neutral, PublicKeyToken=4226afe0d9b296d1, processorArchitecture=MSIL">
       <HintPath>..\packages\NodaTime.3.0.0\lib\netstandard2.0\NodaTime.dll</HintPath>
+    </Reference>
+    <Reference Include="RestSharp, Version=106.8.10.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
+      <HintPath>..\packages\RestSharp.106.11.5\lib\net452\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="SharpRaven, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpRaven.2.4.0\lib\net471\SharpRaven.dll</HintPath>
@@ -222,6 +228,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\Api\EventController.cs" />
+    <Compile Include="Controllers\CronofyController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\UserMvcController.cs" />
     <Compile Include="Global.asax.cs">
@@ -230,19 +237,17 @@
     <Compile Include="GlobalExceptionHandler.cs" />
     <Compile Include="MVCModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\SettingsVM.cs" />
+    <Compile Include="ViewModels\CronofyVM.cs" />
+    <Compile Include="ViewModels\Event.cs" />
     <Compile Include="ViewModels\OverviewVM.cs" />
     <Compile Include="ViewModels\SchedulerVM.cs" />
-    <Compile Include="ViewModels\CalendarVM.cs" />
     <Compile Include="ViewModels\BaseVM.cs" />
     <Compile Include="ViewModels\Error.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
-    <Content Include="Content\bootstrap_lumen.min.css" />
-    <Content Include="Content\bootstrap_sandstone.min.css" />
-    <Content Include="Content\fullcalendar\main.css" />
-    <Content Include="Content\fullcalendar\main.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
@@ -255,8 +260,6 @@
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
-    <Content Include="Scripts\fullcalendar\main.js" />
-    <Content Include="Scripts\fullcalendar\main.min.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
     <Content Include="Scripts\jquery-3.3.1.slim.js" />
@@ -278,14 +281,18 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\Login.cshtml" />
     <Content Include="Views\Home\Calendar.cshtml" />
     <Content Include="Views\Home\Settings.cshtml" />
     <Content Include="Views\Home\_Tags.cshtml" />
     <Content Include="Views\Home\MultiAdd.cshtml" />
     <Content Include="Views\Home\_Status.cshtml" />
-    <Content Include="Views\Home\NewCalendar.cshtml" />
     <Content Include="Views\Home\Overview.cshtml" />
+    <Content Include="Views\Cronofy\Profiles.cshtml" />
+    <Content Include="Views\Cronofy\NewEvent.cshtml" />
+    <Content Include="Views\Cronofy\Calendar.cshtml" />
+    <Content Include="Views\Cronofy\Event.cshtml" />
+    <Content Include="Views\Home\ChangeLog.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -295,7 +302,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
+    <Folder Include="Views\Login\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

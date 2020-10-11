@@ -1,16 +1,76 @@
 ﻿using MyCalendar.DTOs;
 using MyCalendar.Enums;
+using MyCalendar.Model;
+using Newtonsoft.Json;
 using NodaTime;
 using NodaTime.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
 
 namespace MyCalendar.Helpers
 {
     public static class Utils
     {
+
+        public static string GenerateRandomString(int length)
+        {
+            const string valid = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+            var sb = new StringBuilder();
+            using (var provider = new RNGCryptoServiceProvider())
+            {
+                while (sb.Length != length)
+                {
+                    byte[] oneByte = new byte[1];
+                    provider.GetBytes(oneByte);
+                    char character = (char)oneByte[0];
+                    if (valid.Contains(character))
+                    {
+                        sb.Append(character);
+                    }
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        public static IHtmlString ResponseError(this ResourceWithError resource)
+        {
+            if (resource.NoErrors())
+            {
+                return null;
+            }
+
+            var error = JsonConvert.DeserializeObject<object>(HttpUtility.HtmlDecode(resource.Error));
+
+            var formattedError = "<pre>" + JsonConvert.SerializeObject(error, Formatting.Indented) + "</pre>";
+
+            return new HtmlString(string.Format(@"
+            <div id='error_explanation' class='alert alert-danger'>
+                {0}
+                {1}
+            </div>", ErrorCodeString(resource.ErrorCode.Value), error != null ? formattedError : string.Empty));
+        }
+
+        private static string ErrorCodeString(HttpStatusCode code)
+        {
+            var codeName = code.ToString();
+
+            if ((int)code == 422)
+            {
+                codeName = "Unprocessable";
+            }
+
+            return "<h4>" + (int)code + @" - " + codeName + @"</h4>";
+        }
+
         public static string Duration(DateTime d1, DateTime d2)
         {
             string rtnString = "";
@@ -54,15 +114,11 @@ namespace MyCalendar.Helpers
             double calcMinutes = Math.Round(span.TotalMinutes);
             double calcHours = Math.Floor(span.TotalHours);
 
-            if (span.Days >= 1 && span.Hours == 0)
-            {
-                rtnString = $"{span.Days} day{(span.Days > 1 ? "s" : "")}";
-            }
-            else if (span.Minutes < 60 && span.Hours == 0)
+            if (calcHours == 0)
             {
                 rtnString = $"{calcMinutes} minute{(calcMinutes > 1 ? "s" : "")}";
             }
-            else if (span.Hours >= 1)
+            else
             {
                 rtnString = $"{calcHours} hour{(calcHours > 1 ? "s" : "")}";
 
@@ -82,7 +138,7 @@ namespace MyCalendar.Helpers
             int rtnNo = 0;
             TimeSpan span = TimeSpan.FromMinutes(minutes);
 
-            if (span.Hours >= 1)
+            if (span.TotalHours >= 1)
             {
                 rtnNo = (int)Math.Floor(span.TotalHours);
             }

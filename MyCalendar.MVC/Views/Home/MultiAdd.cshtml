@@ -1,10 +1,13 @@
 ﻿@model MyCalendar.Website.ViewModels.SchedulerVM
 @using MyCalendar.Website.ViewModels
 @using MyCalendar.Helpers
+@{
+    var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
+}
 
 @using (Html.BeginForm("MultiAdd"))
 {
-    @Html.Partial("_Status", new CalendarVM { UpdateStatus = Model.UpdateStatus })
+    @Html.Partial("_Status", new BaseVM { UpdateStatus = Model.UpdateStatus })
     <div class="jumbotron">
         <div class="form-group">
             <label for="dates"><span class="glyphicon glyphicon-calendar"></span> How many dates?</label>
@@ -16,44 +19,44 @@
                 }
             </select>
         </div>
-        @if (Model.Dates > 1)
-        {
-            <div class="form-group">
-                <label for="times"><span class="glyphicon glyphicon-time"></span> Apply same times for each date?</label>
-                <select id="times" name="times" class="form-control" onchange="selectTimes(this,'@Url.Action("MultiAdd", "Home")')">
-                    <option value="" selected>-- select times --</option>
-                    @foreach (var preset in Utils.TimePresets())
-                    {
-                        <option value="@preset.Key" selected="@(preset.Key == Model.Times ? true : false)">@preset.Value</option>
-                    }
-                </select>
-            </div>
-        }
         <div class="form-group">
             <label for="tag"><span class="glyphicon glyphicon-tag"></span> Tag</label>
-            <select id="tag" name="TagId" class="form-control" required onchange="selectTag(this,'@Url.Action("MultiAdd", "Home")')">
+            <select id="tag" name="TagId" class="form-control" required>
                 <option value="">-- select tag --</option>
-                @foreach (var tag in Model.UserTags.Tags)
+                @foreach (var tag in BaseViewModel.UserTags.Tags)
                 {
-                    <option value="@tag.Id" selected="@(tag.Id == Model.TagID)">@tag.Name</option>
+                    <option value="@tag.Id" selected="@(tag.Id == Model.TagID ? true : false)">@tag.Name</option>
                 }
             </select>
         </div>
-        @if (Model.TagID != null && Model.Dates > 0)
+        @if (Model.Dates > 1)
+        {
+            <div class="form-group">
+                <label><span class="glyphicon glyphicon-time"></span> Apply same times to each date?</label>
+                <br />
+                From: <input type="time" name="fromTime" style="width: 107px; display: inline" class="form-control" />
+                To: <input type="time" name="toTime" style="width: 107px; display: inline" class="form-control" />
+            </div>
+        }
+        @if (Model.Dates > 0)
         {
             for (int i = 0; i < Model.Dates; i++)
             {
                 <hr />
                 <div class="form-group">
                     <label for="start">Start Date #@(i+1)</label>
-                    <input type="datetime-local" id="start" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : (!string.IsNullOrEmpty(Model.Times) ? Utils.DateTime().AddDays(i - 1).ToString("yyy-MM-ddT" + Model.Times.Split('-')[0]) : Utils.DateTime().AddDays(i - 1).AddHours(1).ToString("yyy-MM-ddTHH:00")))" required />
+                    <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i - 1).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
                 <div class="form-group" id="divEndDate">
                     <label for="end">End Date #@(i+1)</label>
-                    <input type="datetime-local" id="end" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : (!string.IsNullOrEmpty(Model.Times) ? Utils.DateTime().AddDays(i - 1).ToString("yyy-MM-ddT" + Model.Times.Split('-')[1]) : Utils.DateTime().AddDays(i - 1).AddHours(3).ToString("yyy-MM-ddTHH:00")))" required />
+                    <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i - 1).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
             }
-
+            <hr />
+            <div class="form-group">
+                <label for="iCloud"><span class="glyphicon glyphicon-apple"></span> Add event@(Model.Dates > 1 ? "s" : "") to iCloud?</label>
+                <input type="checkbox" name="iCloud" disabled/>
+            </div>
             <button type="submit" class="btn btn-primary">Update</button>
         }
     </div>
@@ -61,14 +64,40 @@
 
 @section Scripts{
     <script type="text/javascript">
+
+        $('input[name=fromTime]').change(function (e) {
+            var txtVal = $(this).val();
+            $.each(new Array(@Model.Dates),
+                function (n) {
+                    var start = $('#start' + n).val();
+                    $('#start' + n).val(start.substring(0, 11) + txtVal);
+                }
+            );
+        });
+
+        $('input[name=toTime]').change(function (e) {
+            var txtVal = $(this).val();
+            $.each(new Array(@Model.Dates),
+                function (n) {
+                    var end = $('#end' + n).val();
+                    $('#end' + n).val(end.substring(0, 11) + txtVal);
+                }
+            );
+        });
+
+        $.each(new Array(@Model.Dates),
+            function (n) {
+                $('#start' + n).change(function () {
+                    var start = $(this).val();
+                    var end = $('#end' + n).val();
+                    var date = end.substring(0, 8) + start.substring(8, 10) + end.substring(10, 16);
+                    $('#end' + n).val(date);
+                });
+            }
+        )
+
         function selectDates(item, baseUrl) {
-            window.location.href = baseUrl + '?dates=' + item.value + '&tagId=@Model.TagID' + '&times=@Model.Times';
-        }
-        function selectTag(item, baseUrl) {
-            window.location.href = baseUrl + '?tagId=' + item.value + '&dates=@Model.Dates' + '&times=@Model.Times';
-        }
-        function selectTimes(item, baseUrl) {
-            window.location.href = baseUrl + '?times=' + item.value + '&dates=@Model.Dates' + '&tagId=@Model.TagID';
+            window.location.href = baseUrl + '?dates=' + item.value;
         }
     </script>
 

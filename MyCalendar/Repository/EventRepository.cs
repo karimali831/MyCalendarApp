@@ -54,7 +54,7 @@ namespace MyCalendar.Repository
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id
                     {(filter != null && filter.Frequency.HasValue ? " WHERE " + Utils.FilterDateSql(filter) : null)}
-                    ORDER BY StartDate DESC"; 
+                    ORDER BY StartDate DESC";
 
                 return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
             }

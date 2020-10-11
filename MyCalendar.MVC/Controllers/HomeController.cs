@@ -1,4 +1,5 @@
-﻿using MyCalendar.DTOs;
+﻿using Cronofy;
+using MyCalendar.DTOs;
 using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Model;
@@ -8,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 
 namespace MyCalendar.Controllers
@@ -16,48 +18,51 @@ namespace MyCalendar.Controllers
     {
         private readonly IEventService eventService;
 
-        public HomeController(IEventService eventService, IUserService userService, ITagService tagService) : base(userService, tagService)
+        public HomeController(
+            IEventService eventService, ICronofyService cronofyService, IUserService userService, ITagService tagService) : 
+            base(userService, cronofyService, tagService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
 
+        public ActionResult Login()
+        {
+            ViewBag.ErrorMessage = TempData["ErrorMsg"];
+            return View();
+        }
+
         public async Task<ActionResult> Index(Guid? viewingId = null, bool combined = false, Status? updateResponse = null, string updateMsg = null)
         {
-            var user = await GetUser();
-
-            if (user == null)
+            var menuItem = new MenuItem
             {
-                return View();
-            }
-
-            var viewModel = new CalendarVM
-            {
-                User = user,
-                Users = await GetUsers(),
-                UserTags = new TagsDTO { Tags = await GetUserTags() },
-                UpdateStatus = (updateResponse, updateMsg),
-                MenuItem = new MenuItem
-                {
-                    Home = viewingId == null && combined == false ? true : false,
-                    Viewing = viewingId,
-                    Combined = combined
-                }
+                Home = viewingId == null && combined == false ? true : false,
+                Viewing = viewingId,
+                Combined = combined
             };
 
-            return View("Calendar", viewModel);
+            await BaseViewModel(menuItem, updateResponse, updateMsg);
+            return View("Calendar");
         }
 
         [HttpPost]
         public async Task<ActionResult> Index(int passcode)
         {
-            var checkUser = await GetUser(passcode);
+            var user = await GetUser(passcode);
 
-            if (checkUser != null)
+            if (user == null)
             {
+                TempData["ErrorMsg"] = "The passcode was entered incorrectly";
+                return RedirectToAction("Login");
+            }
+            else
+            {
+                Response.SetCookie(new HttpCookie(AuthenticationName, passcode.ToString()));
                 return RedirectToAction("Index");
             }
+        }
 
-            ViewBag.ErrorMessage = "The passcode was entered incorrectly";
+        public ActionResult ChangeLog()
+        {
             return View();
         }
 
@@ -79,15 +84,15 @@ namespace MyCalendar.Controllers
             var events = await eventService.GetAllAsync(user.UserID, viewing);
             var dto = events.Select(b => DTOs.EventDTO.MapFrom(b)).ToList();
 
-            if (dto != null && dto.Any() && combined)
-            {
-                foreach (var e in dto)
-                {
-                    var initial = (await GetUserById(e.UserID)).Name.Substring(0, 1);
-                    e.Description = $"({initial}) {e.Description}";
-                    e.Subject = $"({initial}) {e.Subject}";
-                }
-            }
+            //if (dto != null && dto.Any() && combined)
+            //{
+            //    foreach (var e in dto)
+            //    {
+            //        var initial = (await GetUserById(e.UserID)).Name.Substring(0, 1);
+            //        e.Description = $"({initial}) {e.Description}";
+            //        e.Subject = $"({initial}) {e.Subject}";
+            //    }
+            //}
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
             var currentActivity = await CurrentUserActivity(activeEvents);
@@ -96,13 +101,23 @@ namespace MyCalendar.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> SaveEvent(EventVM e)
+        public async Task<JsonResult> SaveEvent(DTOs.EventVM e)
         {
             var status = false;
+            var user = await GetUser();
 
-            if ((await GetUser()) == null)
+            if (user == null)
             {
-                return new JsonResult { Data = new { status, responseText = "You are not logged-in" } };
+                return new JsonResult { Data = new { status, responseText = "You are no longer logged in because the session expired" } };
+            }
+
+            if (e.EventID != Guid.Empty)
+            {
+                var eventCreatedUserId = (await eventService.GetAsync(e.EventID)).UserID;
+                if (user.UserID != eventCreatedUserId)
+                {
+                    return new JsonResult { Data = new { status, responseText = "You're attempting to update an event that you did not create" } };
+                }
             }
 
             var dto = DTOs.EventDTO.MapFrom(e);
@@ -156,43 +171,23 @@ namespace MyCalendar.Controllers
         }
 
  
-        public async Task<ActionResult> MultiAdd(int dates = 0, Guid? tagId = null, string times = null)
+        public async Task<ActionResult> MultiAdd(int dates = 0)
         {
-            var user = await GetUser();
+            await BaseViewModel(new MenuItem { MultiAdd = true });
 
-            if (user == null)
-            {
-                return RedirectToAction("Index");
-            }
-
-            var viewModel = new SchedulerVM
-            {
-                Dates = dates,
-                TagID = tagId,
-                Times = times,
-                User = user,
-                Users = await GetUsers(),
-                UserTags = new TagsDTO { Tags = await GetUserTags() },
-                MenuItem = new MenuItem  { MultiAdd = true }
-            };
-
+            var viewModel = new SchedulerVM { Dates = dates };
             var scheduler = (SchedulerVM)TempData["scheduler"];
 
             if (scheduler != null)
             {
                 viewModel.Dates = scheduler.Dates;
+                viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
-                viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
             }
 
             return View("MultiAdd", viewModel);
-        }
-
-        public ActionResult NewCalendar()
-        {
-            return View();
         }
 
 
@@ -205,7 +200,7 @@ namespace MyCalendar.Controllers
 
             if (user == null)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("Login");
             }
             else
             {
@@ -244,7 +239,6 @@ namespace MyCalendar.Controllers
                     }
                 }
 
-
                 model.UpdateStatus = (status.UpdateResponse, status.UpdateMsg);
                 TempData["scheduler"] = model;
 
@@ -254,6 +248,23 @@ namespace MyCalendar.Controllers
                 }
                 else
                 {
+                    //if (model.Icloud)
+                    //{
+                    //    try
+                    //    {
+                    //        foreach (var e in model.Events)
+                    //        {
+                    //            cronofyService.UpsertEvent(e.EventID, newEvent.CalendarId, newEvent.Summary, newEvent.Description, newEvent.Start, newEvent.End, new Location(newEvent.LocationDescription, newEvent.Latitude, newEvent.Longitude));
+                    //        }
+
+                            
+                    //    }
+                    //    catch (CronofyResponseException ex)
+                    //    {
+                    //        newEvent.SetError(ex);
+                    //    }
+                    //}
+
                     status = await eventService.SaveEvents(model.Events)
                         ? (Status.Success, "Scheduler has been saved and your calendar has been updated")
                         : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
@@ -273,33 +284,19 @@ namespace MyCalendar.Controllers
 
         public async Task<ActionResult> Settings(Status? updateResponse = null, string updateMsg = "")
         {
-            var user = await GetUser();
+            var menuItem = new MenuItem { Settings = true };
+            await BaseViewModel(menuItem, updateResponse, updateMsg);
 
-            if (user == null)
+            var viewModel = new SettingsVM
             {
-                return RedirectToAction("Index");
-            }
-
-            var viewModel = new CalendarVM
-            {
-                User = user,
-                Users = await GetUsers(),
-                UserTags = new TagsDTO
-                {
-                    UserID = user.UserID,
-                    Tags = await GetUserTags(),
-                    Types = await eventService.GetTypes()
-
-                },
-                UpdateStatus = (UpdateResponse: updateResponse, UpdateMsg: updateMsg),
-                MenuItem = new MenuItem { Settings = true }
+                Types = await eventService.GetTypes()
             };
 
-            return View("Settings", viewModel);
+            return View(viewModel);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Settings(CalendarVM model)
+        public async Task<ActionResult> Settings(SettingsVM model)
         {
             (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(model.User) == true 
                 ? (Status.Success, "Your profile has been saved successfully")
@@ -394,26 +391,22 @@ namespace MyCalendar.Controllers
 
         public async Task<ActionResult> Overview(DateFrequency? frequency =  null, int? interval = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var user = await GetUser();
-            var users = await GetUsers();
-
-            if (user == null)
-            {
-                return RedirectToAction("Index");
-            }
+            await BaseViewModel(new MenuItem { Overview = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
             string currentMonth = Utils.DateTime().ToString("MMMM");
+            DateFrequency currentFrequency = Utils.ParseEnum<DateFrequency>(currentMonth);
 
             var dateFilter = new DateFilter
             {
-                Frequency = frequency ?? Utils.ParseEnum<DateFrequency>(currentMonth),
-                Interval = interval ?? 1,
+                Frequency = frequency ?? DateFrequency.LastXDays,
+                Interval = interval ?? 7,
                 FromDateRange = fromDate ?? Utils.DateTime(),
                 ToDateRange = toDate ?? Utils.DateTime()
             };
 
             var events = (await eventService.GetAllAsync(userId: null, viewing: null, filter: dateFilter))
-                .Where(x => x.UserID == user.UserID)
+                .Where(x => x.UserID == baseVM.User.UserID || x.Privacy == TagPrivacy.Shared)
                 .GroupBy(x => x.TagID);
 
             var hoursWorkedInTag = new List<HoursWorkedInTag>();
@@ -431,7 +424,7 @@ namespace MyCalendar.Controllers
 
                         if (tag.Privacy == TagPrivacy.Shared)
                         {
-                            userName += ", " + string.Join(", ", users.Select(x => x.Name));
+                            userName += ", " + string.Join(", ", baseVM.Users.Select(x => x.Name));
                             multiUser = true;
                         }
 
@@ -440,7 +433,7 @@ namespace MyCalendar.Controllers
                         if (minutesWorked > 0)
                         {
                             int hoursFromMinutes = Utils.GetHoursFromMinutes(minutesWorked);
-                            int calculateHours = hoursFromMinutes >= 4 ? hoursFromMinutes / 4 : 0;
+                            int calculateHours = hoursFromMinutes >= 672 ? hoursFromMinutes / 4 : 0;
                             string averaged = calculateHours >= 1 ? $" averaging {calculateHours} hour{(calculateHours > 1 ? "s" : "")} a week" : "";
                             string text;
 
@@ -473,7 +466,7 @@ namespace MyCalendar.Controllers
 
             return View("Overview", 
                 new OverviewVM { 
-                    User = user,
+                    User = baseVM.User,
                     Users = await GetUsers(),
                     MenuItem = new MenuItem { Overview = true },
                     Filter = dateFilter, 
@@ -485,7 +478,7 @@ namespace MyCalendar.Controllers
         public ActionResult Logout()
         {
             LogoutUser();
-            return RedirectToAction("Index");
+            return RedirectToAction("Login");
         }
 
     }

@@ -1,0 +1,49 @@
+﻿@model MyCalendar.Website.ViewModels.CronofyVM
+
+<div class="row">
+    <div class="col-xs-8">
+        <h2>@Model.Calendar.Name - Events</h2>
+    </div>
+
+    <div class="col-xs-4 text-right">
+        @if (!Model.Calendar.ReadOnly)
+        {
+            <a href="/cronofy/newevent/@Model.Calendar.CalendarId" class="btn btn-primary">
+                Create Event
+            </a>
+        }
+    </div>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Event Summary</th>
+            <th>Start</th>
+            <th>End</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var calEvent in Model.Events)
+        {
+            <tr>
+                <td>
+                    @calEvent.Summary 
+                </td>
+                <td>
+                    @(calEvent.Start.HasTime ? calEvent.Start.DateTimeOffset.ToString() : calEvent.Start.Date.ToString())
+                </td>
+                <td>
+                    @(calEvent.Start.HasTime ? calEvent.Start.DateTimeOffset.ToString() : calEvent.Start.Date.ToString())
+                </td>
+                <td>
+                    <a href="/cronofy/event/@calEvent.EventUid">
+                        View
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

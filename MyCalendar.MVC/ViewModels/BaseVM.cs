@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace MyCalendar.Website.ViewModels
 {
-    public abstract class BaseVM
+    public class BaseVM
     {
         public User User { get; set; }
         public TagsDTO UserTags { get; set; }
@@ -14,6 +14,7 @@ namespace MyCalendar.Website.ViewModels
         public MenuItem MenuItem {get; set; }
         public (Status? UpdateResponse, string UpdateMsg) UpdateStatus { get; set; }
         public Exception Exception { get; set; }
+        public string CronofyCalendarAuthUrl { get; set; }
     }
 
     public class MenuItem
