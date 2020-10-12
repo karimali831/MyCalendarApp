@@ -134,6 +134,7 @@
     <Compile Include="Enums\DateFrequency.cs" />
     <Compile Include="Enums\Status.cs" />
     <Compile Include="Enums\TagPrivacy.cs" />
+    <Compile Include="Helpers\ChangeLog.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Model\ResourceWithError.cs" />

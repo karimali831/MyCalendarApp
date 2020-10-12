@@ -63,7 +63,8 @@ namespace MyCalendar.Controllers
 
         public ActionResult ChangeLog()
         {
-            return View();
+            var changes = Helpers.ChangeLog.GetChangeList();
+            return View(new ChangeLogVM { ChangeLog = changes });
         }
 
         public async Task<JsonResult> GetEvents(Guid? viewingId = null, bool combined = false)
