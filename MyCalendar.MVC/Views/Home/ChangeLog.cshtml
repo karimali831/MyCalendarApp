@@ -1,17 +1,46 @@
-﻿
+﻿@model MyCalendar.Website.ViewModels.ChangeLogVM
 @{
     ViewBag.Title = "ChangeLog";
 }
 
-<h2>ChangeLog</h2>
+<h2>App Change Log</h2>
 
-<dl class="row">
-    <dt class="col-sm-3">v1.2.0</dt>
-    <dd class="col-sm-9">Various changes/improvements including added changelog, began adding functionality for cronofy calendar integration, authentication using cookie, prevent updating or removing event not created by the user </dd>
-    <dt class="col-sm-3 text-truncate">v1.1.9</dt>
-    <dd class="col-sm-9">Add functionality to display overview info for time spent in each date filtered by date, also add popover for events</dd>
-    <dt class="col-sm-3">v1.1.8</dt>
-    <dd class="col-sm-9">Fixes for timezone, tags and showing live activity, notify 4 hours prior to start in current activity. Style changes with new calendar theme</dd>
-    <dt class="col-sm-3">v1.1.7</dt>
-    <dd class="col-sm-9">Show current activity at calendar head, option to select times ones for all events in scheduler, display events according to shared, public or private tags.</dd>
-</dl>
+<div id="accordion">
+    @{
+        int i = 1;
+        foreach (var c in Model.ChangeLog.OrderByDescending(x => x.Key))
+        {
+            <div class="card">
+                <div class="card-header" id="@c.Key">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#@i" aria-expanded="true" aria-controls="@c.Key">
+                            <i class="glyphicon glyphicon-th-list"></i> @c.Key
+                        </button>
+                    </h5>
+                </div>
+                <div id="@i" class="collapse @(i == 1 ? "show" : "")" aria-labelledby="@c.Key" data-parent="#accordion">
+                    <div class="card-body">
+                        @if (c.Value[0].StartsWith("*"))
+                        {
+                            <strong>@c.Value[0].Remove(0,1)</strong>
+                        }
+                        @if (c.Value.Count > 1)
+                        {
+                            <ul>
+                                @foreach (var text in c.Value.Where(x => !x.StartsWith("*")))
+                                {
+                                    <li>@text</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>@c.Value[0]</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            {i++;}
+        }
+    }
+</div>

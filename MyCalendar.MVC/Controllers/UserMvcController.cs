@@ -141,6 +141,13 @@ namespace MyCalendar.Controllers
                     filterContext.Result = new RedirectResult("/home/login");
                 }
             }
+            else
+            {
+                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl.Equals("/home/login", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    filterContext.Result = new RedirectResult("/home/index");
+                }
+            }
 
             base.OnActionExecuted(filterContext);
         }
