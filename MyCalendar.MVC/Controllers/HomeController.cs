@@ -61,8 +61,9 @@ namespace MyCalendar.Controllers
             }
         }
 
-        public ActionResult ChangeLog()
+        public async Task<ActionResult> ChangeLog()
         {
+            await BaseViewModel(new MenuItem { None = true });
             var changes = Helpers.ChangeLog.GetChangeList();
             return View(new ChangeLogVM { ChangeLog = changes });
         }
@@ -290,7 +291,8 @@ namespace MyCalendar.Controllers
 
             var viewModel = new SettingsVM
             {
-                Types = await eventService.GetTypes()
+                Types = await eventService.GetTypes(),
+                CronofyCalendarAuthUrl = cronofyService.GetAuthUrl()
             };
 
             return View(viewModel);

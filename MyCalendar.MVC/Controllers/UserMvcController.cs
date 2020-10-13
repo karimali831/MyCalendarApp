@@ -50,8 +50,7 @@ namespace MyCalendar.Controllers
                 Users = users,
                 UserTags = new TagsDTO { Tags = userTags },
                 UpdateStatus = (updateResponse, updateMsg),
-                MenuItem = menuItem,
-                CronofyCalendarAuthUrl = cronofyService.GetAuthUrl()
+                MenuItem = menuItem
             };
         }
 
@@ -111,18 +110,13 @@ namespace MyCalendar.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var cronofyCookie = Request.Cookies.Get(CronofyService.CookieName);
             var appCookie = Request.Cookies.Get(AuthenticationName);
 
             if (appCookie != null)
             {
-                if (cronofyCookie == null)
+                if (!cronofyService.LoadUser(int.Parse(appCookie.Value)))
                 {
-                    //filterContext.Result = new RedirectResult("/home");
-                }
-                else if (!cronofyService.LoadUser(cronofyCookie.Value))
-                {
-                    Response.Cookies.Remove(CronofyService.CookieName);
+                    Response.Cookies.Remove(AuthenticationName);
                     filterContext.Result = new RedirectResult("/home");
                 }
             }
@@ -166,7 +160,7 @@ namespace MyCalendar.Controllers
 
             if (ex is CredentialsInvalidError)
             {
-                Response.Cookies.Remove(CronofyService.CookieName);
+                Response.Cookies.Remove(AuthenticationName);
                 filterContext.Result = new RedirectResult("/home");
                 filterContext.ExceptionHandled = true;
             }

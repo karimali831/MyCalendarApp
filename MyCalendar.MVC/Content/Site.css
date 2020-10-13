@@ -1,6 +1,7 @@
 ﻿body {
     padding-top: 50px;
     padding-bottom: 20px;
+    background-image: url('https://newevolutiondesigns.com/images/freebies/white-wallpaper-18.jpg')
 }
 
 /* Set padding to keep content from hitting the edges */
@@ -146,3 +147,5 @@ textarea {
     font-weight: 300;
     line-height: 26px;
 }
+
+

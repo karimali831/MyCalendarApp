@@ -16,7 +16,7 @@ namespace MyCalendar.Repository
         Task<IEnumerable<User>> GetAllAsync();
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
-        User GetByCronofyIDAsync(string cronofyUid);
+        User Get(int passcode);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
     }
 
@@ -48,11 +48,11 @@ namespace MyCalendar.Repository
             }
         }
 
-        public User GetByCronofyIDAsync(string cronofyUid)
+        public User Get(int passcode)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (sql.Query<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE CronofyUid = @cronofyUid", new { cronofyUid })).FirstOrDefault();
+                return (sql.Query<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Passcode = @passcode", new { passcode })).FirstOrDefault();
             }
         }
 

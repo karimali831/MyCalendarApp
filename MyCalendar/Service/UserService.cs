@@ -16,10 +16,10 @@ namespace MyCalendar.Service
     public interface IUserService
     {
         Task<IEnumerable<User>> GetAllAsync();
+        User Get(int passcode);
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
-        User GetByCronofyIDAsync(string cronofyUid);
         Task<Tag> GetUserTagAysnc(Guid tagID);
         Task<List<string>> CurrentUserActivity(IEnumerable<Event> events);
         Task<IList<User>> GetUsers();
@@ -60,9 +60,9 @@ namespace MyCalendar.Service
             return await userRepository.GetByUserIDAsync(userID);
         }
 
-        public User GetByCronofyIDAsync(string cronofyUid)
+        public User Get(int passcode)
         {
-            return userRepository.GetByCronofyIDAsync(cronofyUid);
+            return userRepository.Get(passcode);
         }
 
         public async Task<Tag> GetUserTagAysnc(Guid tagID)

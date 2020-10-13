@@ -33,10 +33,7 @@ namespace MyCalendar.Website.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            Response.SetCookie(new HttpCookie(CronofyService.CookieName, account.Id));
-            var cronofyCookie = Request.Cookies.Get(CronofyService.CookieName);
-
-            user.CronofyUid = cronofyCookie.Value;
+            user.CronofyUid = account.Id;
             user.AccessToken = token.AccessToken;
             user.RefreshToken = token.RefreshToken;
 

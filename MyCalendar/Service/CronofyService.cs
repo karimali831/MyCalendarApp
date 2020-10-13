@@ -20,13 +20,11 @@ namespace MyCalendar.Service
         IEnumerable<Event> ReadEvents();
         void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, Location location = null);
         void DeleteExtEvent(string calendarId, string EventUid);
-        bool LoadUser(string cronofyUid);
+        bool LoadUser(int passcode);
     }
 
     public class CronofyService : UserService, ICronofyService
     {
-        public const string CookieName = "CronofyUID";
-
         private static string _cronofyUid;
         private static string _accessToken;
         private static string _refreshToken;
@@ -37,21 +35,21 @@ namespace MyCalendar.Service
         {
         }
 
-        public bool LoadUser(string cronofyUid)
+        public bool LoadUser(int passcode)
         {
-            var user = GetByCronofyIDAsync(cronofyUid);
+            var user = Get(passcode);
 
             if (user == null)
             {
-                LogHelper.Log(String.Format("LoadUser failed - Unable to find user - CronofyUID=`{0}`", cronofyUid));
+                LogHelper.Log(String.Format("LoadUser failed - Unable to find user - CronofyUID=`{0}`", user.CronofyUid));
 
                 return false;
             }
 
-            LogHelper.Log(String.Format("LoadUser success - CronofyUID=`{0}`", cronofyUid));
+            LogHelper.Log(String.Format("LoadUser success - CronofyUID=`{0}`", user.CronofyUid));
 
             
-            _cronofyUid = cronofyUid;
+            _cronofyUid = user.CronofyUid;
             _accessToken = user.AccessToken;
             _refreshToken = user.RefreshToken;
 
