@@ -44,9 +44,14 @@
                         <label>Tag</label> @Html.ActionLink("(edit tags)", "Settings", "Home")
                         <select id="ddTagID" class="form-control">
                             <option value="">-- select tag --</option>
-                            @foreach (var tag in Model.UserTags.Tags)
+                            @foreach (var privacy in Model.UserTags.Tags.GroupBy(x => x.Privacy))
                             {
-                                <option value="@tag.Id">@tag.Name (@tag.Privacy)</option>
+                                <optgroup label="@privacy.Key">
+                                    @foreach (var tag in Model.UserTags.Tags.Where(x => x.Privacy == privacy.Key))
+                                    {
+                                        <option value="@tag.Id">@tag.Name</option>
+                                    }
+                                </optgroup>
                             }
                         </select>
                     </div>

@@ -23,9 +23,14 @@
             <label for="tag"><span class="glyphicon glyphicon-tag"></span> Tag</label>
             <select id="tag" name="TagId" class="form-control" required>
                 <option value="">-- select tag --</option>
-                @foreach (var tag in BaseViewModel.UserTags.Tags)
+                @foreach (var privacy in BaseViewModel.UserTags.Tags.GroupBy(x => x.Privacy))
                 {
-                    <option value="@tag.Id" selected="@(tag.Id == Model.TagID ? true : false)">@tag.Name</option>
+                    <optgroup label="@privacy.Key">
+                        @foreach (var tag in BaseViewModel.UserTags.Tags.Where(x => x.Privacy == privacy.Key))
+                        {
+                            <option value="@tag.Id" selected="@(tag.Id == Model.TagID ? true : false)">@tag.Name</option>
+                        }
+                    </optgroup>
                 }
             </select>
         </div>
@@ -64,6 +69,7 @@
 
 @section Scripts{
     <script type="text/javascript">
+
 
         $('input[name=fromTime]').change(function (e) {
             var txtVal = $(this).val();
