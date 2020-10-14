@@ -1,4 +1,5 @@
-﻿@using MyCalendar.Website.ViewModels
+﻿@using MyCalendar.Helpers
+@using MyCalendar.Website.ViewModels
 @{
     var Model = ViewData[nameof(BaseVM)] as BaseVM;
 }
@@ -50,12 +51,12 @@
                             </a>
                         </li>
                         <li>
-                            <a style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action("Overview", "Home")">
+                            <a style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action("Overview", "Event")">
                                 <span class="glyphicon glyphicon-stats"></span> Overview
                             </a>
                         </li>
                         <li>
-                            <a style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action("MultiAdd", "Home")">
+                            <a style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action("MultiAdd", "Event")">
                                 <span class="glyphicon glyphicon-edit"></span> Scheduler
                             </a>
                         </li>
@@ -88,7 +89,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <small>&copy; @DateTime.Now.Year - iCalendar App® <a href="/home/changelog" class="pull-right">v1.2.2</a></small>
+            <small>&copy; @DateTime.Now.Year - iCalendar App® <a href="/home/changelog" class="pull-right">@ChangeLog.GetChangeList().OrderByDescending(x => x.Key).First().Key</a></small>
         </footer>
     </div>
 

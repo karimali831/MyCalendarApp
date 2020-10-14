@@ -11,7 +11,7 @@
     <div class="jumbotron">
         <div class="form-group">
             <label for="dates"><span class="glyphicon glyphicon-calendar"></span> How many dates?</label>
-            <select id="dates" name="dates" class="form-control" onchange="selectDates(this,'@Url.Action("MultiAdd", "Home")')">
+            <select id="dates" name="dates" class="form-control" onchange="selectDates(this,'@Url.Action("MultiAdd", "Event")')">
                 <option value="">-- select quantity --</option>
                 @for (int i = 1; i <= 10; i++)
                 {

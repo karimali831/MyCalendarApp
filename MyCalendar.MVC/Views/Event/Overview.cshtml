@@ -10,7 +10,7 @@
         <h3><span class="glyphicon glyphicon-stats"> Overview</span></h3>
         <hr />
 
-        @using (Html.BeginForm("Overview", "Home", FormMethod.Get, new { @class = "form-inline" }))
+        @using (Html.BeginForm("Overview", "Event", FormMethod.Get, new { @class = "form-inline" }))
         {
             <div class="form-group">
                 <select class="form-control" onchange='location.href = this.value' style = "width:150px">

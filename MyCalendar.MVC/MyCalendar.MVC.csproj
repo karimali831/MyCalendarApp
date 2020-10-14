@@ -229,6 +229,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\Api\EventController.cs" />
     <Compile Include="Controllers\CronofyController.cs" />
+    <Compile Include="Controllers\EventController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\UserMvcController.cs" />
     <Compile Include="Global.asax.cs">
@@ -253,6 +254,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Logs\info.txt" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="ApplicationInsights.config">
@@ -286,9 +288,9 @@
     <Content Include="Views\Home\Calendar.cshtml" />
     <Content Include="Views\Home\Settings.cshtml" />
     <Content Include="Views\Home\_Tags.cshtml" />
-    <Content Include="Views\Home\MultiAdd.cshtml" />
-    <Content Include="Views\Home\_Status.cshtml" />
-    <Content Include="Views\Home\Overview.cshtml" />
+    <Content Include="Views\Events\MultiAdd.cshtml" />
+    <Content Include="Views\Shared\_Status.cshtml" />
+    <Content Include="Views\Events\Overview.cshtml" />
     <Content Include="Views\Cronofy\Profiles.cshtml" />
     <Content Include="Views\Cronofy\NewEvent.cshtml" />
     <Content Include="Views\Cronofy\Calendar.cshtml" />

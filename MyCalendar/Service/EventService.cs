@@ -14,7 +14,7 @@ namespace MyCalendar.Service
     {
         Task<Event> GetAsync(Guid eventId);
         Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null, DateFilter filter = null);
-        Task<bool> SaveEvent(Model.EventDTO dto);
+        Task<bool> SaveEvent(EventVM e);
         Task<bool> SaveEvents(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
@@ -74,9 +74,39 @@ namespace MyCalendar.Service
             return events;
         }
 
-        public async Task<bool> SaveEvent(Model.EventDTO dto)
+        public async Task<bool> SaveEvent(EventVM e)
         {
-            return await eventRepository.InsertOrUpdateAsync(dto);
+            var dto = DTOs.EventDTO.MapFrom(e);
+            var daysBetweenDays = e.End.HasValue ? (e.End.Value.Date - e.Start.Date).Days : 0;
+
+            bool status;
+            if (string.IsNullOrEmpty(e.SplitDates) || daysBetweenDays == 0 || e.IsFullDay)
+            {
+                status = await eventRepository.InsertOrUpdateAsync(dto);
+            }
+            else
+            {
+                var events = new List<Model.EventDTO>();
+
+                for (var date = e.Start; date <= e.End; date = date.AddDays(1))
+                {
+                    events.Add(new Model.EventDTO
+                    {
+                        StartDate = date,
+                        EndDate = new DateTime(date.Year, date.Month, date.Day, e.End.Value.Hour, e.End.Value.Minute, 0),
+                        Description = dto.Description,
+                        EventID = dto.EventID,
+                        IsFullDay = dto.IsFullDay,
+                        TagID = dto.TagID,
+                        Tentative = dto.Tentative,
+                        UserID = dto.UserID
+                    });
+                }
+
+                status = await SaveEvents(events);
+            }
+
+            return status;
         }
 
         public async Task<bool> SaveEvents(IEnumerable<Model.EventDTO> dto)

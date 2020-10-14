@@ -115,7 +115,7 @@
                 $.ajax({
                     type: "GET",
                     data: { 'viewingId': '@(Model.MenuItem.Viewing.HasValue ? Model.MenuItem.Viewing.Value : (Guid?)null)', 'combined': '@Model.MenuItem.Combined'  },
-                    url: "/home/GetEvents/",
+                    url: "/Event/Get/",
                     success: function (data) {
                         $.each(data.events, function (i, v) {
                             events.push({
@@ -244,7 +244,7 @@
                 if (selectedEvent != null && confirm('Are you sure?')) {
                     $.ajax({
                         type: "POST",
-                        url: '/home/DeleteEvent',
+                        url: '/Event/Delete',
                         data: { 'eventID': selectedEvent.eventID },
                         success: function (data) {
                             if (data.status) {
@@ -352,7 +352,7 @@
             function SaveEvent(data) {
                 $.ajax({
                     type: "POST",
-                    url: '/home/SaveEvent',
+                    url: '/Event/Save/',
                     data: data,
                     success: function (data) {
                         if (data.status) {
