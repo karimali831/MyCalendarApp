@@ -1,5 +1,6 @@
 ﻿using Cronofy;
 using MyCalendar.Controllers;
+using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
@@ -42,8 +43,10 @@ namespace MyCalendar.Website.Controllers
             return RedirectToAction("Profiles");
         }
 
-        public ActionResult Profiles()
+        public async Task<ActionResult> Profiles(Status? updateResponse = null, string updateMsg = null)
         {
+            await BaseViewModel(new MenuItem { None = true }, updateResponse, updateMsg);
+
             var profiles = new Dictionary<Profile, Calendar[]>();
             var calendars = cronofyService.GetCalendars();
 
@@ -53,7 +56,6 @@ namespace MyCalendar.Website.Controllers
             }
 
             ViewData["MenuItem"] = new MenuItem { Home = true };
-
             return View("Profiles", new CronofyVM { Profiles = profiles } );
         }
 
@@ -131,6 +133,44 @@ namespace MyCalendar.Website.Controllers
             cronofyService.DeleteExtEvent(deleteEvent.CalendarId, deleteEvent.EventUid);
 
             return new RedirectResult(String.Format("/cronofy/calendar/{0}", deleteEvent.CalendarId));
+        }
+
+        public ActionResult DeleteEvent(CronofyVM calendarVM)
+        {
+            var deleteEvent = calendarVM.Event;
+            cronofyService.DeleteEvent(deleteEvent.CalendarId, deleteEvent.EventId);
+
+            return new RedirectResult(String.Format("/cronofy/calendar/{0}", deleteEvent.CalendarId));
+        }
+
+        public async Task<ActionResult> UnlinkCalendar()
+        {
+            await BaseViewModel(new MenuItem { Overview = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
+
+            baseVM.User.CronofyUid = null;
+            baseVM.User.AccessToken = null;
+            baseVM.User.RefreshToken = null;
+            baseVM.User.DefaultCalendar = null;
+
+            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
+                ? (Status.Success, "Default calendar successfully set")
+                : (Status.Failed, "There was an issue with updating your default calendar");
+
+            return RedirectToAction("Settings", "Home", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
+        }
+
+        public async Task<ActionResult> UpdateDefaultCalendar(string defaultCalendar)
+        {
+            await BaseViewModel(new MenuItem { Overview = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
+            baseVM.User.DefaultCalendar = defaultCalendar;
+
+            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
+                ? (Status.Success, "Default calendar successfully set")
+                : (Status.Failed, "There was an issue with updating your default calendar");
+
+             return RedirectToAction("Profiles", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
         }
     }
 }

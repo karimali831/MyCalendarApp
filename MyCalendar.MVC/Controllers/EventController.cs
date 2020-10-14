@@ -1,4 +1,5 @@
-﻿using MyCalendar.DTOs;
+﻿using Cronofy;
+using MyCalendar.DTOs;
 using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Service;
@@ -92,14 +93,16 @@ namespace MyCalendar.Controllers
         public async Task<ActionResult> MultiAdd(int dates = 0)
         {
             await BaseViewModel(new MenuItem { MultiAdd = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var viewModel = new SchedulerVM { Dates = dates };
+            var viewModel = new SchedulerVM { Dates = dates, Icloud = baseVM.User.CronofyReady };
             var scheduler = (SchedulerVM)TempData["scheduler"];
 
             if (scheduler != null)
             {
                 viewModel.Dates = scheduler.Dates;
                 viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
+                viewModel.Icloud = scheduler.Icloud;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
@@ -159,22 +162,16 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                //if (model.Icloud)
-                //{
-                //    try
-                //    {
-                //        foreach (var e in model.Events)
-                //        {
-                //            cronofyService.UpsertEvent(e.EventID, newEvent.CalendarId, newEvent.Summary, newEvent.Description, newEvent.Start, newEvent.End, new Location(newEvent.LocationDescription, newEvent.Latitude, newEvent.Longitude));
-                //        }
+                if (model.Icloud && user.CronofyReady)
+                {
+                    foreach (var e in model.Events)
+                    {
+                        string subject = e.TagID.HasValue ? (await GetTag(e.TagID.Value)).Name : e.Description;
+                        DateTime endDate = e.EndDate ?? e.StartDate.AddDays(1);
 
-
-                //    }
-                //    catch (CronofyResponseException ex)
-                //    {
-                //        newEvent.SetError(ex);
-                //    }
-                //}
+                        cronofyService.UpsertEvent(e.EventID.ToString(), user.DefaultCalendar, subject, e.Description, e.StartDate, endDate);
+                    }
+                }
 
                 status = await eventService.SaveEvents(model.Events)
                     ? (Status.Success, "Scheduler has been saved and your calendar has been updated")

@@ -16,8 +16,11 @@ namespace MyCalendar.Model
         public string CronofyUid { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
+        public string DefaultCalendar { get; set; }
         [DbIgnore]
         public bool Authenticated { get; set; } = false;
+        [DbIgnore]
+        public bool CronofyReady { get; set; } = false;
     }
 
     public class UserMap : EntityTypeConfiguration<User>

@@ -88,6 +88,12 @@ namespace MyCalendar.Service
                     if (user != null)
                     {
                         user.Authenticated = true;
+
+                        if (!string.IsNullOrEmpty(user.CronofyUid) && !string.IsNullOrEmpty(user.DefaultCalendar))
+                        {
+                            user.CronofyReady = true;
+                        }
+
                         return user;
                     }
                 }

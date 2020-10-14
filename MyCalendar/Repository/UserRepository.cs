@@ -81,7 +81,8 @@ namespace MyCalendar.Repository
                             user.PhoneNumber,
                             user.CronofyUid,
                             user.AccessToken,
-                            user.RefreshToken
+                            user.RefreshToken,
+                            user.DefaultCalendar
                         });
 
                     return true;

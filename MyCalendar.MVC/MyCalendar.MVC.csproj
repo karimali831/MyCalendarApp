@@ -288,9 +288,9 @@
     <Content Include="Views\Home\Calendar.cshtml" />
     <Content Include="Views\Home\Settings.cshtml" />
     <Content Include="Views\Home\_Tags.cshtml" />
-    <Content Include="Views\Events\MultiAdd.cshtml" />
+    <Content Include="Views\Event\MultiAdd.cshtml" />
     <Content Include="Views\Shared\_Status.cshtml" />
-    <Content Include="Views\Events\Overview.cshtml" />
+    <Content Include="Views\Event\Overview.cshtml" />
     <Content Include="Views\Cronofy\Profiles.cshtml" />
     <Content Include="Views\Cronofy\NewEvent.cshtml" />
     <Content Include="Views\Cronofy\Calendar.cshtml" />

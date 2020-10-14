@@ -21,6 +21,7 @@ namespace MyCalendar.Service
         void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, Location location = null);
         void DeleteExtEvent(string calendarId, string EventUid);
         bool LoadUser(int passcode);
+        void DeleteEvent(string calendarId, string eventId);
     }
 
     public class CronofyService : UserService, ICronofyService

@@ -50,18 +50,21 @@
                 <hr />
                 <div class="form-group">
                     <label for="start">Start Date #@(i+1)</label>
-                    <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i - 1).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
+                    <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
                 <div class="form-group" id="divEndDate">
                     <label for="end">End Date #@(i+1)</label>
-                    <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i - 1).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
+                    <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
             }
-            <hr />
-            <div class="form-group">
-                <label for="iCloud"><span class="glyphicon glyphicon-apple"></span> Add event@(Model.Dates > 1 ? "s" : "") to iCloud?</label>
-                <input type="checkbox" name="iCloud" disabled/>
-            </div>
+            if (BaseViewModel.User.CronofyReady)
+            {
+                <hr />
+                <div class="form-group">
+                    <label for="ICloud"><span class="glyphicon glyphicon-apple"></span> Add event@(Model.Dates > 1 ? "s" : "") to iCloud?</label>
+                    @Html.CheckBoxFor(x => x.Icloud)
+                </div>
+            }
             <button type="submit" class="btn btn-primary">Update</button>
         }
     </div>

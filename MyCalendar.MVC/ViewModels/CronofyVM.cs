@@ -11,6 +11,7 @@ namespace MyCalendar.Website.ViewModels
     {
         public IDictionary<Profile, Calendar[]> Profiles { get; set; }
         public Calendar Calendar { get; set; }
+        public string DefaultCalendar { get; set; }
         public IList<Cronofy.Event> Events { get; set; }
         public Cronofy.Event Event { get; set; }
         public EventVM EventVM { get; set; }

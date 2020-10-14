@@ -4,13 +4,29 @@
     var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
 }
 
-    <div id="accordion">
-        @if (string.IsNullOrEmpty(BaseViewModel.User.CronofyUid))
+<div id="accordion">
+    @Html.Partial("_Status", BaseViewModel);
+    @if (string.IsNullOrEmpty(BaseViewModel.User.CronofyUid))
+    {
+        <div class="alert alert-info" role="alert">
+            <div class="col-auto align-self-start">
+                <div class="glyphicon glyphicon-info-sign"></div>
+                No authentication for Apple calender found, click <a href="@Model.CronofyCalendarAuthUrl">here</a> to link your account now.
+            </div>
+        </div>
+    }
+    else
+    {
+        if (string.IsNullOrEmpty(BaseViewModel.User.DefaultCalendar))
         {
-            <div class="alert alert-info" role="alert">
+            <div class="alert alert-warning" role="alert">
                 <div class="col-auto align-self-start">
-                    <div class="glyphicon glyphicon-info-sign"></div>
-                    No authentication for Apple calender found, click <a href="@Model.CronofyCalendarAuthUrl">here</a> to link your account now.
+                    <div class="glyphicon glyphicon-exclamation-sign"></div>
+                    Your <a href="/cronofy/profiles">Apple Calendar</a> is linked to your account but no default calendar has been set, click <a href="/cronofy/profiles">here</a> to set your default calendar.
+                    <span style="float: right">
+                        <i class="glyphicon glyphicon-apple"></i> <a href="@Model.CronofyCalendarAuthUrl">Re-authenticate</a>
+                        <i class="glyphicon glyphicon-link"></i> <a href="@Url.Action("UnlinkCalendar", "Cronofy", new { defaultCalendar = "" })">Unlink</a>
+                    </span>
                 </div>
             </div>
         }
@@ -19,63 +35,72 @@
             <div class="alert alert-success" role="alert">
                 <div class="col-auto align-self-start">
                     <div class="glyphicon glyphicon-ok-circle"></div>
-                    Your Apple calendar is linked to your account, click <a href="@Model.CronofyCalendarAuthUrl">here</a> if you wish to re-authenticate.
+                    Your <a href="/cronofy/profiles">Apple Calendar</a> is linked to your account and is ready to go.
+                    <span style="float: right">
+                        <i class="glyphicon glyphicon-apple"></i> <a href="@Model.CronofyCalendarAuthUrl">Re-authenticate</a>
+                        <i class="glyphicon glyphicon-link"></i> <a href="@Url.Action("UnlinkCalendar", "Cronofy", new { defaultCalendar = "" })">Unlink</a>
+                    </span>
                 </div>
             </div>
         }
 
-        <div class="card">
-            <div class="card-header" id="headingOne">
-                <h7 class="mb-0">
-                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                        <h4 class="glyphicon glyphicon-user"> Profile</h4>
-                    </button>
-                </h7>
-            </div>
+    }
 
-            <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-                <div class="card-body">
-                    @using (Html.BeginForm())
-                    {
-                        @Html.Partial("_Status", BaseViewModel);
-                        <div class="form-group">
-                            @Html.LabelFor(x => x.User.Name)
-                            @Html.TextBoxFor(s => s.User.Name, new { @Value = BaseViewModel.User.Name, @class = "form-control", @type = "text", @placeholder = "Name", @required = "required" })
-                        </div>
-                        <div class="form-group">
-                            @Html.LabelFor(x => x.User.Passcode, "Login Passcode") <font color="red"><small>(changing this will log you out)</small></font>
-                            @Html.TextBoxFor(s => s.User.Passcode, new { @Value = BaseViewModel.User.Passcode, @class = "form-control", @type = "number", @placeholder = "Passcode", @required = "required" })
-                        </div>
-                        <div class="form-group">
-                            @Html.LabelFor(x => x.User.Email)
-                            @Html.TextBoxFor(s => s.User.Email, new { @Value = BaseViewModel.User.Email, @class = "form-control", @type = "text", @placeholder = "Email" })
-                        </div>
-                        <div class="form-group">
-                            @Html.LabelFor(x => x.User.PhoneNumber)
-                            @Html.TextBoxFor(s => s.User.PhoneNumber, new { @Value = BaseViewModel.User.PhoneNumber, @class = "form-control", @type = "text", @placeholder = "Phone number" })
-                        </div>
-                        @Html.HiddenFor(x => x.User.UserID, new { @Value = BaseViewModel.User.UserID })
-                        <button type="submit" class="btn btn-primary">Update</button>
-                    }
-                </div>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header" id="headingTwo">
-                <h7 class="mb-0">
-                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                        <h4 class="glyphicon glyphicon-tags"> Tags</h4>
-                    </button>
-                </h7>
-            </div>
-            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                <div class="card-body">
-                    @Html.Partial("_Tags", new MyCalendar.DTOs.TagsDTO { Tags = BaseViewModel.UserTags.Tags, Types = Model.Types, UserID = BaseViewModel.User.UserID })
-                </div>
-            </div>
+    <div class="card">
+        <div class="card-header" id="headingOne">
+            <h7 class="mb-0">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    <h4 class="glyphicon glyphicon-user"> Profile</h4>
+                </button>
+            </h7>
         </div>
 
+        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+            <div class="card-body">
+                @using (Html.BeginForm())
+                {
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.Name)
+                        @Html.TextBoxFor(s => s.User.Name, new { @Value = BaseViewModel.User.Name, @class = "form-control", @type = "text", @placeholder = "Name", @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.Passcode, "Login Passcode") <font color="red"><small>(changing this will log you out)</small></font>
+                        @Html.TextBoxFor(s => s.User.Passcode, new { @Value = BaseViewModel.User.Passcode, @class = "form-control", @type = "number", @placeholder = "Passcode", @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.Email)
+                        @Html.TextBoxFor(s => s.User.Email, new { @Value = BaseViewModel.User.Email, @class = "form-control", @type = "text", @placeholder = "Email" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.PhoneNumber)
+                        @Html.TextBoxFor(s => s.User.PhoneNumber, new { @Value = BaseViewModel.User.PhoneNumber, @class = "form-control", @type = "text", @placeholder = "Phone number" })
+                    </div>
+                    @Html.HiddenFor(x => x.User.UserID, new { @Value = BaseViewModel.User.UserID })
+                    @Html.HiddenFor(x => x.User.CronofyUid, new { @Value = BaseViewModel.User.CronofyUid })
+                    @Html.HiddenFor(x => x.User.AccessToken, new { @Value = BaseViewModel.User.AccessToken })
+                    @Html.HiddenFor(x => x.User.RefreshToken, new { @Value = BaseViewModel.User.RefreshToken })
+                    @Html.HiddenFor(x => x.User.DefaultCalendar, new { @Value = BaseViewModel.User.DefaultCalendar })
+                    <button type="submit" class="btn btn-primary">Update</button>
+                }
+            </div>
+        </div>
     </div>
+    <div class="card">
+        <div class="card-header" id="headingTwo">
+            <h7 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    <h4 class="glyphicon glyphicon-tags"> Tags</h4>
+                </button>
+            </h7>
+        </div>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+            <div class="card-body">
+                @Html.Partial("_Tags", new MyCalendar.DTOs.TagsDTO { Tags = BaseViewModel.UserTags.Tags, Types = Model.Types, UserID = BaseViewModel.User.UserID })
+            </div>
+        </div>
+    </div>
+
+</div>
 
 
 @section Scripts{

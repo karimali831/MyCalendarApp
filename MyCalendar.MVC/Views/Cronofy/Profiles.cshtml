@@ -1,12 +1,17 @@
 ﻿@model MyCalendar.Website.ViewModels.CronofyVM
+@using MyCalendar.Website.ViewModels
+@{
+    var baseModel = ViewData[nameof(BaseVM)] as BaseVM;
+}
 
-<h2>Calendars</h2>
+<h2 class="glyphicon glyphicon-apple">Apple Calendars</h2>
+@Html.Partial("_Status", baseModel)
 
 @foreach (var profile in Model.Profiles)
 {
     <div class="row">
         <div class="col-xs-8">
-            <h3>@profile.Key.Name</h3>
+
         </div>
 
         <div class="col-xs-4 text-right">
@@ -21,6 +26,9 @@
             <tr>
                 <th>Name</th>
                 <th></th>
+                <th style="float: right">
+                    <span class="label label-info">Linked account: @profile.Key.Name</span>
+                </th> 
             </tr>
         </thead>
 
@@ -32,9 +40,19 @@
                         @calendar.Name
                     </td>
                     <td>
-                        <a href="/cronofy/calendar/@calendar.CalendarId">
+                        <a href="/cronofy/calendar/@calendar.CalendarId" class="btn btn-default">
                             View
                         </a>
+                    </td>
+                    <td>
+                        @if (baseModel.User.DefaultCalendar == calendar.CalendarId)
+                        {
+                            <button class="btn btn-success">Default</button>
+                        }
+                        else
+                        {
+                            <button type="submit" onclick="location.href='@Url.Action("UpdateDefaultCalendar", "Cronofy", new { defaultCalendar = calendar.CalendarId })'" class="btn btn-primary">Set Default</button>
+                        }
                     </td>
                 </tr>
             }
