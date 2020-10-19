@@ -1,23 +1,47 @@
 ﻿@model MyCalendar.Website.ViewModels.CronofyVM
 @using MyCalendar.Website.ViewModels
+@using MyCalendar.Helpers
 @{
     var baseModel = ViewData[nameof(BaseVM)] as BaseVM;
 }
 
-<h2 class="glyphicon glyphicon-apple">Apple Calendars</h2>
 @Html.Partial("_Status", baseModel)
+
+<div class="list-group">
+    @if (baseModel.User.CronofyReady)
+    {
+        <a href="#@baseModel.DefaultCalendarProvider" class="list-group-item list-group-item-success active">
+            <i class="glyphicon glyphicon-ok-circle"></i> @baseModel.DefaultCalendarProvider calendar ready
+        </a>
+    }
+    else
+    {
+        <a href="#calendars" class="list-group-item list-group-item-danger active">
+            <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - set a default calendar
+        </a>
+    }
+    <a href="#" class="list-group-item list-group-item-action disabled">
+        <i class="glyphicon glyphicon-check"></i> Sync
+    </a>
+    <a href="@Url.Action("UnlinkCalendar", "Cronofy", new { defaultCalendar = "" })" class="list-group-item list-group-item-action">
+        <i class="glyphicon glyphicon-link"></i> Unlink
+    </a>
+    <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
+        <i class="glyphicon glyphicon-log-in"></i> Re-Authenticate
+    </a>
+</div>
 
 @foreach (var profile in Model.Profiles)
 {
+    <a name="@baseModel.DefaultCalendarProvider"></a>
     <div class="row">
         <div class="col-xs-8">
-
+            <h2 class="glyphicon glyphicon-calendar">@Utils.UppercaseFirst(profile.Key.ProviderName)</h2>
+            <span class="label label-info">Linked account: @profile.Key.Name</span>
         </div>
 
         <div class="col-xs-4 text-right">
-            <a href="/calendars/new/@profile.Key.Id" class="btn btn-primary">
-                New Calendar
-            </a>
+
         </div>
     </div>
 
@@ -27,7 +51,9 @@
                 <th>Name</th>
                 <th></th>
                 <th style="float: right">
-                    <span class="label label-info">Linked account: @profile.Key.Name</span>
+                    <a href="/calendars/new/@profile.Key.Id" class="btn btn-primary">
+                        New Calendar
+                    </a>
                 </th> 
             </tr>
         </thead>

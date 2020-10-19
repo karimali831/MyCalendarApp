@@ -5,13 +5,13 @@
 }
 
 <div id="accordion">
-    @Html.Partial("_Status", BaseViewModel);
+    @Html.Partial("_Status", BaseViewModel)
     @if (string.IsNullOrEmpty(BaseViewModel.User.CronofyUid))
     {
         <div class="alert alert-info" role="alert">
             <div class="col-auto align-self-start">
                 <div class="glyphicon glyphicon-info-sign"></div>
-                No authentication for Apple calender found, click <a href="@Model.CronofyCalendarAuthUrl">here</a> to link your account now.
+                Your account is not linked to any external calendar provider, click <a href="@Model.CronofyCalendarAuthUrl">here</a> to link an account now.
             </div>
         </div>
     }
@@ -22,24 +22,16 @@
             <div class="alert alert-warning" role="alert">
                 <div class="col-auto align-self-start">
                     <div class="glyphicon glyphicon-exclamation-sign"></div>
-                    Your <a href="/cronofy/profiles">Apple Calendar</a> is linked to your account but no default calendar has been set, click <a href="/cronofy/profiles">here</a> to set your default calendar.
-                    <span style="float: right">
-                        <i class="glyphicon glyphicon-apple"></i> <a href="@Model.CronofyCalendarAuthUrl">Re-authenticate</a>
-                        <i class="glyphicon glyphicon-link"></i> <a href="@Url.Action("UnlinkCalendar", "Cronofy", new { defaultCalendar = "" })">Unlink</a>
-                    </span>
+                    An external calender provider has been linked but no default calendar has been set, click <a href="/cronofy/profiles">here</a> to set a default calendar.
                 </div>
             </div>
         }
-        else
+        else if (BaseViewModel.User.CronofyReady)
         {
             <div class="alert alert-success" role="alert">
                 <div class="col-auto align-self-start">
                     <div class="glyphicon glyphicon-ok-circle"></div>
-                    Your <a href="/cronofy/profiles">Apple Calendar</a> is linked to your account and is ready to go.
-                    <span style="float: right">
-                        <i class="glyphicon glyphicon-apple"></i> <a href="@Model.CronofyCalendarAuthUrl">Re-authenticate</a>
-                        <i class="glyphicon glyphicon-link"></i> <a href="@Url.Action("UnlinkCalendar", "Cronofy", new { defaultCalendar = "" })">Unlink</a>
-                    </span>
+                    Your <a href="/cronofy/profiles">@BaseViewModel.DefaultCalendarProvider calendar</a> is linked to your account and is ready to go.
                 </div>
             </div>
         }

@@ -1,5 +1,4 @@
-﻿using Cronofy;
-using MyCalendar.DTOs;
+﻿using MyCalendar.DTOs;
 using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Service;
@@ -8,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace MyCalendar.Controllers
@@ -17,9 +15,7 @@ namespace MyCalendar.Controllers
     {
         private readonly IEventService eventService;
 
-        public EventController(
-            IEventService eventService, ICronofyService cronofyService, IUserService userService, ITagService tagService) :
-            base(userService, cronofyService, tagService)
+        public EventController(IEventService eventService, IUserService userService) : base(userService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
         }
@@ -38,9 +34,26 @@ namespace MyCalendar.Controllers
                 viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
             }
 
+            // check events in Cronofy calendar not synced in Calendar App
+            //if (user.CronofyReady)
+            //{
+            //    var cronofyCalendar = cronofyService.GetCalendars().First(x => x.CalendarId == user.DefaultCalendar);
+            //    var cronofyEvents = cronofyService.ReadEventsForCalendar(user.DefaultCalendar).ToList();
+
+            //    var insertEvents = cronofyEvents.Select(x => new DTOs.EventVM
+            //    {
+            //        EventID = new Guid(x.EventId),
+            //        UserID = user.UserID,
+            //        TagID = 
+            //    });
+
+            //    eventService.SaveEvent()
+
+            //}
+
 
             var events = await eventService.GetAllAsync(user.UserID, viewing);
-            var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
+            var dto = events.Select(b => DTOs.EventDTO.MapFrom(b)).ToList();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
             var currentActivity = await CurrentUserActivity(activeEvents);
@@ -68,8 +81,13 @@ namespace MyCalendar.Controllers
                 }
             }
 
-            e.UserID = (await GetUser()).UserID;
+            if (e.TagID == Guid.Empty && string.IsNullOrEmpty(e.Description))
+            {
+                return new JsonResult { Data = new { status, responseText = "Either tag or description must be entered" } };
+            }
 
+            e.UserID = (await GetUser()).UserID;
+            
             status = await eventService.SaveEvent(e);
             return new JsonResult { Data = new { status } };
         }
@@ -77,7 +95,8 @@ namespace MyCalendar.Controllers
         [HttpPost]
         public async Task<JsonResult> Delete(Guid eventID)
         {
-            if ((await GetUser()) == null)
+            var user = await GetUser();
+            if (user == null)
             {
                 return new JsonResult { Data = new { status = false, responseText = "You are not logged-in" } };
             }
@@ -87,6 +106,7 @@ namespace MyCalendar.Controllers
             var userId = (await GetUser()).UserID;
 
             var status = e.UserID != userId ? false : await eventService.DeleteEvent(eventID);
+
             return new JsonResult { Data = new { status } };
         }
 
@@ -95,14 +115,14 @@ namespace MyCalendar.Controllers
             await BaseViewModel(new MenuItem { MultiAdd = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var viewModel = new SchedulerVM { Dates = dates, Icloud = baseVM.User.CronofyReady };
+            var viewModel = new SchedulerVM { Dates = dates, Cronofy = baseVM.User.CronofyReady };
             var scheduler = (SchedulerVM)TempData["scheduler"];
 
             if (scheduler != null)
             {
                 viewModel.Dates = scheduler.Dates;
                 viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
-                viewModel.Icloud = scheduler.Icloud;
+                viewModel.Cronofy = scheduler.Cronofy;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
@@ -162,18 +182,7 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                if (model.Icloud && user.CronofyReady)
-                {
-                    foreach (var e in model.Events)
-                    {
-                        string subject = e.TagID.HasValue ? (await GetTag(e.TagID.Value)).Name : e.Description;
-                        DateTime endDate = e.EndDate ?? e.StartDate.AddDays(1);
-
-                        cronofyService.UpsertEvent(e.EventID.ToString(), user.DefaultCalendar, subject, e.Description, e.StartDate, endDate);
-                    }
-                }
-
-                status = await eventService.SaveEvents(model.Events)
+                status = await eventService.SaveEvents(model.Events.ToList(), model.Cronofy)
                     ? (Status.Success, "Scheduler has been saved and your calendar has been updated")
                     : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
 
@@ -210,67 +219,11 @@ namespace MyCalendar.Controllers
                 .Where(x => x.UserID == baseVM.User.UserID || x.Privacy == TagPrivacy.Shared)
                 .GroupBy(x => x.TagID);
 
-            var hoursWorkedInTag = new List<HoursWorkedInTag>();
-
-            if (events != null && events.Any())
-            {
-                foreach (var e in events)
-                {
-                    if (e.Key != Guid.Empty)
-                    {
-                        var tag = await GetTag(e.Key);
-                        var type = await eventService.GetTypeAsync(tag.TypeID);
-                        string userName = "You";
-                        bool multiUser = false;
-
-                        if (tag.Privacy == TagPrivacy.Shared)
-                        {
-                            userName += ", " + string.Join(", ", baseVM.Users.Select(x => x.Name));
-                            multiUser = true;
-                        }
-
-                        double minutesWorked = e.Sum(x => x.EndDate.HasValue ? Utils.MinutesBetweenDates(x.EndDate.Value, x.StartDate) : 1440);
-
-                        if (minutesWorked > 0)
-                        {
-                            int hoursFromMinutes = Utils.GetHoursFromMinutes(minutesWorked);
-                            int calculateHours = hoursFromMinutes >= 672 ? hoursFromMinutes / 4 : 0;
-                            string averaged = calculateHours >= 1 ? $" averaging {calculateHours} hour{(calculateHours > 1 ? "s" : "")} a week" : "";
-                            string text;
-
-                            if (dateFilter.Frequency == DateFrequency.Upcoming)
-                            {
-                                string multipleEvents = e.Count() > 1 ? "have upcoming events totalling" : "have an upcoming event for";
-                                text = string.Format($"{userName} {multipleEvents} {Utils.HoursDurationFromMinutes(minutesWorked)} with {tag.Name}");
-                            }
-                            else
-                            {
-                                text = string.Format($"{userName} spent {Utils.HoursDurationFromMinutes(minutesWorked)} {averaged} with {tag.Name}");
-                            }
-
-                            if (tag.Name == "Flex")
-                            {
-                                text += $" earning approx £{hoursFromMinutes * 13}";
-                            }
-
-                            hoursWorkedInTag.Add(new HoursWorkedInTag
-                            {
-                                Text = text,
-                                MultiUsers = multiUser,
-                                Color = tag.ThemeColor,
-                                TypeName = type.Name
-                            });
-                        }
-                    }
-                }
-            }
+            var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User.UserID, dateFilter);
 
             return View("Overview",
                 new OverviewVM
                 {
-                    User = baseVM.User,
-                    Users = await GetUsers(),
-                    MenuItem = new MenuItem { Overview = true },
                     Filter = dateFilter,
                     HoursWorkedInTag = hoursWorkedInTag
                 });

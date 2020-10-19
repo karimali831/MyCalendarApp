@@ -17,12 +17,13 @@ namespace MyCalendar.Controllers
     public class HomeController : UserMvcController
     {
         private readonly IEventService eventService;
+        private readonly ICronofyService cronofyService;
 
         public HomeController(
-            IEventService eventService, ICronofyService cronofyService, IUserService userService, ITagService tagService) : 
-            base(userService, cronofyService, tagService)
+            IEventService eventService, IUserService userService, ICronofyService cronofyService) : base(userService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
         }
 
         public ActionResult Login()

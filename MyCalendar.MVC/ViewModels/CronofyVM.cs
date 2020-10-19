@@ -10,6 +10,7 @@ namespace MyCalendar.Website.ViewModels
     public class CronofyVM
     {
         public IDictionary<Profile, Calendar[]> Profiles { get; set; }
+        public string CronofyCalendarAuthUrl { get; set; }
         public Calendar Calendar { get; set; }
         public string DefaultCalendar { get; set; }
         public IList<Cronofy.Event> Events { get; set; }

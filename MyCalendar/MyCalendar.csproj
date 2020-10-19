@@ -137,6 +137,7 @@
     <Compile Include="Helpers\ChangeLog.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Model\HoursWorkedInTag.cs" />
     <Compile Include="Model\ResourceWithError.cs" />
     <Compile Include="Model\Tag.cs" />
     <Compile Include="DTOs\Tags.cs" />

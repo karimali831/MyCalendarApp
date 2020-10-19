@@ -12,17 +12,18 @@ namespace MyCalendar.Service
         Task<IEnumerable<Tag>> GetUserTagsAsync(Guid userID);
         Task<Tag> GetAsync(Guid tagId);
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
+        Task<bool> EventsByTagExist(Guid tagID);
     }
 
     public class TagService : ITagService
     {
         private readonly ITagRepository tagRepository;
-        private readonly IEventService eventService;
+        private readonly IEventRepository eventRepository;
 
-        public TagService(ITagRepository tagRepository, IEventService eventService)
+        public TagService(ITagRepository tagRepository, IEventRepository eventRepository)
         {
             this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(TagRepository));
-            this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            this.eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
         }
 
         public async Task<IEnumerable<Tag>> GetUserTagsAsync(Guid userID)
@@ -56,7 +57,7 @@ namespace MyCalendar.Service
                 {
                     foreach (var tag in deletingTags)
                     {
-                        if (!await eventService.EventsByTagExist(tag))
+                        if (!await EventsByTagExist(tag))
                         {
                             await tagRepository.DeleteTagByIdAsync(tag);
                         }
@@ -76,5 +77,10 @@ namespace MyCalendar.Service
             }
         }
 
+
+        public async Task<bool> EventsByTagExist(Guid tagID)
+        {
+            return await eventRepository.EventsByTagExist(tagID);
+        }
     }
 }

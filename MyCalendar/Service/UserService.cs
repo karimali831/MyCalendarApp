@@ -3,11 +3,7 @@ using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -16,10 +12,12 @@ namespace MyCalendar.Service
     public interface IUserService
     {
         Task<IEnumerable<User>> GetAllAsync();
-        User Get(int passcode);
+        IEnumerable<Cronofy.Calendar> GetCalendars();
+        bool LoadUser(int passcode);
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
+        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
         Task<Tag> GetUserTagAysnc(Guid tagID);
         Task<List<string>> CurrentUserActivity(IEnumerable<Event> events);
         Task<IList<User>> GetUsers();
@@ -30,14 +28,16 @@ namespace MyCalendar.Service
     ;
     public class UserService : IUserService
     {
-        protected readonly IUserRepository userRepository;
+        private readonly IUserRepository userRepository;
         private readonly ITagService tagService;
+        private readonly ICronofyService cronofyService;
         private readonly string AuthenticationName = "iCalendarApp-Authentication";
 
-        public UserService(IUserRepository userRepository, ITagService tagService)
+        public UserService(ITagService tagService, IUserRepository userRepository, ICronofyService cronofyService)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
+            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
@@ -60,9 +60,10 @@ namespace MyCalendar.Service
             return await userRepository.GetByUserIDAsync(userID);
         }
 
-        public User Get(int passcode)
+        public bool LoadUser(int passcode)
         {
-            return userRepository.Get(passcode);
+            var user = userRepository.Get(passcode);
+            return cronofyService.LoadUser(user);
         }
 
         public async Task<Tag> GetUserTagAysnc(Guid tagID)
@@ -70,6 +71,10 @@ namespace MyCalendar.Service
             return await tagService.GetAsync(tagID);
         }
 
+        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID)
+        {
+            return await tagService.UpdateUserTagsAsync(tags, userID);
+        }
 
         public async Task<User> GetUser(int? passcode = null)
         {
@@ -160,6 +165,14 @@ namespace MyCalendar.Service
 
             return currentActivity;
         }
+
+
+
+        public IEnumerable<Cronofy.Calendar> GetCalendars()
+        {
+            return cronofyService.GetCalendars();
+        }
+
 
         //public Task DoWorkAsync() // No async because the method does not need await
         //{

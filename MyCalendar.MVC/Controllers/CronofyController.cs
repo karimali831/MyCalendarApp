@@ -1,7 +1,6 @@
 ﻿using Cronofy;
 using MyCalendar.Controllers;
 using MyCalendar.Enums;
-using MyCalendar.Helpers;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
@@ -9,16 +8,18 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace MyCalendar.Website.Controllers
 {
     public class CronofyController : UserMvcController
     {
+        private readonly ICronofyService cronofyService;
 
-        public CronofyController(ICronofyService cronofyService, IUserService userService, ITagService tagService) : base(userService, cronofyService, tagService)
+        public CronofyController(IUserService userService, ICronofyService cronofyService) : base(userService)
         {
+            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
+            
         }
 
         public async Task<ActionResult> Auth()
@@ -56,7 +57,7 @@ namespace MyCalendar.Website.Controllers
             }
 
             ViewData["MenuItem"] = new MenuItem { Home = true };
-            return View("Profiles", new CronofyVM { Profiles = profiles } );
+            return View("Profiles", new CronofyVM { Profiles = profiles, CronofyCalendarAuthUrl = cronofyService.GetAuthUrl() } );
         }
 
         public ActionResult Calendar(string id)
@@ -109,7 +110,7 @@ namespace MyCalendar.Website.Controllers
             {
                 try
                 {
-                    cronofyService.UpsertEvent(newEvent.EventId, newEvent.CalendarId, newEvent.Summary, newEvent.Description, newEvent.Start, newEvent.End, new Location(newEvent.LocationDescription, newEvent.Latitude, newEvent.Longitude));
+                    cronofyService.UpsertEvent(newEvent.EventId, newEvent.CalendarId, newEvent.Summary, newEvent.Description, newEvent.Start, newEvent.End, "#eee", new Location(newEvent.LocationDescription, newEvent.Latitude, newEvent.Longitude));
                 }
                 catch (CronofyResponseException ex)
                 {
@@ -127,13 +128,16 @@ namespace MyCalendar.Website.Controllers
             return View("NewEvent", newEvent);
         }
 
-        public ActionResult DeleteExtEvent(CronofyVM calendarVM)
-        {
-            var deleteEvent = calendarVM.Event;
-            cronofyService.DeleteExtEvent(deleteEvent.CalendarId, deleteEvent.EventUid);
+        //public async Task<ActionResult> Sync()
+        //{
+        //    var user = await GetUser();
+        //    var dateFilter = new DateFilter
+        //    {
+        //        Frequency = Enum.Parse(DateFrequency, Utils.DateTime().ToString("MMMM"));
+        //}
 
-            return new RedirectResult(String.Format("/cronofy/calendar/{0}", deleteEvent.CalendarId));
-        }
+        //    var events = await eventService.GetAllAsync(user.UserID, viewing: null, dateFilter);
+        //}
 
         public ActionResult DeleteEvent(CronofyVM calendarVM)
         {

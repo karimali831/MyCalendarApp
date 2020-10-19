@@ -61,8 +61,8 @@
             {
                 <hr />
                 <div class="form-group">
-                    <label for="ICloud"><span class="glyphicon glyphicon-apple"></span> Add event@(Model.Dates > 1 ? "s" : "") to iCloud?</label>
-                    @Html.CheckBoxFor(x => x.Icloud)
+                    <label for="Cronofy"><span class="glyphicon glyphicon-link"></span> Add to @BaseViewModel.DefaultCalendarProvider calendar?</label>
+                    @Html.CheckBoxFor(x => x.Cronofy)
                 </div>
             }
             <button type="submit" class="btn btn-primary">Update</button>

@@ -18,12 +18,6 @@
                 <input type="submit" value="Delete" class="btn btn-danger" />
             }
         }
-        @using (Html.BeginForm("DeleteExtEvent", "Cronofy", FormMethod.Post, new { @class = "button_to" }))
-        {
-            @Html.HiddenFor(model => model.Event.CalendarId)
-            @Html.HiddenFor(model => model.Event.EventUid)
-            <input type="submit" value="Delete" class="btn btn-danger" />
-        }
     </div>
 </div>
 

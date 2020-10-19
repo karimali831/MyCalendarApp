@@ -153,7 +153,7 @@ namespace MyCalendar.Helpers
             return span.TotalMinutes;
         }
 
-        private static Color GetSystemDrawingColorFromHexString(string hexString)
+        public static Color GetSystemDrawingColorFromHexString(string hexString)
         {
             if (!System.Text.RegularExpressions.Regex.IsMatch(hexString, @"[#]([0-9]|[a-f]|[A-F]){6}\b"))
                 throw new ArgumentException();
@@ -331,6 +331,13 @@ namespace MyCalendar.Helpers
             {
                 return false;
             }
+        }
+
+        public static string UppercaseFirst(string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return string.Empty;
+            return char.ToUpper(str[0]) + str.Substring(1).ToLower();
         }
     }
 }

@@ -22,27 +22,33 @@ namespace MyCalendar.Controllers
     public class UserMvcController : Controller
     {
         private readonly IExceptionHandlerService exceptionHandlerService;
-        private readonly IUserService userService;
-        private readonly ITagService tagService;
-        protected readonly ICronofyService cronofyService;
+        private readonly IUserService userService; 
         protected readonly string AuthenticationName = "iCalendarApp-Authentication";
         public BaseVM BaseVM { get; set; }
 
-        public UserMvcController(IUserService userService, ICronofyService cronofyService, ITagService tagService)
+        public UserMvcController(IUserService userService)
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
-            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
-
             //userService.DoWorkAsync();
         }
 
         private async Task<BaseVM> getViewModel(MenuItem menuItem, Status? updateResponse = null, string updateMsg = null)
         {
-            var user = await GetUser();
-            var users = await GetUsers();
-            var userTags = await GetUserTags();
+            var user = await userService.GetUser();
+            var users = await userService.GetUsers();
+            var userTags = await userService.GetUserTags();
+
+            string defaultCalendar = null;
+            if (user != null && user.CronofyReady)
+            {
+                var getDefaultCalendar = userService.GetCalendars().FirstOrDefault(x => x.CalendarId == user.DefaultCalendar)?.Profile;
+
+                if (getDefaultCalendar != null && !string.IsNullOrEmpty(getDefaultCalendar.ProviderName))
+                {
+                    defaultCalendar = Utils.UppercaseFirst(getDefaultCalendar.ProviderName);
+                }
+            }
 
             return new BaseVM
             {
@@ -50,33 +56,14 @@ namespace MyCalendar.Controllers
                 Users = users,
                 UserTags = new TagsDTO { Tags = userTags },
                 UpdateStatus = (updateResponse, updateMsg),
-                MenuItem = menuItem
+                MenuItem = menuItem,
+                DefaultCalendarProvider = defaultCalendar
             };
-        }
-
-        public async Task<IList<User>> GetUsers()
-        {
-            return await userService.GetUsers();
-        }
-
-        public async Task<Tag> GetTag(Guid tagId)
-        {
-            return await tagService.GetAsync(tagId);
-        }
-
-        public async Task<IEnumerable<Tag>> GetUserTags()
-        {
-            return await userService.GetUserTags();
         }
 
         public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events)
         {
             return await userService.CurrentUserActivity(events);
-        }
-
-        public async Task<User> GetUserById(Guid userID)
-        {
-            return await userService.GetByUserIDAsync(userID);
         }
 
         public async Task<User> GetUser(int? passcode = null)
@@ -105,7 +92,7 @@ namespace MyCalendar.Controllers
 
         public async Task<bool> UpdateUserTags(IEnumerable<Tag> tags, Guid userID)
         {
-            return await tagService.UpdateUserTagsAsync(tags, userID);
+            return await userService.UpdateUserTagsAsync(tags, userID);
         }
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -114,7 +101,7 @@ namespace MyCalendar.Controllers
 
             if (appCookie != null)
             {
-                if (!cronofyService.LoadUser(int.Parse(appCookie.Value)))
+                if (!userService.LoadUser(int.Parse(appCookie.Value)))
                 {
                     Response.Cookies.Remove(AuthenticationName);
                     filterContext.Result = new RedirectResult("/home");

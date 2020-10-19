@@ -1,14 +1,12 @@
 ﻿using Cronofy;
 using MyCalendar.Helpers;
-using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Threading.Tasks;
 
 namespace MyCalendar.Service
 {
-    public interface ICronofyService : IUserService
+    public interface ICronofyService 
     {
         void SetToken(OAuthToken token);
         OAuthToken GetOAuthToken(string code);
@@ -18,13 +16,12 @@ namespace MyCalendar.Service
         IEnumerable<Profile> GetProfiles();
         IEnumerable<Event> ReadEventsForCalendar(string calendarId);
         IEnumerable<Event> ReadEvents();
-        void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, Location location = null);
-        void DeleteExtEvent(string calendarId, string EventUid);
-        bool LoadUser(int passcode);
+        bool LoadUser(Model.User user);
+        void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, Location location = null);
         void DeleteEvent(string calendarId, string eventId);
     }
 
-    public class CronofyService : UserService, ICronofyService
+    public class CronofyService : ICronofyService
     {
         private static string _cronofyUid;
         private static string _accessToken;
@@ -32,14 +29,12 @@ namespace MyCalendar.Service
 
         private static CronofyOAuthClient _oauthClient;
 
-        public CronofyService(IUserRepository userRepository, ITagService tagService) : base(userRepository, tagService)
+        public CronofyService()
         {
         }
 
-        public bool LoadUser(int passcode)
+        public bool LoadUser(Model.User user)
         {
-            var user = Get(passcode);
-
             if (user == null)
             {
                 LogHelper.Log(String.Format("LoadUser failed - Unable to find user - CronofyUID=`{0}`", user.CronofyUid));
@@ -56,8 +51,6 @@ namespace MyCalendar.Service
 
             return true;
         }
-
-
         private CronofyOAuthClient OAuthClient
         {
             get
@@ -269,14 +262,22 @@ namespace MyCalendar.Service
             return events;
         }
 
-        public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, Location location = null)
+        public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, Location location = null)
         {
+            int[] reminders = new int[] { 30,1440, 0  };
+
+
             var buildingEvent = new UpsertEventRequestBuilder()
                 .EventId(eventId)
                 .Summary(summary)
                 .Description(description)
-                .Start(start)
-                .End(end);
+                .Start(Utils.FromTimeZoneToUtc(start))
+                .End(Utils.FromTimeZoneToUtc(end))
+                .Reminders(reminders)
+                .Color(color)
+                .StartTimeZoneId("Europe/London")
+                .EndTimeZoneId("Europe/London")
+                .TimeZoneId("Europe/London");
 
             if (location != null)
             {
@@ -399,7 +400,7 @@ namespace MyCalendar.Service
                     // First time this fails, attempt to get a new access token and store it for the user
                     var token = OAuthClient.GetTokenFromRefreshToken(_refreshToken);
 
-                    userRepository.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid); 
+                    //userRepository.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid); 
 
                     SetToken(token);
 

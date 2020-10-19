@@ -9,13 +9,22 @@ namespace MyCalendar.Helpers
             var changes = new Dictionary<string, IList<string>>
             {
                 {
+                    "v1.2.3", new List<string> {
+                        "*Add Cronofy and iCalendar App integration features",
+                        "Update in external calendar when creating, updating or deleteing events in real-time",
+                        "Authenticate to third party calendar inc iCloud, Google, Outlook and select default calendar to sync with calendar app.",
+                        "Cannot add events without either tag or description or both",
+                        "New page setup for integration external calendar with iCalendar App"
+                    }
+                },
+                {
                     "v1.2.2", new List<string> {
                         "Add website background and other style changes",
-                        "Only use iCalendar authentication cooking removing Cronofy cookie to authenticate",
+                        "Remove Cronofy cookie and only use iCalendar authentication cookie to authenticate",
                         "Move cronofy authentication link in Settings and show if account is linked or not",
                         "Cleaner display for displaying user tags in dropdown list"
                     }
-                 },
+                },
                 { 
                     "v1.2.1", new List<string> {
                         "Dynamically render changelog"

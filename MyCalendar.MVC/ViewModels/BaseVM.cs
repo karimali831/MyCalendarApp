@@ -14,6 +14,7 @@ namespace MyCalendar.Website.ViewModels
         public MenuItem MenuItem {get; set; }
         public (Status? UpdateResponse, string UpdateMsg) UpdateStatus { get; set; }
         public Exception Exception { get; set; }
+        public string DefaultCalendarProvider { get; set; }
     }
 
     public class MenuItem

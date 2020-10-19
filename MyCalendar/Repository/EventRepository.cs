@@ -107,7 +107,6 @@ namespace MyCalendar.Repository
 
                     if (existing == false)
                     {
-                        dto.EventID = Guid.NewGuid();
                         await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(dto));
                     }
                     else
@@ -136,7 +135,7 @@ namespace MyCalendar.Repository
                         Func<Model.EventDTO, object> saveEvent = (Model.EventDTO e) =>
                             new
                             {
-                                eventId = Guid.NewGuid(),
+                                eventId = e.EventID,
                                 userId = e.UserID,
                                 description = e.Description,
                                 startDate = Utils.FromTimeZoneToUtc(e.StartDate),

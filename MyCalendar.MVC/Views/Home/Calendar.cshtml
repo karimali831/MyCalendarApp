@@ -5,7 +5,11 @@
 }
 @Html.Partial("_Status", Model)
 
-
+<style>
+    .modal-content {
+        background-image: url('https://newevolutiondesigns.com/images/freebies/white-wallpaper-18.jpg');
+    }
+</style>
 
 <div id="currentActivity" class="alert alert-info" role="alert" style="display: none"></div>
 <div id="calender"></div>
@@ -87,6 +91,12 @@
                         <label>Description</label>
                         <textarea id="txtDescription" rows="3" class="form-control"></textarea>
                     </div>
+                    @if (Model.User.CronofyReady)
+                    {
+                        <div class="form-group">
+                            <label><input type="checkbox" id="chkCronofy" checked="checked" /> Save to @Model.DefaultCalendarProvider calendar?</label>
+                        </div>
+                    }
                     <button type="button" id="btnSave" class="btn btn-success">Save</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </form>
@@ -175,16 +185,16 @@
                     eventLimit: true,
                     eventColor: '#378006',
                     events: events,
-                    eventRender: function (eventObj, $el) {
-                        var end = moment(eventObj.end);
-                        $el.popover({
-                            title: eventObj.title + (end.isValid() ? " until " + end.format('HH:mm') : " all day"),
-                            content: (eventObj.description == eventObj.title ? "" : eventObj.description),
-                            trigger: 'hover',
-                            placement: 'top',
-                            container: 'body'
-                        });
-                    },
+                    //eventRender: function (eventObj, $el) {
+                    //    var end = moment(eventObj.end);
+                    //    $el.popover({
+                    //        title: eventObj.title + (end.isValid() ? " until " + end.format('HH:mm') : " all day"),
+                    //        content: (eventObj.description == eventObj.title ? "" : eventObj.description),
+                    //        trigger: 'hover',
+                    //        placement: 'top',
+                    //        container: 'body'
+                    //    });
+                    //},
                     eventClick: function (calEvent, jsEvent, view) {
                         selectedEvent = calEvent;
                         $('#myModal #eventTitle').text(calEvent.title);
@@ -294,7 +304,10 @@
             function hideSplitDates(startDate, endDate) {
                 var diff = endDate.diff(startDate, 'days');
 
-                if (diff > 0) {
+                if ($('#hdEventID').val() != 0) {
+                    $('#divSplitDates').hide();
+                }
+                else if (diff > 0) {
                     $('#divSplitDates').show();
                 }
                 else {
@@ -346,7 +359,8 @@
                     Description: $('#txtDescription').val(),
                     IsFullDay: $('#chkIsFullDay').is(':checked'),
                     Tentative: $('#chkTentative').is(':checked'),
-                    SplitDates: $('#splitDates').val()
+                    SplitDates: $('#splitDates').val(),
+                    Cronofy: $('#chkCronofy').is(':checked')
                 }
                 SaveEvent(data);
                 // call function for submit data to the server
