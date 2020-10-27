@@ -1,7 +1,9 @@
 ﻿@using MyCalendar.Helpers
+@using System.Configuration
 @using MyCalendar.Website.ViewModels
 @{
     var Model = ViewData[nameof(BaseVM)] as BaseVM;
+    var AppName = ConfigurationManager.AppSettings["AppFullName"];
 }
 
 <!DOCTYPE html>
@@ -9,7 +11,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iCalendar App®</title>
+    <title>@AppName</title>
     <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <script src="~/Scripts/modernizr-2.8.3.js"></script>
@@ -23,7 +25,7 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("iCalendar App®", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink(AppName, "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav pull-right">
@@ -60,6 +62,14 @@
                                 <span class="glyphicon glyphicon-edit"></span> Scheduler
                             </a>
                         </li>
+                        if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
+                        {
+                            <li>
+                                <a style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action("Profiles", "Cronofy")">
+                                    <span class="glyphicon glyphicon-check"></span> MiCal Sync
+                                </a>
+                            </li>
+                        }
                         <li>
                             <a style="@(Model.MenuItem.Settings ? "color:#0094ff": "")" href="@Url.Action("Settings", "Home")">
                                 <span class="glyphicon glyphicon-user"></span> Profile
@@ -89,7 +99,7 @@
         @RenderBody()
         <hr />
         <footer>
-            <small>&copy; @DateTime.Now.Year - iCalendar App® <a href="/home/changelog" class="pull-right">@ChangeLog.GetChangeList().OrderByDescending(x => x.Key).First().Key</a></small>
+            <small>&copy; @DateTime.Now.Year - @AppName <a href="/home/changelog" class="pull-right">@ChangeLog.GetChangeList().OrderByDescending(x => x.Key).First().Key</a></small>
         </footer>
     </div>
 

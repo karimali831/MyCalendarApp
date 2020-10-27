@@ -14,14 +14,15 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null, DateFilter filter = null);
+        Task<IEnumerable<Event>> GetAllAsync(User user, Guid? viewing = null, DateFilter filter = null);
         Task<bool> SaveEvent(EventVM e);
-        Task<bool> SaveEvents(IList<Model.EventDTO> dto, bool cronofy);
+        Task<bool> SaveEvents(IList<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
         Task<IEnumerable<Types>> GetTypes();
         Task<Types> GetTypeAsync(int Id);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
-        Task<IList<HoursWorkedInTag>> HoursSpentInTag(Guid userID, DateFilter dateFilter);
+        Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter);
+        Task<bool> EventUExists(string eventUId, string calendarUid);
     }
 
     public class EventService : IEventService
@@ -55,58 +56,126 @@ namespace MyCalendar.Service
                         (!x.EndDate.HasValue && Utils.FromUtcToTimeZone(x.StartDate).Date == Utils.DateTime().Date));
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(Guid? userId = null, Guid? viewing = null, DateFilter filter = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(User user, Guid? viewing = null, DateFilter filter = null)
         {
             var events = await eventRepository.GetAllAsync(filter);
 
-            if (userId.HasValue)
+            if (viewing.HasValue)
             {
-                if (viewing.HasValue)
+                if (user.UserID == viewing)
                 {
-                    if (userId == viewing)
-                    {
-                        events = events.Where(x => x.UserID == userId || x.Privacy == TagPrivacy.Shared);
-                    }
-
-                    else
-                    {
-                        events = events.Where(x => (x.UserID == viewing && x.Privacy != TagPrivacy.Private) || x.Privacy == TagPrivacy.Shared);
-                    }
+                    events = events.Where(x => x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared);
                 }
-                //combined
+
                 else
                 {
-                    events = events.Where(x => (x.UserID != userId && x.Privacy != TagPrivacy.Private) || x.UserID == userId || x.Privacy == TagPrivacy.Shared);
+                    events = events.Where(x => (x.UserID == viewing && x.Privacy != TagPrivacy.Private) || x.Privacy == TagPrivacy.Shared);
+                }
+            }
+            //combined
+            else
+            {
+                events = events.Where(x => (x.UserID != user.UserID && x.Privacy != TagPrivacy.Private) || x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared);
+            }
+
+            if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+            {
+                var unsycnedEvents = new List<Model.EventDTO>();
+                var deletedEvents = new List<(string EventUid, string CalendarUid)>();
+       
+                foreach (var extCal in user.ExtCalendarRights.Where(x => x.Read == true))
+                {
+                    var cronofyEvents = cronofyService.ReadEventsForCalendar(extCal.Id).Where(x => x.EventId == null);
+
+                    // check events deleted in Cronofy but not deleted in Calendar App
+                    var deletedCronofyEvents = events.Where(x => x.EventUid != null && x.CalendarUid != null && x.CalendarUid == extCal.Id && cronofyEvents.All(c => c.EventUid != x.EventUid));
+      
+                    if (deletedCronofyEvents != null && deletedCronofyEvents.Any())
+                    {
+                        foreach (var delEvent in deletedCronofyEvents)
+                        {
+                            deletedEvents.Add((delEvent.EventUid, delEvent.CalendarUid));
+                        }
+                    }
+
+                    // check events in Cronofy calendar not synced in Calendar App 
+                    if (cronofyEvents != null && cronofyEvents.Any())
+                    {
+                        foreach (var e in cronofyEvents)
+                        {
+                            if (!await EventUExists(e.EventUid, e.CalendarId))
+                            {
+                                var findTag = (await userService.GetUserTags(user.UserID))
+                                    .FirstOrDefault(t => Utils.Contains(t.Name, e.Summary, StringComparison.OrdinalIgnoreCase));
+       
+                                string calendarName = cronofyService.GetCalendars().FirstOrDefault(x => x.CalendarId == e.CalendarId)?.Profile.ProviderName ?? "Unknown";
+
+                                if (e.Start.HasTime)
+                                {
+                                    unsycnedEvents.Add(new Model.EventDTO
+                                    {
+                                        EventID = Guid.NewGuid(),
+                                        UserID = user.UserID,
+                                        TagID = findTag?.Id ?? Guid.Empty,
+                                        Description = string.Format($"{(findTag != null ? "" : "{2}: ")} {{1}} (Sycned from {{0}} Calendar)", Utils.UppercaseFirst(calendarName), e.Description, e.Summary),
+                                        StartDate = e.Start.DateTimeOffset.DateTime,
+                                        EndDate = e.End.DateTimeOffset.DateTime,
+                                        EventUid = e.EventUid,
+                                        CalendarUid = e.CalendarId
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (deletedEvents.Any())
+                {
+                    foreach (var delEvent in deletedEvents)
+                    {
+                        await eventRepository.DeleteExtAsync(delEvent.EventUid, delEvent.CalendarUid);
+                    }
+                }
+
+                if (unsycnedEvents.Any())
+                {
+                    await SaveEvents(unsycnedEvents);
                 }
             }
 
             return events;
         }
 
-        private async Task SaveCronofyEvent(Guid eventID, DateTime start, string desc, Guid? tagId, DateTime? end)
+        private async Task SaveCronofyEvent(Model.EventDTO dto)
         {
             var user = await userService.GetUser();
 
-            if (user.CronofyReady)
+            if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
                 string subject;
                 string color;
 
-                if (tagId != Guid.Empty)
+                if (dto.TagID != Guid.Empty)
                 {
-                    var tag = await userService.GetUserTagAysnc(tagId.Value);
+                    var tag = await userService.GetUserTagAysnc(dto.TagID.Value);
                     subject = tag.Name;
                     color = tag.ThemeColor;
                 }
                 else
                 {
-                    subject = desc;
+                    subject = dto.Description;
                     color = "#eee";
                 }
 
+                DateTime endDate = dto.EndDate ?? dto.StartDate.AddDays(1);
 
-                DateTime endDate = end ?? start.AddDays(1);
-                cronofyService.UpsertEvent(eventID.ToString(), user.DefaultCalendar, subject, desc, start, endDate, color);
+                foreach (var extCal in user.ExtCalendarRights)
+                {
+                    if (extCal.Save)
+                    {
+                        cronofyService.UpsertEvent(dto.EventID.ToString(), extCal.Id, subject, dto.Description, dto.StartDate, endDate, color);
+                    }
+                }
             }
         }
 
@@ -118,13 +187,10 @@ namespace MyCalendar.Service
             bool status;
             if (string.IsNullOrEmpty(e.SplitDates) || daysBetweenDays == 0 || e.IsFullDay)
             {
-                status = await eventRepository.InsertOrUpdateAsync(dto);
+                dto.EventID = dto.EventID != Guid.Empty ? dto.EventID : Guid.NewGuid();
 
-                if (e.Cronofy)
-                {
-                    e.EventID = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();
-                    await SaveCronofyEvent(e.EventID, e.Start,e.Description, e.TagID, e.End);
-                }
+                status = await eventRepository.InsertOrUpdateAsync(dto);
+                await SaveCronofyEvent(dto);
             }
             else
             {
@@ -145,31 +211,28 @@ namespace MyCalendar.Service
                     });
                 }
 
-                status = await SaveEvents(events.ToList(), e.Cronofy);
+                status = await SaveEvents(events.ToList());
             }
 
             return status;
         }
 
-        public async Task<bool> SaveEvents(IList<Model.EventDTO> dto, bool cronofy)
+        public async Task<bool> SaveEvents(IList<Model.EventDTO> dto)
         {
-            if (cronofy)
+            foreach (var e in dto.Where(x => x.EventUid == null))
             {
-                foreach (var e in dto)
-                {
-                    e.EventID = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();
-                    await SaveCronofyEvent(e.EventID, e.StartDate, e.Description, e.TagID, e.EndDate);
-                }
+                e.EventID = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();
+                await SaveCronofyEvent(e);
             }
-
+            
             return await eventRepository.MultiInsertAsync(dto);
         }
 
-        public async Task<IList<HoursWorkedInTag>> HoursSpentInTag(Guid userID, DateFilter dateFilter)
+        public async Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter)
         {
-            var users = await userService.GetUsers();
-            var events = (await GetAllAsync(userId: null, viewing: null, filter: dateFilter))
-                .Where(x => x.UserID == userID || x.Privacy == TagPrivacy.Shared)
+            var users = await userService.GetUsers(user.UserID);
+            var events = (await GetAllAsync(user, viewing: null, filter: dateFilter))
+                .Where(x => x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared)
                 .GroupBy(x => x.TagID);
 
             var hoursWorkedInTag = new List<HoursWorkedInTag>();
@@ -212,7 +275,7 @@ namespace MyCalendar.Service
 
                             if (tag.Name == "Flex")
                             {
-                                text += $" earning approx £{hoursFromMinutes * 13}";
+                                text += $" earning approx £{hoursFromMinutes * 14 * 1.15}";
                             }
 
                             hoursWorkedInTag.Add(new HoursWorkedInTag
@@ -235,9 +298,15 @@ namespace MyCalendar.Service
             // delete from cronofy
             var user = await userService.GetUser();
 
-            if (user.CronofyReady)
+            if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
-                cronofyService.DeleteEvent(user.DefaultCalendar, eventId.ToString());
+                foreach (var extCal in user.ExtCalendarRights)
+                {
+                    if (extCal.Delete)
+                    {
+                        cronofyService.DeleteEvent(extCal.Id, eventId.ToString());
+                    }
+                }
             }
 
             return await eventRepository.DeleteAsync(eventId);
@@ -251,6 +320,11 @@ namespace MyCalendar.Service
         public async Task<Types> GetTypeAsync(int Id)
         {
             return await typeService.GetAsync(Id);
+        }
+
+        public async Task<bool> EventUExists(string eventUId, string calendarUid)
+        {
+            return await eventRepository.EventUExists(eventUId, calendarUid);
         }
     }
 }

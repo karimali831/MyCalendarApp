@@ -1,5 +1,6 @@
 ﻿@model MyCalendar.Website.ViewModels.CronofyVM
 @using MyCalendar.Website.ViewModels
+@using MyCalendar.Enums
 @using MyCalendar.Helpers
 @{
     var baseModel = ViewData[nameof(BaseVM)] as BaseVM;
@@ -7,81 +8,119 @@
 
 @Html.Partial("_Status", baseModel)
 
-<div class="list-group">
-    @if (baseModel.User.CronofyReady)
-    {
-        <a href="#@baseModel.DefaultCalendarProvider" class="list-group-item list-group-item-success active">
-            <i class="glyphicon glyphicon-ok-circle"></i> @baseModel.DefaultCalendarProvider calendar ready
-        </a>
+<div>
+    <div class="list-group">
+        @if (baseModel.User.CronofyReady == CronofyStatus.Disabled)
+        {
+            <a class="list-group-item list-group-item-danger active">
+                <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - not enabled
+            </a>
+            <a href="@Url.Action("Settings", "Home")" class="list-group-item list-group-item-action">
+                <i class="glyphicon glyphicon-user"></i> Enable Calendar Sync in Profile
+            </a>
+        }
+        else if (baseModel.User.CronofyReady == CronofyStatus.NotAuthenticated)
+        {
+            <a class="list-group-item list-group-item-danger active">
+                <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - not authenticated
+            </a>
+            <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
+                <i class="glyphicon glyphicon-log-in"></i> Authenticate
+            </a>
+        }
+        else
+        {
+            if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+            {
+                <a href="#calendars" class="list-group-item list-group-item-success active">
+                    <i class="glyphicon glyphicon-ok-circle"></i> Calendar sync ready
+                </a>
+            }
+            else if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedNoRightsSet)
+            {
+                <a href="#calendars" class="list-group-item list-group-item-danger active">
+                    <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - set rights for at least one Calendar
+                </a>
+            }
+            <a href="@Url.Action("UnlinkCalendar")" class="list-group-item list-group-item-action">
+                <i class="glyphicon glyphicon-link"></i> Unlink Calendars
+            </a>
+            <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
+                <i class="glyphicon glyphicon-log-in"></i> Re-Authenticate
+            </a>
+        }
+    </div>
+    @if (Model.Profiles != null && Model.Profiles.Any())
+    { 
+        <a name="calendars"></a>
+        using (Html.BeginForm())
+        {
+            foreach (var profile in Model.Profiles)
+            {
+                <h2 class="glyphicon glyphicon-calendar">@Utils.UppercaseFirst(profile.Key.ProviderName)</h2>
+                <div>
+                    <span class="label label-info">Linked account: @profile.Key.Name</span>
+                    <a style="float: right" class="label label-success" href="/calendars/new/@profile.Key.Id">+ New Calendar</a>
+                </div>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th width="40%">Name</th>
+                            <th width="15%">
+                                <span data-toggle="tooltip" title="Pull events created/deleted from @Utils.UppercaseFirst(profile.Key.ProviderName) Calendar to @baseModel.AppShortName">Read</span>
+                            </th>
+                            <th width="15%">
+                                <span data-toggle="tooltip" title="Events created/updated in @baseModel.AppShortName are also created/updated in @Utils.UppercaseFirst(@profile.Key.ProviderName) Calendar">Save</span>
+                            </th>
+                            <th width="15%">
+                                <span data-toggle="tooltip" title="Events deleted in @baseModel.AppShortName are also deleted in @Utils.UppercaseFirst(@profile.Key.ProviderName) Calendar">Delete</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var calendar in profile.Value)
+                        {
+                            var linkedCal = baseModel.User.ExtCalendarRights?.FirstOrDefault(x => x.Id == calendar.CalendarId) ?? null;
+                            <tr>
+                                <td>
+                                    <a href="/cronofy/calendar/@calendar.CalendarId">@calendar.Name</a>
+                                    <input type="hidden" value="@calendar.CalendarId" name="Id[]" />
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Read[]" @(linkedCal != null && linkedCal.Read ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
+                                        <input type="hidden" value="@calendar.CalendarId" name="Read[]" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Save[]" @(linkedCal != null && linkedCal.Save ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
+                                        <input type="hidden" value="@calendar.CalendarId" name="Save[]" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="Delete[]" @(linkedCal != null && linkedCal.Delete ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
+                                        <input type="hidden" value="@calendar.CalendarId" name="Delete[]" />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+
+            }
+            <button type="submit" class="btn btn-primary pull-right">Update</button>
+            <br />
+        }
     }
-    else
-    {
-        <a href="#calendars" class="list-group-item list-group-item-danger active">
-            <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - set a default calendar
-        </a>
-    }
-    <a href="#" class="list-group-item list-group-item-action disabled">
-        <i class="glyphicon glyphicon-check"></i> Sync
-    </a>
-    <a href="@Url.Action("UnlinkCalendar", "Cronofy", new { defaultCalendar = "" })" class="list-group-item list-group-item-action">
-        <i class="glyphicon glyphicon-link"></i> Unlink
-    </a>
-    <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
-        <i class="glyphicon glyphicon-log-in"></i> Re-Authenticate
-    </a>
 </div>
 
-@foreach (var profile in Model.Profiles)
-{
-    <a name="@baseModel.DefaultCalendarProvider"></a>
-    <div class="row">
-        <div class="col-xs-8">
-            <h2 class="glyphicon glyphicon-calendar">@Utils.UppercaseFirst(profile.Key.ProviderName)</h2>
-            <span class="label label-info">Linked account: @profile.Key.Name</span>
-        </div>
 
-        <div class="col-xs-4 text-right">
-
-        </div>
-    </div>
-
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th></th>
-                <th style="float: right">
-                    <a href="/calendars/new/@profile.Key.Id" class="btn btn-primary">
-                        New Calendar
-                    </a>
-                </th> 
-            </tr>
-        </thead>
-
-        <tbody>
-            @foreach (var calendar in profile.Value)
-            {
-                <tr>
-                    <td>
-                        @calendar.Name
-                    </td>
-                    <td>
-                        <a href="/cronofy/calendar/@calendar.CalendarId" class="btn btn-default">
-                            View
-                        </a>
-                    </td>
-                    <td>
-                        @if (baseModel.User.DefaultCalendar == calendar.CalendarId)
-                        {
-                            <button class="btn btn-success">Default</button>
-                        }
-                        else
-                        {
-                            <button type="submit" onclick="location.href='@Url.Action("UpdateDefaultCalendar", "Cronofy", new { defaultCalendar = calendar.CalendarId })'" class="btn btn-primary">Set Default</button>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>

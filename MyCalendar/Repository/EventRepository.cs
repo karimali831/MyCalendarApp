@@ -18,9 +18,11 @@ namespace MyCalendar.Repository
         Task<IEnumerable<Event>> GetAllAsync(DateFilter filter = null);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<bool> EventExists(Guid eventId);
+        Task<bool> EventUExists(string eventUid, string calendarUid);
         Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
         Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto);
         Task<bool> DeleteAsync(Guid eventId);
+        Task DeleteExtAsync(string eventUid, string calendarUid);
         Task<bool> EventsByTagExist(Guid tagID);
     }
 
@@ -49,7 +51,7 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, t.Privacy
+                    SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, t.Privacy, e.EventUid, e.CalendarUid
                     FROM Events e
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id
@@ -65,6 +67,14 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)}")).ToArray();
+            }
+        }
+
+        public async Task<bool> EventUExists(string eventUId, string calendarUid)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE EventUid = @eventUId AND CalendarUid = @calendarUid", new { eventUId, calendarUid });
             }
         }
 
@@ -100,7 +110,9 @@ namespace MyCalendar.Repository
                             endDate = e.EndDate ?? null,
                             tentative = e.Tentative,
                             tagID = e.TagID,
-                            isFullDay = e.IsFullDay
+                            isFullDay = e.IsFullDay,
+                            eventUid = e.EventUid,
+                            calendarUid = e.CalendarUid
                         };
 
                     var existing = await EventExists(dto.EventID);
@@ -142,7 +154,9 @@ namespace MyCalendar.Repository
                                 endDate = e.EndDate.HasValue ? Utils.FromTimeZoneToUtc(e.EndDate.Value) : (DateTime?)null,
                                 tentative = e.Tentative,
                                 tagID = e.TagID,
-                                isFullDay = e.IsFullDay
+                                isFullDay = e.IsFullDay,
+                                eventUid = e.EventUid,
+                                calendarUid = e.CalendarUid
                             };
 
                         await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(e));
@@ -156,6 +170,12 @@ namespace MyCalendar.Repository
                     return false;
                 }
             }
+        }
+
+        public async Task DeleteExtAsync(string eventUid, string calendarUid)
+        {
+            using var sql = dbConnectionFactory();
+            await sql.ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE EventUid = @eventUid AND CalendarUid = @calendarUid", new { eventUid, calendarUid });
         }
 
         public async Task<bool> DeleteAsync(Guid eventId)

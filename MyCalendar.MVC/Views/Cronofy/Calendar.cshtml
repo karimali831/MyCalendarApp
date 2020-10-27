@@ -4,15 +4,6 @@
     <div class="col-xs-8">
         <h2>@Model.Calendar.Name - Events</h2>
     </div>
-
-    <div class="col-xs-4 text-right">
-        @if (!Model.Calendar.ReadOnly)
-        {
-            <a href="/cronofy/newevent/@Model.Calendar.CalendarId" class="btn btn-primary">
-                Create Event
-            </a>
-        }
-    </div>
 </div>
 
 <table class="table table-striped table-hover">

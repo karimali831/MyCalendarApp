@@ -14,10 +14,14 @@ namespace MyCalendar.Controllers
     public class EventController : UserMvcController
     {
         private readonly IEventService eventService;
+        private readonly ICronofyService cronofyService;
+        private readonly ITagService tagService;
 
-        public EventController(IEventService eventService, IUserService userService) : base(userService)
+        public EventController(IEventService eventService, IUserService userService, ICronofyService cronofyService, ITagService tagService) : base(userService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
+            this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
         }
 
         public async Task<JsonResult> Get(Guid? viewingId = null, bool combined = false)
@@ -31,32 +35,14 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                viewing = viewingId != null ? viewingId : (await GetUser()).UserID;
+                viewing = viewingId != null ? viewingId : user.UserID;
             }
 
-            // check events in Cronofy calendar not synced in Calendar App
-            //if (user.CronofyReady)
-            //{
-            //    var cronofyCalendar = cronofyService.GetCalendars().First(x => x.CalendarId == user.DefaultCalendar);
-            //    var cronofyEvents = cronofyService.ReadEventsForCalendar(user.DefaultCalendar).ToList();
-
-            //    var insertEvents = cronofyEvents.Select(x => new DTOs.EventVM
-            //    {
-            //        EventID = new Guid(x.EventId),
-            //        UserID = user.UserID,
-            //        TagID = 
-            //    });
-
-            //    eventService.SaveEvent()
-
-            //}
-
-
-            var events = await eventService.GetAllAsync(user.UserID, viewing);
-            var dto = events.Select(b => DTOs.EventDTO.MapFrom(b)).ToList();
+            var events = await eventService.GetAllAsync(user, viewing);
+            var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
-            var currentActivity = await CurrentUserActivity(activeEvents);
+            var currentActivity = await CurrentUserActivity(activeEvents, user.UserID);
 
             return new JsonResult { Data = new { events = dto, currentActivity }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
@@ -115,14 +101,13 @@ namespace MyCalendar.Controllers
             await BaseViewModel(new MenuItem { MultiAdd = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var viewModel = new SchedulerVM { Dates = dates, Cronofy = baseVM.User.CronofyReady };
+            var viewModel = new SchedulerVM { Dates = dates };
             var scheduler = (SchedulerVM)TempData["scheduler"];
 
             if (scheduler != null)
             {
                 viewModel.Dates = scheduler.Dates;
                 viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
-                viewModel.Cronofy = scheduler.Cronofy;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
@@ -182,7 +167,7 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                status = await eventService.SaveEvents(model.Events.ToList(), model.Cronofy)
+                status = await eventService.SaveEvents(model.Events.ToList())
                     ? (Status.Success, "Scheduler has been saved and your calendar has been updated")
                     : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
 
@@ -215,11 +200,7 @@ namespace MyCalendar.Controllers
                 ToDateRange = toDate ?? Utils.DateTime()
             };
 
-            var events = (await eventService.GetAllAsync(userId: null, viewing: null, filter: dateFilter))
-                .Where(x => x.UserID == baseVM.User.UserID || x.Privacy == TagPrivacy.Shared)
-                .GroupBy(x => x.TagID);
-
-            var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User.UserID, dateFilter);
+            var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User, dateFilter);
 
             return View("Overview",
                 new OverviewVM

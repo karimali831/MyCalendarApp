@@ -74,9 +74,11 @@ namespace MyCalendar.Controllers
         {
             var menuItem = new MenuItem { Settings = true };
             await BaseViewModel(menuItem, updateResponse, updateMsg);
+            var baseVM = ViewData["BaseVM"] as BaseVM;
 
             var viewModel = new SettingsVM
             {
+                User = baseVM.User,
                 Types = await eventService.GetTypes(),
                 CronofyCalendarAuthUrl = cronofyService.GetAuthUrl()
             };
@@ -153,15 +155,7 @@ namespace MyCalendar.Controllers
                 c++;
             }
 
-            tags.Tags = tagsA.Values.Select(x => new Tag
-            {
-                Id = x.Id,
-                UserID = x.UserID,
-                Name = x.Name,
-                ThemeColor = x.ThemeColor,
-                TypeID = x.TypeID,
-                Privacy = x.Privacy
-            });
+            tags.Tags = new List<Tag>(tagsA.Values);
 
             status = await UpdateUserTags(tags.Tags, user.UserID)
                 ? (Status.Success, "Your tags has been updated successfully")

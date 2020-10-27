@@ -1,11 +1,13 @@
 ﻿using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Repository;
+using MyCalendar.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Configuration;
 
 namespace MyCalendar.Service
 {
@@ -17,12 +19,12 @@ namespace MyCalendar.Service
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
-        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
+        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
-        Task<List<string>> CurrentUserActivity(IEnumerable<Event> events);
-        Task<IList<User>> GetUsers();
+        Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
+        Task<IList<User>> GetUsers(Guid userId);
         Task<User> GetUser(int? passcode = null);
-        Task<IEnumerable<Tag>> GetUserTags();
+        Task<IEnumerable<Tag>> GetUserTags(Guid userId);
         //Task DoWorkAsync();
     }
     ;
@@ -31,13 +33,17 @@ namespace MyCalendar.Service
         private readonly IUserRepository userRepository;
         private readonly ITagService tagService;
         private readonly ICronofyService cronofyService;
-        private readonly string AuthenticationName = "iCalendarApp-Authentication";
+        private readonly ITagRepository tagRepository;
+        private readonly string AuthenticationName;
 
-        public UserService(ITagService tagService, IUserRepository userRepository, ICronofyService cronofyService)
+        public UserService(ITagService tagService, IUserRepository userRepository, ICronofyService cronofyService, ITagRepository tagRepository)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
+            this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
+
+            AuthenticationName = ConfigurationManager.AppSettings["AuthenticationName"];
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
@@ -52,6 +58,7 @@ namespace MyCalendar.Service
 
         public async Task<bool> UpdateAsync(User user)
         {
+            user.ExtCalendarRights ??= Enumerable.Empty<ExtCalendarRights>();
             return await userRepository.UpdateAsync(user);
         }
 
@@ -71,9 +78,35 @@ namespace MyCalendar.Service
             return await tagService.GetAsync(tagID);
         }
 
-        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID)
+        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId)
         {
-            return await tagService.UpdateUserTagsAsync(tags, userID);
+            if (tags.Any())
+            {
+                var userTags = await GetUserTags(userId);
+                var deletingTags = userTags.Where(x => x.UserID == userId).Select(x => x.Id).Except(tags.Select(x => x.Id));
+
+                if (userTags.Any() && deletingTags.Any())
+                {
+                    foreach (var tag in deletingTags)
+                    {
+                        if (!await tagService.EventsByTagExist(tag))
+                        {
+                            await tagRepository.DeleteTagByIdAsync(tag);
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return await tagRepository.UpdateUserTagsAsync(tags, userId);
+            }
+            else
+            {
+                await tagRepository.DeleteAllUserTagsAsync(userId);
+                return true;
+            }
         }
 
         public async Task<User> GetUser(int? passcode = null)
@@ -94,9 +127,28 @@ namespace MyCalendar.Service
                     {
                         user.Authenticated = true;
 
-                        if (!string.IsNullOrEmpty(user.CronofyUid) && !string.IsNullOrEmpty(user.DefaultCalendar))
+                        if (!user.EnableCronofy)
                         {
-                            user.CronofyReady = true;
+                            user.CronofyReady = CronofyStatus.Disabled;
+                        }
+                        else if (string.IsNullOrEmpty(user.CronofyUid))
+                        {
+                            user.CronofyReady = CronofyStatus.NotAuthenticated;
+                        }
+                        else
+                        {
+                            var getCalendarNames = cronofyService.GetProfiles().Select(x => Utils.UppercaseFirst(x.ProviderName));
+                            user.CronofyReadyCalendarName = string.Format("{0} Calendar{1}", string.Join(", ", getCalendarNames), getCalendarNames.Count() > 1 ? "s" : "");
+
+                            if (user.ExtCalendarRights != null && user.ExtCalendarRights.Any(x => x.Read || x.Delete || x.Save))
+                            {
+                                user.CronofyReady = CronofyStatus.AuthenticatedRightsSet;
+                            }
+                            else
+                            {
+                                user.CronofyReady = CronofyStatus.AuthenticatedNoRightsSet;
+                            }
+
                         }
 
                         return user;
@@ -107,58 +159,65 @@ namespace MyCalendar.Service
             return null;
         }
 
-        public async Task<IList<User>> GetUsers()
+        public async Task<IList<User>> GetUsers(Guid userId)
         {
-            var users = await GetAllAsync();
-            var user = await GetUser();
-
-            if (user != null)
-            {
-                users = users.Where(x => x.UserID != user.UserID);
-            }
-
-            return users.ToList();
+            return (await GetAllAsync()).Where(x => x.UserID != userId).ToList();
         }
 
-        public async Task<IEnumerable<Tag>> GetUserTags()
+        public async Task<IEnumerable<Tag>> GetUserTags(Guid userId)
         {
-            var user = await GetUser();
+            var user = await GetByUserIDAsync(userId);
+            var userTags = await userRepository.GetTagsByUserAsync(userId);
 
-            if (user == null)
+            if (userTags != null && userTags.Any())
             {
-                return Enumerable.Empty<Tag>();
-            }
+                foreach (var tag in userTags)
+                {
+                    tag.UpdateDisabled = tag.UserID != user.UserID ? true : false;
+                }
 
-            var userTags = await tagService.GetUserTagsAsync(user.UserID);
-
-            if (userTags != null)
-            {
                 return userTags;
             }
-
+ 
             return Enumerable.Empty<Tag>();
         }
 
-        public async Task<List<string>> CurrentUserActivity(IEnumerable<Event> events)
+        public async Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
         {
             var currentActivity = new List<string>();
 
             if (events != null && events.Any())
             {
+                var users = await GetUsers(userId);
+
                 foreach (var activity in events)
                 {
-                    string getName = (await GetByUserIDAsync(activity.UserID)).Name;
-                    string label = (await GetUserTagAysnc(activity.TagID))?.Name ?? activity.Description;
+                    var tag = await GetUserTagAysnc(activity.TagID);
+                    string userName = (await GetByUserIDAsync(activity.UserID)).Name;
+                    string getName = "";
+
+                    if (tag != null && tag.Privacy == TagPrivacy.Shared)
+                    {
+                        getName += $"You, {string.Join(", ", users.Select(x => x.Name))}";
+                    }
+                    else
+                    {
+                        getName = (userId == activity.UserID ? "You" : userName);
+                    }
+
+                    string label = tag?.Name ?? activity.Description;
                     string finishing = (activity.EndDate.HasValue ? "finishing " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
                     string starting = Utils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
 
                     if (Utils.DateTime() >= Utils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && Utils.DateTime() < Utils.FromUtcToTimeZone(activity.StartDate))
                     {
-                        currentActivity.Add(string.Format("{0} has an upcoming event today - {1} starting {2}", getName, label, starting));
+                        string pronoun = getName.StartsWith("You") ? "have" : "has";
+                        currentActivity.Add(string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun));
                     }
                     else
                     {
-                        currentActivity.Add(string.Format("{0} currently at event - {1} {2}", getName, label, finishing));
+                        string pronoun = getName.StartsWith("You") ? "are" : "is";
+                        currentActivity.Add(string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun));
                     }
                 }
             }

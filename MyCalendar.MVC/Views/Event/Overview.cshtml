@@ -16,7 +16,7 @@
                 <select class="form-control" onchange='location.href = this.value' style = "width:150px">
                     @foreach (DateFrequency frequency in Enum.GetValues(typeof(DateFrequency)))
                     {
-                        <option value="@Url.Action("Overview", "Home", new { frequency = frequency, interval = Model.Filter.Interval })" selected="@(Model.Filter.Frequency == frequency ? true : false)">@frequency</option>
+                        <option value="@Url.Action("Overview", new { frequency = frequency, interval = Model.Filter.Interval })" selected="@(Model.Filter.Frequency == frequency ? true : false)">@frequency</option>
                     }
                 </select>
             </div>
@@ -27,7 +27,7 @@
                     <select class="form-control" onchange='location.href = this.value'  style = "width:80px">
                         @for (int i = 1; i <= 30; i++)
                         {
-                            <option value="@Url.Action("Overview", "Home", new { frequency = Model.Filter.Frequency, interval = i })" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
+                            <option value="@Url.Action("Overview", new { frequency = Model.Filter.Frequency, interval = i })" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
                         }
                     </select>
                 </div>

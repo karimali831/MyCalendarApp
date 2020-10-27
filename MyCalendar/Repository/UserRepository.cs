@@ -1,7 +1,9 @@
 ﻿using Dapper;
 using DFM.Utils;
 using MyCalendar.DTOs;
+using MyCalendar.Enums;
 using MyCalendar.Model;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -15,6 +17,7 @@ namespace MyCalendar.Repository
         Task<User> GetAsync(int passcode);
         Task<IEnumerable<User>> GetAllAsync();
         Task<bool> UpdateAsync(User user);
+        Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
         Task<User> GetByUserIDAsync(Guid userID);
         User Get(int passcode);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
@@ -36,7 +39,22 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Passcode = @passcode", new { passcode })).FirstOrDefault();
+                return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Passcode = @passcode", new { passcode } ))
+                        .Select(x => new User
+                         {
+                             UserID = x.UserID,
+                             Passcode = x.Passcode,
+                             Name = x.Name,
+                             Email = x.Email,
+                             PhoneNumber = x.PhoneNumber,
+                             CronofyUid = x.CronofyUid,
+                             AccessToken = x.AccessToken,
+                             RefreshToken = x.RefreshToken,
+                             EnableCronofy = x.EnableCronofy,
+                             ExtCalendars = x.ExtCalendars,
+                             ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null
+                         })
+                        .FirstOrDefault();
             }
         }
 
@@ -65,33 +83,49 @@ namespace MyCalendar.Repository
             }
         }
 
+        public async Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID)
+        {
+            string sqlTxt = $@"
+                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.Privacy, COUNT(*) AS Count
+                FROM Events AS e
+                RIGHT JOIN Tags AS t
+                ON e.TagID = t.Id
+                WHERE t.UserId = '{userID}' OR Privacy = {(int)TagPrivacy.Shared}
+                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.Privacy
+                ORDER BY Count DESC
+            ";
+
+            using var sql = dbConnectionFactory();
+            return (await sql.QueryAsync<Tag>(sqlTxt)).ToArray();
+        }
+
+
         public async Task<bool> UpdateAsync(User user)
         {
-            using (var sql = dbConnectionFactory())
+            using var sql = dbConnectionFactory();
+            try
             {
-                try
-                {
-                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE UserID = @userId", 
-                        new
-                        {
-                            user.UserID,
-                            user.Name,
-                            user.Email,
-                            user.Passcode,
-                            user.PhoneNumber,
-                            user.CronofyUid,
-                            user.AccessToken,
-                            user.RefreshToken,
-                            user.DefaultCalendar
-                        });
+                await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE UserID = @UserId",
+                    new
+                    {
+                        user.UserID,
+                        user.Name,
+                        user.Email,
+                        user.Passcode,
+                        user.PhoneNumber,
+                        user.CronofyUid,
+                        user.AccessToken,
+                        user.RefreshToken,
+                        user.EnableCronofy,
+                        ExtCalendars = user.ExtCalendarRights.Any() ? JsonConvert.SerializeObject(user.ExtCalendarRights) : user.ExtCalendars
+                    });
 
-                    return true;
-                }
-                catch (Exception exp)
-                {
-                    string.IsNullOrEmpty(exp.Message);
-                    return false;
-                }
+                return true;
+            }
+            catch (Exception exp)
+            {
+                string.IsNullOrEmpty(exp.Message);
+                return false;
             }
         }
 

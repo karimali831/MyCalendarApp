@@ -1,12 +1,14 @@
 ﻿using Cronofy;
 using MyCalendar.Controllers;
 using MyCalendar.Enums;
+using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -22,46 +24,98 @@ namespace MyCalendar.Website.Controllers
             
         }
 
-        public async Task<ActionResult> Auth()
+        public async Task<ActionResult> Auth(string code)
         {
+            Status? updateResponse = null;
+            string updateMsg = "";
+
+            if (code == null)
+            {
+                updateResponse = Status.Failed;
+                updateMsg = "Authorisation code cannot be empty";
+                return RedirectToAction("Profiles", new { updateResponse, updateMsg });
+            }
+
             var user = await GetUser();
-            var token = cronofyService.GetOAuthToken(Request.QueryString["code"]);
+            var token = cronofyService.GetOAuthToken(code);
             cronofyService.SetToken(token);
 
             var account = cronofyService.GetAccount();
 
-            if (account == null || user == null)
+            if (account == null)
             {
-                return RedirectToAction("Index", "Home");
+                updateResponse = Status.Failed;
+                updateMsg = "No External calendar account found";
             }
+            else
+            {
+                user.CronofyUid = account.Id;
+                user.AccessToken = token.AccessToken;
+                user.RefreshToken = token.RefreshToken;
 
-            user.CronofyUid = account.Id;
-            user.AccessToken = token.AccessToken;
-            user.RefreshToken = token.RefreshToken;
-
-            await UpdateUser(user);
-
-            return RedirectToAction("Profiles");
+                await UpdateUser(user);
+            }
+            return RedirectToAction("Profiles", new { updateResponse, updateMsg });
         }
 
         public async Task<ActionResult> Profiles(Status? updateResponse = null, string updateMsg = null)
         {
-            await BaseViewModel(new MenuItem { None = true }, updateResponse, updateMsg);
-
+            await BaseViewModel(new MenuItem { Cronofy = true }, updateResponse, updateMsg);
+            var baseVM = ViewData["BaseVM"] as BaseVM;
             var profiles = new Dictionary<Profile, Calendar[]>();
-            var calendars = cronofyService.GetCalendars();
 
-            foreach (var profile in cronofyService.GetProfiles())
-            {
-                profiles.Add(profile, calendars.Where(x => x.Profile.ProfileId == profile.Id).ToArray());
+            if (baseVM.User.CronofyReady != CronofyStatus.NotAuthenticated && baseVM.User.CronofyReady != CronofyStatus.Disabled)
+            { 
+                var calendars = cronofyService.GetCalendars();
+
+                foreach (var profile in cronofyService.GetProfiles())
+                {
+                    profiles.Add(profile, calendars.Where(x => x.Profile.ProfileId == profile.Id).ToArray());
+                }
             }
 
-            ViewData["MenuItem"] = new MenuItem { Home = true };
             return View("Profiles", new CronofyVM { Profiles = profiles, CronofyCalendarAuthUrl = cronofyService.GetAuthUrl() } );
         }
 
-        public ActionResult Calendar(string id)
+        private Expression<Func<string[], bool>> GetCalendarRights(string calendarId)
         {
+            return permission => (permission.Where(x => x == calendarId).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false);
+        }
+
+        [HttpPost]
+        public async Task<ActionResult> Profiles(CronofyVM dto)
+        {
+            var rights = new Dictionary<int, ExtCalendarRights>();
+
+            int a = 0;
+            foreach (var item in dto.Id)
+            {
+                rights.Add(a, new ExtCalendarRights {
+                    Id = item, 
+                    Read = (dto.Read.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false),
+                    Save = (dto.Save.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false),
+                    Delete = (dto.Delete.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false)
+                });
+                    
+                a++;
+            }
+
+            await BaseViewModel(new MenuItem { Cronofy = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
+            baseVM.User.ExtCalendarRights = rights.Values;
+
+            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
+                ? (Status.Success, "Calendar rights has been set successfully")
+                : (Status.Failed, "There was an issue with updating the Calendar rights");
+
+            return RedirectToAction("Profiles", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
+
+        }
+
+        public async Task<ActionResult> Calendar(string id)
+        {
+            await BaseViewModel(new MenuItem { Cronofy = true });
+
             var calendar = cronofyService.GetCalendars().First(x => x.CalendarId == id);
             var events = cronofyService.ReadEventsForCalendar(id).ToList();
             ViewData["MenuItem"] = new MenuItem { Home = true };
@@ -69,8 +123,9 @@ namespace MyCalendar.Website.Controllers
             return View("Calendar", new CronofyVM { Calendar = calendar, Events = events });
         }
 
-        public ActionResult Event(string id)
+        public async Task<ActionResult> Event(string id)
         {
+            await BaseViewModel(new MenuItem { Cronofy = true });
             var shownEvent = cronofyService.ReadEvents().First(x => x.EventUid == id);
 
             ViewData["calendarName"] = cronofyService.GetCalendars().First(x => x.CalendarId == shownEvent.CalendarId).Name;
@@ -80,101 +135,22 @@ namespace MyCalendar.Website.Controllers
             return View(new CronofyVM { Event = shownEvent });
         }
 
-        [HttpGet]
-        public ActionResult NewEvent([Bind(Prefix = "id")] string calendarId)
-        {
-            var newEvent = new EventVM
-            {
-                Calendar = cronofyService.GetCalendars().First(x => x.CalendarId == calendarId),
-                CalendarId = calendarId,
-
-                EventId = "unique_event_id_" + (new Random().Next(0, 1000000).ToString("D6"))
-            };
-
-            ViewData["MenuItem"] = new MenuItem { Home = true };
-
-            return View(new CronofyVM { EventVM = newEvent });
-        }
-
-        [HttpPost]
-        public ActionResult NewEvent(CronofyVM calendarVM)
-        {
-            var newEvent = calendarVM.EventVM;
-
-            if (newEvent.Start > newEvent.End)
-            {
-                ModelState.AddModelError("End", "End time cannot be before start time");
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    cronofyService.UpsertEvent(newEvent.EventId, newEvent.CalendarId, newEvent.Summary, newEvent.Description, newEvent.Start, newEvent.End, "#eee", new Location(newEvent.LocationDescription, newEvent.Latitude, newEvent.Longitude));
-                }
-                catch (CronofyResponseException ex)
-                {
-                    newEvent.SetError(ex);
-                }
-
-                if (newEvent.NoErrors())
-                {
-                    return new RedirectResult(String.Format("/cronofy/calendar/{0}", newEvent.CalendarId));
-                }
-            }
-
-            newEvent.Calendar = cronofyService.GetCalendars().First(x => x.CalendarId == newEvent.CalendarId);
-
-            return View("NewEvent", newEvent);
-        }
-
-        //public async Task<ActionResult> Sync()
-        //{
-        //    var user = await GetUser();
-        //    var dateFilter = new DateFilter
-        //    {
-        //        Frequency = Enum.Parse(DateFrequency, Utils.DateTime().ToString("MMMM"));
-        //}
-
-        //    var events = await eventService.GetAllAsync(user.UserID, viewing: null, dateFilter);
-        //}
-
-        public ActionResult DeleteEvent(CronofyVM calendarVM)
-        {
-            var deleteEvent = calendarVM.Event;
-            cronofyService.DeleteEvent(deleteEvent.CalendarId, deleteEvent.EventId);
-
-            return new RedirectResult(String.Format("/cronofy/calendar/{0}", deleteEvent.CalendarId));
-        }
-
         public async Task<ActionResult> UnlinkCalendar()
         {
-            await BaseViewModel(new MenuItem { Overview = true });
+            await BaseViewModel(new MenuItem { Cronofy = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
             baseVM.User.CronofyUid = null;
             baseVM.User.AccessToken = null;
             baseVM.User.RefreshToken = null;
-            baseVM.User.DefaultCalendar = null;
+            baseVM.User.ExtCalendars = null;
+            baseVM.User.ExtCalendarRights = null;
 
             (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
-                ? (Status.Success, "Default calendar successfully set")
-                : (Status.Failed, "There was an issue with updating your default calendar");
+                ? (Status.Success, "External Calendars successfully unlinked")
+                : (Status.Failed, "There was an issue unlinking the external Calendars");
 
-            return RedirectToAction("Settings", "Home", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
-        }
-
-        public async Task<ActionResult> UpdateDefaultCalendar(string defaultCalendar)
-        {
-            await BaseViewModel(new MenuItem { Overview = true });
-            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
-            baseVM.User.DefaultCalendar = defaultCalendar;
-
-            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
-                ? (Status.Success, "Default calendar successfully set")
-                : (Status.Failed, "There was an issue with updating your default calendar");
-
-             return RedirectToAction("Profiles", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
+            return RedirectToAction("Profiles", "Cronofy", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
         }
     }
 }

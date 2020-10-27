@@ -8,7 +8,7 @@ namespace MyCalendar.DTOs
     {
         public Guid EventID { get; set; }
         public Guid UserID { get; set; }
-        public Guid TagID { get; set; }
+        public Guid? TagID { get; set; }
         public string Description { get; set; }
         public string Duration { get; set; }
         public DateTime Start { get; set; }
@@ -18,7 +18,6 @@ namespace MyCalendar.DTOs
         public string ThemeColor { get; set; }
         public string Subject { get; set; }
         public string SplitDates { get; set; }
-        public bool Cronofy { get; set; }
     }
 
     public class EventDTO

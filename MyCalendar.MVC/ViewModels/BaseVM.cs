@@ -3,6 +3,7 @@ using MyCalendar.Enums;
 using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 
 namespace MyCalendar.Website.ViewModels
 {
@@ -14,7 +15,8 @@ namespace MyCalendar.Website.ViewModels
         public MenuItem MenuItem {get; set; }
         public (Status? UpdateResponse, string UpdateMsg) UpdateStatus { get; set; }
         public Exception Exception { get; set; }
-        public string DefaultCalendarProvider { get; set; }
+        public string AppFullName = ConfigurationManager.AppSettings["AppFullName"];
+        public string AppShortName = ConfigurationManager.AppSettings["AppShortName"];
     }
 
     public class MenuItem
@@ -24,6 +26,7 @@ namespace MyCalendar.Website.ViewModels
         public bool Combined { get; set; } 
         public bool Settings { get; set; } 
         public bool MultiAdd { get; set; } 
+        public bool Cronofy { get; set; } 
         public bool Overview { get; set; }
         public bool None { get; set; }
     }

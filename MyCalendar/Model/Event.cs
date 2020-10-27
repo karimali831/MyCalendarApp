@@ -17,6 +17,8 @@ namespace MyCalendar.Model
         public bool IsFullDay { get; set; }
         public bool Tentative { get; set; }
         public TagPrivacy? Privacy { get; set; }
+        public string EventUid { get; set; }
+        public string CalendarUid { get; set; }
     }
 
     public class EventDTO
@@ -29,6 +31,8 @@ namespace MyCalendar.Model
         public DateTime? EndDate { get; set; }
         public bool IsFullDay { get; set; } = false;
         public bool Tentative { get; set; } = false;
+        public string EventUid { get; set; }
+        public string CalendarUid { get; set; }
     }
 
     public class EventMap : EntityTypeConfiguration<Event>

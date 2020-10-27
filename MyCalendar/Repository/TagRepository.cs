@@ -13,7 +13,6 @@ namespace MyCalendar.Repository
     public interface ITagRepository
     {
         Task<Tag> GetAsync(Guid tagID);
-        Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
         Task<bool> UserTagExists(Guid Id);
         Task DeleteTagByIdAsync(Guid tagID);
@@ -37,23 +36,6 @@ namespace MyCalendar.Repository
             {
                 return (await sql.QueryAsync<Tag>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @tagID", new { tagID })).FirstOrDefault();
             }
-        }
-
-
-        public async Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID)
-        {
-            string sqlTxt = $@"
-                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.Privacy, COUNT(*) AS Count
-                FROM Events AS e
-                RIGHT JOIN Tags AS t
-                ON e.TagID = t.Id
-                WHERE t.UserId = '{userID}' OR Privacy = {(int)TagPrivacy.Shared}
-                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.Privacy
-                ORDER BY Count DESC
-            ";
-
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<Tag>(sqlTxt)).ToArray();
         }
 
         public async Task<bool> UserTagExists(Guid Id)

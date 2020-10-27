@@ -339,5 +339,10 @@ namespace MyCalendar.Helpers
                 return string.Empty;
             return char.ToUpper(str[0]) + str.Substring(1).ToLower();
         }
+
+        public static bool Contains(this string source, string toCheck, StringComparison comp)
+        {
+            return source?.IndexOf(toCheck, comp) >= 0;
+        }
     }
 }

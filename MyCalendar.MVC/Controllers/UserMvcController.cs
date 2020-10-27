@@ -23,32 +23,23 @@ namespace MyCalendar.Controllers
     {
         private readonly IExceptionHandlerService exceptionHandlerService;
         private readonly IUserService userService; 
-        protected readonly string AuthenticationName = "iCalendarApp-Authentication";
+        protected readonly string AuthenticationName;
         public BaseVM BaseVM { get; set; }
 
         public UserMvcController(IUserService userService)
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+
+            AuthenticationName = ConfigurationManager.AppSettings["AuthenticationName"];
             //userService.DoWorkAsync();
         }
 
         private async Task<BaseVM> getViewModel(MenuItem menuItem, Status? updateResponse = null, string updateMsg = null)
         {
             var user = await userService.GetUser();
-            var users = await userService.GetUsers();
-            var userTags = await userService.GetUserTags();
-
-            string defaultCalendar = null;
-            if (user != null && user.CronofyReady)
-            {
-                var getDefaultCalendar = userService.GetCalendars().FirstOrDefault(x => x.CalendarId == user.DefaultCalendar)?.Profile;
-
-                if (getDefaultCalendar != null && !string.IsNullOrEmpty(getDefaultCalendar.ProviderName))
-                {
-                    defaultCalendar = Utils.UppercaseFirst(getDefaultCalendar.ProviderName);
-                }
-            }
+            var users = await userService.GetUsers(user.UserID);
+            var userTags = await userService.GetUserTags(user.UserID);
 
             return new BaseVM
             {
@@ -56,14 +47,13 @@ namespace MyCalendar.Controllers
                 Users = users,
                 UserTags = new TagsDTO { Tags = userTags },
                 UpdateStatus = (updateResponse, updateMsg),
-                MenuItem = menuItem,
-                DefaultCalendarProvider = defaultCalendar
+                MenuItem = menuItem
             };
         }
 
-        public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events)
+        public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
         {
-            return await userService.CurrentUserActivity(events);
+            return await userService.CurrentUserActivity(events, userId);
         }
 
         public async Task<User> GetUser(int? passcode = null)
@@ -104,7 +94,7 @@ namespace MyCalendar.Controllers
                 if (!userService.LoadUser(int.Parse(appCookie.Value)))
                 {
                     Response.Cookies.Remove(AuthenticationName);
-                    filterContext.Result = new RedirectResult("/home");
+                    HttpContext.Response.Redirect("/home");
                 }
             }
 
@@ -119,14 +109,14 @@ namespace MyCalendar.Controllers
             {
                 if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl != "/home/login")
                 {
-                    filterContext.Result = new RedirectResult("/home/login");
+                    HttpContext.Response.Redirect("/home/login");
                 }
             }
             else
             {
                 if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl.Equals("/home/login", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    filterContext.Result = new RedirectResult("/home/index");
+                    HttpContext.Response.Redirect("/home/index");
                 }
             }
 
@@ -148,7 +138,7 @@ namespace MyCalendar.Controllers
             if (ex is CredentialsInvalidError)
             {
                 Response.Cookies.Remove(AuthenticationName);
-                filterContext.Result = new RedirectResult("/home");
+                HttpContext.Response.Redirect("/home");
                 filterContext.ExceptionHandled = true;
             }
 

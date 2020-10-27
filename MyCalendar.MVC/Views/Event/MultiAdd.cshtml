@@ -39,8 +39,8 @@
             <div class="form-group">
                 <label><span class="glyphicon glyphicon-time"></span> Apply same times to each date?</label>
                 <br />
-                From: <input type="time" name="fromTime" style="width: 107px; display: inline" class="form-control" />
-                To: <input type="time" name="toTime" style="width: 107px; display: inline" class="form-control" />
+                From: <input type="time" name="fromTime" step="300" style="width: 107px; display: inline" class="form-control" />
+                To: <input type="time" name="toTime" step="300" style="width: 107px; display: inline" class="form-control" />
             </div>
         }
         @if (Model.Dates > 0)
@@ -50,19 +50,11 @@
                 <hr />
                 <div class="form-group">
                     <label for="start">Start Date #@(i+1)</label>
-                    <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form-control" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
+                    <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form-control" step="300" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
                 <div class="form-group" id="divEndDate">
                     <label for="end">End Date #@(i+1)</label>
-                    <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form-control" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
-                </div>
-            }
-            if (BaseViewModel.User.CronofyReady)
-            {
-                <hr />
-                <div class="form-group">
-                    <label for="Cronofy"><span class="glyphicon glyphicon-link"></span> Add to @BaseViewModel.DefaultCalendarProvider calendar?</label>
-                    @Html.CheckBoxFor(x => x.Cronofy)
+                    <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form-control" step="300" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
                 </div>
             }
             <button type="submit" class="btn btn-primary">Update</button>
@@ -72,8 +64,6 @@
 
 @section Scripts{
     <script type="text/javascript">
-
-
         $('input[name=fromTime]').change(function (e) {
             var txtVal = $(this).val();
             $.each(new Array(@Model.Dates),

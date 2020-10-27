@@ -1,8 +1,10 @@
 ﻿using DFM.Utils;
+using MyCalendar.Enums;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 
 namespace MyCalendar.Model
 {
@@ -16,11 +18,16 @@ namespace MyCalendar.Model
         public string CronofyUid { get; set; }
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
-        public string DefaultCalendar { get; set; }
+        public string ExtCalendars { get; set; }
+        public bool EnableCronofy { get; set; } 
+        [DbIgnore]
+        public IEnumerable<ExtCalendarRights> ExtCalendarRights { get; set; } = Enumerable.Empty<ExtCalendarRights>();
         [DbIgnore]
         public bool Authenticated { get; set; } = false;
         [DbIgnore]
-        public bool CronofyReady { get; set; } = false;
+        public CronofyStatus CronofyReady { get; set; }
+        [DbIgnore]
+        public string CronofyReadyCalendarName { get; set; }
     }
 
     public class UserMap : EntityTypeConfiguration<User>
