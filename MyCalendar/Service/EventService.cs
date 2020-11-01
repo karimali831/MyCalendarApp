@@ -107,7 +107,7 @@ namespace MyCalendar.Service
                             {
                                 var findTag = (await userService.GetUserTags(user.UserID))
                                     .FirstOrDefault(t => Utils.Contains(t.Name, e.Summary, StringComparison.OrdinalIgnoreCase));
-       
+
                                 string calendarName = cronofyService.GetCalendars().FirstOrDefault(x => x.CalendarId == e.CalendarId)?.Profile.ProviderName ?? "Unknown";
 
                                 if (e.Start.HasTime)
@@ -118,8 +118,8 @@ namespace MyCalendar.Service
                                         UserID = user.UserID,
                                         TagID = findTag?.Id ?? Guid.Empty,
                                         Description = string.Format($"{(findTag != null ? "" : "{2}: ")} {{1}} (Sycned from {{0}} Calendar)", Utils.UppercaseFirst(calendarName), e.Description, e.Summary),
-                                        StartDate = e.Start.DateTimeOffset.DateTime,
-                                        EndDate = e.End.DateTimeOffset.DateTime,
+                                        StartDate = Utils.FromTimeZoneToUtc(e.Start.DateTimeOffset.DateTime),
+                                        EndDate = Utils.FromTimeZoneToUtc(e.End.DateTimeOffset.DateTime),
                                         EventUid = e.EventUid,
                                         CalendarUid = e.CalendarId
                                     });
@@ -222,6 +222,9 @@ namespace MyCalendar.Service
             foreach (var e in dto.Where(x => x.EventUid == null))
             {
                 e.EventID = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();
+                e.StartDate = Utils.FromTimeZoneToUtc(e.StartDate);
+                e.EndDate = e.EndDate.HasValue? Utils.FromTimeZoneToUtc(e.EndDate.Value) : (DateTime?)null;
+
                 await SaveCronofyEvent(e);
             }
             

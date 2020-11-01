@@ -1,5 +1,6 @@
 ﻿using Cronofy;
 using MyCalendar.Helpers;
+using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -26,11 +27,13 @@ namespace MyCalendar.Service
         private static string _cronofyUid;
         private static string _accessToken;
         private static string _refreshToken;
+        private readonly IUserRepository userRepo;
 
         private static CronofyOAuthClient _oauthClient;
 
-        public CronofyService()
+        public CronofyService(IUserRepository userRepo)
         {
+            this.userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
         }
 
         public bool LoadUser(Model.User user)
@@ -264,8 +267,7 @@ namespace MyCalendar.Service
 
         public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, Location location = null)
         {
-            int[] reminders = new int[] { 30,1440, 0  };
-
+            int[] reminders = new int[] { 50, 120 };
 
             var buildingEvent = new UpsertEventRequestBuilder()
                 .EventId(eventId)
@@ -400,7 +402,7 @@ namespace MyCalendar.Service
                     // First time this fails, attempt to get a new access token and store it for the user
                     var token = OAuthClient.GetTokenFromRefreshToken(_refreshToken);
 
-                    //userRepository.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid); 
+                    userRepo.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid);
 
                     SetToken(token);
 
@@ -409,6 +411,8 @@ namespace MyCalendar.Service
                 catch (CronofyException ex2)
                 {
                     LogHelper.Log(string.Format("Credentials invalid, deleting account - _cronofyUid=`{0}` - {1} - {2}", _cronofyUid, ex1.Message, ex2.Message));
+
+                    userRepo.CronofyAccountRequest(accessToken: null, refreshToken: null, _cronofyUid);
 
                     throw new CredentialsInvalidError();
                 }

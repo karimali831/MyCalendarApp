@@ -13,16 +13,16 @@
         @if (baseModel.User.CronofyReady == CronofyStatus.Disabled)
         {
             <a class="list-group-item list-group-item-danger active">
-                <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - not enabled
+                <i class="glyphicon glyphicon-exclamation-sign"></i> MiCalendar Sync not ready - not enabled
             </a>
             <a href="@Url.Action("Settings", "Home")" class="list-group-item list-group-item-action">
-                <i class="glyphicon glyphicon-user"></i> Enable Calendar Sync in Profile
+                <i class="glyphicon glyphicon-user"></i> Enable MiCalendar Sync in Profile
             </a>
         }
         else if (baseModel.User.CronofyReady == CronofyStatus.NotAuthenticated)
         {
             <a class="list-group-item list-group-item-danger active">
-                <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - not authenticated
+                <i class="glyphicon glyphicon-exclamation-sign"></i> MiCalendar Sync not ready - not authenticated
             </a>
             <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
                 <i class="glyphicon glyphicon-log-in"></i> Authenticate
@@ -33,20 +33,20 @@
             if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
                 <a href="#calendars" class="list-group-item list-group-item-success active">
-                    <i class="glyphicon glyphicon-ok-circle"></i> Calendar sync ready
+                    <i class="glyphicon glyphicon-ok-circle"></i> MiCalendar Sync ready
                 </a>
             }
             else if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedNoRightsSet)
             {
                 <a href="#calendars" class="list-group-item list-group-item-danger active">
-                    <i class="glyphicon glyphicon-exclamation-sign"></i> Calendar sync not ready - set rights for at least one Calendar
+                    <i class="glyphicon glyphicon-exclamation-sign"></i> MiCalendar Sync not ready - set rights for at least one Calendar
                 </a>
             }
             <a href="@Url.Action("UnlinkCalendar")" class="list-group-item list-group-item-action">
                 <i class="glyphicon glyphicon-link"></i> Unlink Calendars
             </a>
             <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
-                <i class="glyphicon glyphicon-log-in"></i> Re-Authenticate
+                <i class="glyphicon glyphicon-log-in"></i> Authenticate Another
             </a>
         }
     </div>

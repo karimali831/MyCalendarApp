@@ -131,7 +131,7 @@ namespace MyCalendar.Service
                         {
                             user.CronofyReady = CronofyStatus.Disabled;
                         }
-                        else if (string.IsNullOrEmpty(user.CronofyUid))
+                        else if (string.IsNullOrEmpty(user.CronofyUid) || string.IsNullOrEmpty(user.AccessToken) || string.IsNullOrEmpty(user.RefreshToken))
                         {
                             user.CronofyReady = CronofyStatus.NotAuthenticated;
                         }

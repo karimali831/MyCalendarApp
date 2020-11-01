@@ -16,7 +16,9 @@ namespace MyCalendar.Helpers
                         "Fixed redirect issue",
                         "Fix date filter in Overview",
                         "Fix bug with updating user profile",
+                        "Fix issue with MiCalendar re-authentication",
                         "Set default times when adding new event in calendar",
+                        "Auto set alerts to 50 mins and 2 hours prior to event start time",
                         "Rename app from iCalendar to MiCalendar",
                         "Current activity text corrections",
                         "Code refactoring and other improvements"

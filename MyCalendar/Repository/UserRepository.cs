@@ -135,7 +135,7 @@ namespace MyCalendar.Repository
             {
                 try
                 {
-                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE CronofyUID=@cronofyUid",
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET AccessToken = @accessToken, RefreshToken = @refreshToken WHERE CronofyUid = @cronofyUid",
                         new
                         {
                             accessToken,
