@@ -18,11 +18,12 @@ namespace MyCalendar.Service
         Task<bool> SaveEvent(EventVM e);
         Task<bool> SaveEvents(IList<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
-        Task<IEnumerable<Types>> GetTypes();
+        Task<IEnumerable<Types>> GetUserTypes(Guid userId);
         Task<Types> GetTypeAsync(int Id);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter);
         Task<bool> EventUExists(string eventUId, string calendarUid);
+        Task<IEnumerable<Types>> GetSuperTypes();
     }
 
     public class EventService : IEventService
@@ -233,7 +234,7 @@ namespace MyCalendar.Service
 
         public async Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter)
         {
-            var users = await userService.GetUsers(user.UserID);
+            var buddys = await userService.GetBuddys(user.UserID);
             var events = (await GetAllAsync(user, viewing: null, filter: dateFilter))
                 .Where(x => x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared)
                 .GroupBy(x => x.TagID);
@@ -253,7 +254,7 @@ namespace MyCalendar.Service
 
                         if (tag.Privacy == TagPrivacy.Shared)
                         {
-                            userName += ", " + string.Join(", ", users.Select(x => x.Name));
+                            userName += ", " + string.Join(", ", buddys.Select(x => x.Name));
                             multiUser = true;
                         }
 
@@ -315,9 +316,14 @@ namespace MyCalendar.Service
             return await eventRepository.DeleteAsync(eventId);
         }
 
-        public async Task<IEnumerable<Types>> GetTypes()
+        public async Task<IEnumerable<Types>> GetUserTypes(Guid userId)
         {
-            return await typeService.GetAllAsync();
+            return await typeService.GetAllByUserIdAsync(userId);
+        }
+
+        public async Task<IEnumerable<Types>> GetSuperTypes()
+        {
+            return await typeService.GetSuperTypesAsync();
         }
 
         public async Task<Types> GetTypeAsync(int Id)

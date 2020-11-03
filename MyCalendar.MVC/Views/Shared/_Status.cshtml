@@ -3,7 +3,17 @@
 
 @if (Model.UpdateStatus.UpdateResponse != null)
 {
-    if (Model.UpdateStatus.UpdateResponse == Status.Success)
+    if (Model.UpdateStatus.UpdateResponse == Status.Info)
+    {
+        <div class="alert alert-info" role="alert">
+            <div class="col-auto align-self-start">
+                <div class="glyphicon glyphicon-info-sign"></div>
+                @Model.UpdateStatus.UpdateMsg
+            </div>
+        </div>
+    }
+
+    else if (Model.UpdateStatus.UpdateResponse == Status.Success)
     {
         <div class="alert alert-success" role="alert">
             <div class="col-auto align-self-start">
@@ -13,7 +23,7 @@
         </div>
     }
 
-    if (Model.UpdateStatus.UpdateResponse == Status.Failed)
+    else if (Model.UpdateStatus.UpdateResponse == Status.Failed)
     {
         <div class="alert alert-danger" role="alert">
             <div class="col-auto align-self-start">
@@ -23,7 +33,7 @@
         </div>
     }
 
-    if (Model.UpdateStatus.UpdateResponse == Status.NotLoggedIn)
+    else if (Model.UpdateStatus.UpdateResponse == Status.NotLoggedIn)
     {
         <div class="alert alert-danger" role="alert">
             <div class="col-auto align-self-start">

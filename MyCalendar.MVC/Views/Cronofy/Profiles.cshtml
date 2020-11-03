@@ -15,7 +15,7 @@
             <a class="list-group-item list-group-item-danger active">
                 <i class="glyphicon glyphicon-exclamation-sign"></i> MiCalendar Sync not ready - not enabled
             </a>
-            <a href="@Url.Action("Settings", "Home")" class="list-group-item list-group-item-action">
+            <a href="@Url.Action(Url.MvcRoute(Section.Profile).ControllerName, Url.MvcRoute(Section.Profile).ActionName)" class="list-group-item list-group-item-action">
                 <i class="glyphicon glyphicon-user"></i> Enable MiCalendar Sync in Profile
             </a>
         }

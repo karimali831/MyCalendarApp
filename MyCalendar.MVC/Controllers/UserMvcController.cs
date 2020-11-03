@@ -38,13 +38,13 @@ namespace MyCalendar.Controllers
         private async Task<BaseVM> getViewModel(MenuItem menuItem, Status? updateResponse = null, string updateMsg = null)
         {
             var user = await userService.GetUser();
-            var users = await userService.GetUsers(user.UserID);
+            var buddys = await userService.GetBuddys(user.UserID);
             var userTags = await userService.GetUserTags(user.UserID);
 
             return new BaseVM
             {
                 User = user,
-                Users = users,
+                Buddys = buddys,
                 UserTags = new TagsDTO { Tags = userTags },
                 UpdateStatus = (updateResponse, updateMsg),
                 MenuItem = menuItem
@@ -59,6 +59,21 @@ namespace MyCalendar.Controllers
         public async Task<User> GetUser(int? passcode = null)
         {
             return await userService.GetUser(passcode);
+        }
+
+        public async Task<IEnumerable<User>> GetUsers()
+        {
+            return await userService.GetAllAsync();
+        }
+
+        public async Task<IEnumerable<User>> GetBuddys(Guid userId)
+        {
+            return await userService.GetBuddys(userId);
+        }
+
+        public async Task<User> GetUserById(Guid userId)
+        {
+            return await userService.GetByUserIDAsync(userId);
         }
 
         public void LogoutUser()
@@ -94,7 +109,7 @@ namespace MyCalendar.Controllers
                 if (!userService.LoadUser(int.Parse(appCookie.Value)))
                 {
                     Response.Cookies.Remove(AuthenticationName);
-                    HttpContext.Response.Redirect("/home");
+                    HttpContext.Response.Redirect(Url.MvcRoute(Section.Home).RouteUrl);
                 }
             }
 
@@ -104,19 +119,32 @@ namespace MyCalendar.Controllers
         protected override void OnActionExecuted(ActionExecutedContext filterContext)
         {
             var appCookie = Request.Cookies.Get(AuthenticationName);
+            var loginRoute = Url.MvcRoute(Section.Login);
 
             if (appCookie == null)
             {
-                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl != "/home/login")
+                string controller = RouteData.Values["controller"].ToString();
+                string action = RouteData.Values["action"].ToString();
+                string id = RouteData.Values["id"]?.ToString() ?? null;
+
+                if (!controller.UnstrictCompare(loginRoute.ControllerName) || !action.UnstrictCompare(loginRoute.ActionName))
                 {
-                    HttpContext.Response.Redirect("/home/login");
+                    string invitee = null;
+                    var inviteRoute = Url.MvcRoute(Section.Invite);
+
+                    if (controller.UnstrictCompare(inviteRoute.ControllerName) && action.UnstrictCompare(inviteRoute.ActionName))
+                    {
+                        invitee = $"?inviteeId={id}";
+                    }
+
+                    HttpContext.Response.Redirect(loginRoute.RouteUrl + invitee);
                 }
             }
             else
             {
-                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl.Equals("/home/login", StringComparison.InvariantCultureIgnoreCase))
+                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl.Equals(loginRoute.RouteUrl, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    HttpContext.Response.Redirect("/home/index");
+                    HttpContext.Response.Redirect(Url.MvcRoute(Section.Home).RouteUrl);
                 }
             }
 

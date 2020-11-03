@@ -1,5 +1,8 @@
 ﻿@model MyCalendar.Website.ViewModels.SettingsVM
 @using MyCalendar.Website.ViewModels
+@using MyCalendar.Enums 
+@using MyCalendar.Helpers
+@using System.Configuration
 @{
     var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
 }
@@ -44,7 +47,9 @@
                     @Html.HiddenFor(x => x.User.AccessToken)
                     @Html.HiddenFor(x => x.User.RefreshToken)
                     @Html.HiddenFor(x => x.User.ExtCalendars)
+                    <br />
                     <button type="submit" class="btn btn-primary">Update</button>
+                    
                 }
             </div>
         </div>
@@ -53,22 +58,101 @@
         <div class="card-header" id="headingTwo">
             <h7 class="mb-0">
                 <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                    <h4 class="glyphicon glyphicon-tags"> Tags</h4>
+                    <h4 class="glyphicon glyphicon-tags"> Calendar Tags</h4>
                 </button>
             </h7>
         </div>
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
             <div class="card-body">
-                @Html.Partial("_Tags", new MyCalendar.DTOs.TagsDTO { Tags = BaseViewModel.UserTags.Tags, Types = Model.Types, UserID = Model.User.UserID })
+                @Html.Partial("_Tags", 
+                    new MyCalendar.DTOs.TagsDTO { 
+                        Tags = BaseViewModel.UserTags.Tags, 
+                        TagTypes = Model.UserTypes.Where(x => x.SuperTypeId.HasValue && x.SuperTypeId.Value == (int)SuperType.TagTypes), 
+                        UserID = Model.User.UserID 
+                    })
             </div>
         </div>
     </div>
-
+    <div class="card">
+        <div class="card-header" id="headingThree">
+            <h7 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    <h4 class="glyphicon glyphicon-th-list"> Groups</h4>
+                </button>
+            </h7>
+        </div>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+            <div class="card-body">
+                @Html.Partial("_Types", 
+                    new MyCalendar.DTOs.TypesDTO { 
+                        UserTypes = Model.UserTypes, 
+                        SuperTypes = Model.SuperTypes, 
+                        User = Model.User
+                    })
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="headingFour">
+            <h7 class="mb-0">
+                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    <h4 class="glyphicon glyphicon-user"> Buddys</h4>
+                </button>
+            </h7>
+        </div>
+        <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+            <div class="card-body">
+                <div>
+                    <i class="glyphicon glyphicon-link"></i>
+                    <strong>Share this link to allow inviter to add you as an invitee</strong>
+                </div>
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" onclick="myFunction()">Copy</button>
+                    </span>
+                    <input type="text" readonly="readonly" id="inviteeShareLink" class="form-control" value="@Url.InviterShareLink(BaseViewModel.User.UserID)" />
+                </div>
+  
+                @if (BaseViewModel.Buddys != null && BaseViewModel.Buddys.Any())
+                {
+                    <ul class="nav navbar navbar-left">
+                        @foreach (var user in BaseViewModel.Buddys)
+                        {
+                            <li>
+                                <hr />
+                                <a style="@(BaseViewModel.MenuItem.Viewing.HasValue && BaseViewModel.User.UserID == BaseViewModel.MenuItem.Viewing.Value ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { viewingId = BaseViewModel.User.UserID })">
+                                    <span class="glyphicon glyphicon-calendar"></span> @user.Name 
+                                </a>
+                                <a href="@Url.Action(Url.MvcRoute(Section.RemoveBuddy).ActionName, Url.MvcRoute(Section.RemoveBuddy).ControllerName, new { id = user.UserID })" onclick = "return confirm('Are you sure?')">
+                                    <i class="glyphicon glyphicon-remove"></i> Remove
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
 </div>
-
 
 @section Scripts{
     <script type="text/javascript">
+
+        function myFunction() {
+            /* Get the text field */
+            var copyText = document.getElementById("inviteeShareLink");
+
+            /* Select the text field */
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+            /* Copy the text inside the text field */
+            document.execCommand("copy");
+
+            /* Alert the copied text */
+            alert("Share link copied");
+            //alert("Copied the text: " + copyText.value);
+        }
         $(document).ready(function () {
             $(".add-more").click(function () {
                 var html = $(".copy").html();

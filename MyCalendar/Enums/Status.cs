@@ -5,6 +5,7 @@
         Failed,
         Warning,
         Success,
-        NotLoggedIn
+        NotLoggedIn,
+        Info
     }
 }

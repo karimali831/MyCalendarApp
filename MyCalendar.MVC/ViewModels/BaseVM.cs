@@ -11,7 +11,7 @@ namespace MyCalendar.Website.ViewModels
     {
         public User User { get; set; }
         public TagsDTO UserTags { get; set; }
-        public IList<User> Users { get; set; }
+        public IList<User> Buddys { get; set; }
         public MenuItem MenuItem {get; set; }
         public (Status? UpdateResponse, string UpdateMsg) UpdateStatus { get; set; }
         public Exception Exception { get; set; }
@@ -28,6 +28,7 @@ namespace MyCalendar.Website.ViewModels
         public bool MultiAdd { get; set; } 
         public bool Cronofy { get; set; } 
         public bool Overview { get; set; }
+        public bool Documents { get; set; }
         public bool None { get; set; }
     }
 }

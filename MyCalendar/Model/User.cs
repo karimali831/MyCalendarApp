@@ -20,6 +20,8 @@ namespace MyCalendar.Model
         public string RefreshToken { get; set; }
         public string ExtCalendars { get; set; }
         public bool EnableCronofy { get; set; } 
+        public string RoleIds { get; set; }
+        public string BuddyIds { get; set; }
         [DbIgnore]
         public IEnumerable<ExtCalendarRights> ExtCalendarRights { get; set; } = Enumerable.Empty<ExtCalendarRights>();
         [DbIgnore]

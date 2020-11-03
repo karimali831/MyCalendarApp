@@ -1,0 +1,14 @@
+﻿@model MyCalendar.Website.ViewModels.DocumentVM
+@{
+    ViewBag.Title = "Documents";
+}
+
+<div class="jumbotron">
+    <h2 class="display-4">Documents</h2>
+    <textarea name="editor1"></textarea>
+</div>
+
+    
+<script>
+    CKEDITOR.replace('editor1');
+</script>

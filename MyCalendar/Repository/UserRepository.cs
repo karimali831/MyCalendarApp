@@ -51,6 +51,8 @@ namespace MyCalendar.Repository
                              AccessToken = x.AccessToken,
                              RefreshToken = x.RefreshToken,
                              EnableCronofy = x.EnableCronofy,
+                             BuddyIds = x.BuddyIds,
+                             RoleIds = x.RoleIds,
                              ExtCalendars = x.ExtCalendars,
                              ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null
                          })
@@ -117,6 +119,8 @@ namespace MyCalendar.Repository
                         user.AccessToken,
                         user.RefreshToken,
                         user.EnableCronofy,
+                        user.RoleIds,
+                        user.BuddyIds,
                         ExtCalendars = user.ExtCalendarRights.Any() ? JsonConvert.SerializeObject(user.ExtCalendarRights) : user.ExtCalendars
                     });
 

@@ -8,7 +8,7 @@ namespace MyCalendar.DTOs
     public class TagsDTO
     {
         public Guid UserID { get; set; }
-        public IEnumerable<Types> Types { get; set; }
+        public IEnumerable<Types> TagTypes { get; set; }
         public IEnumerable<Tag> Tags { get; set; }
         public Guid[] Id { get; set; }
         public Guid[] UserCreatedId { get; set; }

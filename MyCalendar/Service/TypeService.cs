@@ -1,4 +1,5 @@
-﻿using MyCalendar.Model;
+﻿using MyCalendar.Enums;
+using MyCalendar.Model;
 using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,8 @@ namespace MyCalendar.Service
 {
     public interface ITypeService
     {
-        Task<IEnumerable<Types>> GetAllAsync();
+        Task<IEnumerable<Types>> GetSuperTypesAsync();
+        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId);
         Task<Types> GetAsync(int Id);
     }
 
@@ -21,9 +23,14 @@ namespace MyCalendar.Service
             this.typeRepository = typeRepository ?? throw new ArgumentNullException(nameof(TypeRepository));
         }
 
-        public async Task<IEnumerable<Types>> GetAllAsync()
+        public async Task<IEnumerable<Types>> GetSuperTypesAsync()
         {
-            return await typeRepository.GetAllAsync();
+            return await typeRepository.GetSuperTypesAsync();
+        }
+
+        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId)
+        {
+            return await typeRepository.GetAllByUserIdAsync(userId);
         }
 
         public async Task<Types> GetAsync(int Id)

@@ -7,27 +7,26 @@ using System.Linq;
 
 namespace MyCalendar.Model
 {
-    public class Types
+    public class Role
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
-        public int? SuperTypeId { get; set; }
-        public Guid? UserCreatedId { get; set; }
-        public string InviteeIds { get; set; }
-        [DbIgnore]
-        public IEnumerable<Guid> JsonInviteeIds { get; set; } = Enumerable.Empty<Guid>();
+        public bool AccessCalendar { get; set; }
+        public bool AccessDocument { get; set; }
+        public bool EditUsers { get; set; }
+        public bool EditRoles { get; set; }
     }
 
-    public class TypesMap : EntityTypeConfiguration<Types>
+    public class RoleMap : EntityTypeConfiguration<Role>
     {
-        public TypesMap()
+        public RoleMap()
         {
             // Primary Key
             this.HasKey(t => t.Id);
 
             // Properties
             // Table & Column Mappings
-            this.ToTable("dbo.Types");
+            this.ToTable("dbo.Roles");
 
             // Relationships
         }

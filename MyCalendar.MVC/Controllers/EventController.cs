@@ -163,7 +163,7 @@ namespace MyCalendar.Controllers
 
             if (status.UpdateResponse == Status.Failed)
             {
-                return RedirectToAction("MultiAdd");
+                return RedirectToRoute(Url.Scheduler());
             }
             else
             {
@@ -173,12 +173,12 @@ namespace MyCalendar.Controllers
 
                 if (status.UpdateResponse == Status.Success)
                 {
-                    return RedirectToAction("Index", "Home", new { viewingId = (Guid?)null, combined = false, updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+                    return RedirectToRoute(Url.Home(viewingId: (Guid?)null, combined: false, updateResponse: status.UpdateResponse, updateMsg: status.UpdateMsg));
 
                 }
                 else
                 {
-                    return RedirectToAction("MultiAdd");
+                    return RedirectToRoute(Url.Scheduler());
                 }
             }
             

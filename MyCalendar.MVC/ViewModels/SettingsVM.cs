@@ -9,7 +9,8 @@ namespace MyCalendar.Website.ViewModels
 {
     public class SettingsVM : BaseVM
     {
-        public IEnumerable<Types> Types { get; set; }
+        public IEnumerable<Types> UserTypes { get; set; }
+        public IEnumerable<Types> SuperTypes { get; set; }
         public string CronofyCalendarAuthUrl { get; set; }
     }
 }

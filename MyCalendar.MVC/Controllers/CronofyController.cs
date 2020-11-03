@@ -1,6 +1,7 @@
 ﻿using Cronofy;
 using MyCalendar.Controllers;
 using MyCalendar.Enums;
+using MyCalendar.Helpers;
 using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
@@ -33,7 +34,7 @@ namespace MyCalendar.Website.Controllers
             {
                 updateResponse = Status.Failed;
                 updateMsg = "Authorisation code cannot be empty";
-                return RedirectToAction("Profiles", new { updateResponse, updateMsg });
+                return RedirectToRoute(Url.CronofyProfiles(updateResponse, updateMsg));
             }
 
             var user = await GetUser();
@@ -55,7 +56,8 @@ namespace MyCalendar.Website.Controllers
 
                 await UpdateUser(user);
             }
-            return RedirectToAction("Profiles", new { updateResponse, updateMsg });
+
+            return RedirectToRoute(Url.CronofyProfiles(updateResponse, updateMsg));
         }
 
         public async Task<ActionResult> Profiles(Status? updateResponse = null, string updateMsg = null)
@@ -108,7 +110,7 @@ namespace MyCalendar.Website.Controllers
                 ? (Status.Success, "Calendar rights has been set successfully")
                 : (Status.Failed, "There was an issue with updating the Calendar rights");
 
-            return RedirectToAction("Profiles", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
+            return RedirectToRoute(Url.CronofyProfiles(UpdateResponse, UpdateMsg));
 
         }
 
@@ -150,7 +152,7 @@ namespace MyCalendar.Website.Controllers
                 ? (Status.Success, "External Calendars successfully unlinked")
                 : (Status.Failed, "There was an issue unlinking the external Calendars");
 
-            return RedirectToAction("Profiles", "Cronofy", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
+            return RedirectToRoute(Url.CronofyProfiles(UpdateResponse, UpdateMsg));
         }
     }
 }

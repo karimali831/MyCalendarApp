@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using DFM.Utils;
+using MyCalendar.Enums;
 using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,8 @@ namespace MyCalendar.Repository
 {
     public interface ITypeRepository
     {
-        Task<IEnumerable<Types>> GetAllAsync();
+        Task<IEnumerable<Types>> GetSuperTypesAsync();
+        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId);
         Task<Types> GetAsync(int Id);
     }
 
@@ -27,11 +29,19 @@ namespace MyCalendar.Repository
         }
 
 
-        public async Task<IEnumerable<Types>> GetAllAsync()
+        public async Task<IEnumerable<Types>> GetSuperTypesAsync()
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
+                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE SuperTypeId IS NULL")).ToArray();
+            }
+        }
+
+        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE UserCreatedId = @userId", new { userId })).ToArray();
             }
         }
 

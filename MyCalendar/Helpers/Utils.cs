@@ -12,12 +12,32 @@ using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace MyCalendar.Helpers
 {
     public static class Utils
     {
+        public static string RemoveSpecialCharacters(this string str)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in str)
+            {
+                if ((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '.' || c == '_')
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
+        public static bool UnstrictCompare(this string str1, string str2)
+        {
+            return (RemoveSpecialCharacters(str1).Equals(RemoveSpecialCharacters(str2), StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        public static string CleanEnumName<T>(T value) => Regex.Replace(value.ToString(), @"([a-z])([A-Z])", "$1 $2");
 
         public static string GenerateRandomString(int length)
         {

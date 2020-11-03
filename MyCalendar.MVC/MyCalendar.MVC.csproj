@@ -228,8 +228,11 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\CronofyController.cs" />
+    <Compile Include="Controllers\DocumentController.cs" />
     <Compile Include="Controllers\EventController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\InviteController.cs" />
+    <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\UserMvcController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -238,6 +241,7 @@
     <Compile Include="MVCModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\ChangeLogVM.cs" />
+    <Compile Include="ViewModels\DocumentVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="ViewModels\CronofyVM.cs" />
     <Compile Include="ViewModels\Event.cs" />
@@ -283,7 +287,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
-    <Content Include="Views\Home\Login.cshtml" />
+    <Content Include="Views\Login\Index.cshtml" />
     <Content Include="Views\Home\Calendar.cshtml" />
     <Content Include="Views\Home\Settings.cshtml" />
     <Content Include="Views\Home\_Tags.cshtml" />
@@ -295,6 +299,8 @@
     <Content Include="Views\Cronofy\Calendar.cshtml" />
     <Content Include="Views\Cronofy\Event.cshtml" />
     <Content Include="Views\Home\ChangeLog.cshtml" />
+    <Content Include="Views\Document\Index.cshtml" />
+    <Content Include="Views\Home\_Types.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -304,7 +310,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Login\" />
+    <Folder Include="Views\Invite\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />

@@ -1,6 +1,7 @@
 ﻿@using MyCalendar.Helpers
 @using System.Configuration
 @using MyCalendar.Website.ViewModels
+@using MyCalendar.Enums
 @{
     var Model = ViewData[nameof(BaseVM)] as BaseVM;
     var AppName = ConfigurationManager.AppSettings["AppFullName"];
@@ -14,6 +15,7 @@
     <title>@AppName</title>
     <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.ckeditor.com/4.15.0/standard/ckeditor.js"></script>
     <script src="~/Scripts/modernizr-2.8.3.js"></script>
 </head>
 <body>
@@ -25,58 +27,52 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink(AppName, "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink(AppName, Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav pull-right">
                     @if (Model != null && Model.User != null)
                     {
                         <li>
-                            <a style="@((Model.MenuItem.Viewing.HasValue && Model.User.UserID == Model.MenuItem.Viewing.Value) || (Model.MenuItem.Home == true) ? "color:#0094ff": "")" href="@Url.Action("Index", "Home", new { viewingId = Model.User.UserID })">
+                            <a style="@((Model.MenuItem.Viewing.HasValue && Model.User.UserID == Model.MenuItem.Viewing.Value) || (Model.MenuItem.Home == true) ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { viewingId = Model.User.UserID })">
                                 <span class="glyphicon glyphicon-home"></span> @Model.User.Name
                             </a>
                         </li>
-                        if (Model.Users != null && Model.Users.Any())
-                        {
-                            foreach (var user in Model.Users)
-                            {
-                                <li>
-                                    <a style="@(Model.MenuItem.Viewing.HasValue && user.UserID == Model.MenuItem.Viewing.Value ? "color:#0094ff" : "")" href="@Url.Action("Index", "Home", new { viewingId = user.UserID })">
-                                        <span class="glyphicon glyphicon-calendar"></span> @user.Name
-                                    </a>
-                                </li>
-                            }
-                        }
                         <li>
-                            <a style="@(Model.MenuItem.Combined ? "color:#0094ff": "")" href="@Url.Action("Index", "Home", new { combined = true })">
+                            <a style="@(Model.MenuItem.Combined ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { combined = true })">
                                 <span class="glyphicon glyphicon-calendar"></span> Combined
                             </a>
                         </li>
                         <li>
-                            <a style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action("Overview", "Event")">
+                            <a style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
                                 <span class="glyphicon glyphicon-stats"></span> Overview
                             </a>
                         </li>
                         <li>
-                            <a style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action("MultiAdd", "Event")">
+                            <a style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
                                 <span class="glyphicon glyphicon-edit"></span> Scheduler
                             </a>
                         </li>
                         if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
                         {
                             <li>
-                                <a style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action("Profiles", "Cronofy")">
+                                <a style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
                                     <span class="glyphicon glyphicon-check"></span> MiCal Sync
                                 </a>
                             </li>
                         }
                         <li>
-                            <a style="@(Model.MenuItem.Settings ? "color:#0094ff": "")" href="@Url.Action("Settings", "Home")">
+                            <a style="@(Model.MenuItem.Documents ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Document).ActionName, Url.MvcRoute(Section.Document).ControllerName)">
+                                <span class="glyphicon glyphicon-file"></span> Documents
+                            </a>
+                        </li>
+                        <li>
+                            <a style="@(Model.MenuItem.Settings ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Profile).ActionName, Url.MvcRoute(Section.Profile).ControllerName)">
                                 <span class="glyphicon glyphicon-user"></span> Profile
                             </a>
                         </li>
                         <li>
-                            <a href="@Url.Action("Logout", "Home")">
+                            <a href="@Url.Action(Url.MvcRoute(Section.Logout).ActionName, Url.MvcRoute(Section.Logout).ControllerName)">
                                 <span class="glyphicon glyphicon-log-out"></span> Logout
                             </a>
                         </li>
@@ -84,7 +80,7 @@
                     else
                     {
                         <li>
-                            <a href="@Url.Action("Login", "Home")">
+                            <a href="@Url.Action(Url.MvcRoute(Section.Login).ActionName, Url.MvcRoute(Section.Login).ControllerName)">
                                 <span class="glyphicon glyphicon-log-in"></span> Login
                             </a>
                         </li>

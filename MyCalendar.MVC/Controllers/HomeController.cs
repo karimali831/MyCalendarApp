@@ -26,12 +26,6 @@ namespace MyCalendar.Controllers
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
         }
 
-        public ActionResult Login()
-        {
-            ViewBag.ErrorMessage = TempData["ErrorMsg"];
-            return View();
-        }
-
         public async Task<ActionResult> Index(Guid? viewingId = null, bool combined = false, Status? updateResponse = null, string updateMsg = null)
         {
             var menuItem = new MenuItem
@@ -43,23 +37,6 @@ namespace MyCalendar.Controllers
 
             await BaseViewModel(menuItem, updateResponse, updateMsg);
             return View("Calendar");
-        }
-
-        [HttpPost]
-        public async Task<ActionResult> Index(int passcode)
-        {
-            var user = await GetUser(passcode);
-
-            if (user == null)
-            {
-                TempData["ErrorMsg"] = "The passcode was entered incorrectly";
-                return RedirectToAction("Login");
-            }
-            else
-            {
-                Response.SetCookie(new HttpCookie(AuthenticationName, passcode.ToString()));
-                return RedirectToAction("Index");
-            }
         }
 
         public async Task<ActionResult> ChangeLog()
@@ -79,7 +56,8 @@ namespace MyCalendar.Controllers
             var viewModel = new SettingsVM
             {
                 User = baseVM.User,
-                Types = await eventService.GetTypes(),
+                UserTypes = await eventService.GetUserTypes(baseVM.User.UserID),
+                SuperTypes = await eventService.GetSuperTypes(),
                 CronofyCalendarAuthUrl = cronofyService.GetAuthUrl()
             };
 
@@ -93,7 +71,7 @@ namespace MyCalendar.Controllers
                 ? (Status.Success, "Your profile has been saved successfully")
                 : (Status.Failed, "There was an issue with updating your profile");
 
-            return RedirectToAction("Settings", new { updateResponse = UpdateResponse, updateMsg = UpdateMsg });
+            return RedirectToRoute(Url.Settings(UpdateResponse, UpdateMsg));
         }
 
 
@@ -160,15 +138,14 @@ namespace MyCalendar.Controllers
             status = await UpdateUserTags(tags.Tags, user.UserID)
                 ? (Status.Success, "Your tags has been updated successfully")
                 : (Status.Failed, "There was an issue updating your tags");
-            
 
-            return RedirectToAction("Settings", new { updateResponse = status.UpdateResponse, updateMsg = status.UpdateMsg });
+            return RedirectToRoute(Url.Settings(status.UpdateResponse, status.UpdateMsg));
         }
 
         public ActionResult Logout()
         {
             LogoutUser();
-            return RedirectToAction("Login");
+            return RedirectToRoute(Url.Login());
         }
 
     }

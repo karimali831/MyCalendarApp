@@ -1,0 +1,26 @@
+﻿@using MyCalendar.Website.ViewModels
+@using MyCalendar.Enums
+
+@{
+    ViewBag.Title = "Authenticate";
+}
+
+@if (TempData["ErrorMsg"] != null && !string.IsNullOrEmpty(TempData["ErrorMsg"].ToString()))
+{
+    @Html.Partial("_Status", new BaseVM { UpdateStatus = (Status.Failed, TempData["ErrorMsg"].ToString()) })
+}
+
+@if (TempData["InviteeId"] != null && !string.IsNullOrEmpty(TempData["inviteeId"].ToString()))
+{
+    @Html.Partial("_Status", new BaseVM { UpdateStatus = (Status.Info, "To accept invitation you must login") })
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div class="form-group">
+        <input type="password" style="width: 180px; display: inline" class="form-control" name="input" placeholder="Enter passcode" />
+        <input type="hidden" name="inviteeId" value="@TempData["InviteeId"]" />
+        <input type="submit" class="btn btn-primary" value="Enter App" />
+    </div>
+}

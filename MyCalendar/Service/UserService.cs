@@ -8,13 +8,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Configuration;
+using MyFinances.Enums;
 
 namespace MyCalendar.Service
 {
     public interface IUserService
     {
         Task<IEnumerable<User>> GetAllAsync();
-        IEnumerable<Cronofy.Calendar> GetCalendars();
         bool LoadUser(int passcode);
         Task<User> GetAsync(int passcode);
         Task<bool> UpdateAsync(User user);
@@ -22,10 +22,10 @@ namespace MyCalendar.Service
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
         Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
-        Task<IList<User>> GetUsers(Guid userId);
+        Task<IList<User>> GetBuddys(Guid userId);
         Task<User> GetUser(int? passcode = null);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
-        //Task DoWorkAsync();
+        Task<bool> HasAccess(Guid[] userRoleIds, Feature feature);
     }
     ;
     public class UserService : IUserService
@@ -34,14 +34,21 @@ namespace MyCalendar.Service
         private readonly ITagService tagService;
         private readonly ICronofyService cronofyService;
         private readonly ITagRepository tagRepository;
+        private readonly IRoleService roleService;
         private readonly string AuthenticationName;
 
-        public UserService(ITagService tagService, IUserRepository userRepository, ICronofyService cronofyService, ITagRepository tagRepository)
+        public UserService(
+            ITagService tagService, 
+            IUserRepository userRepository, 
+            ICronofyService cronofyService, 
+            ITagRepository tagRepository,
+            IRoleService roleService)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
             this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
+            this.roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
 
             AuthenticationName = ConfigurationManager.AppSettings["AuthenticationName"];
         }
@@ -49,6 +56,25 @@ namespace MyCalendar.Service
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await userRepository.GetAllAsync();
+        }
+
+        public async Task<IList<User>> GetBuddys(Guid userId)
+        {
+            var buddyIds = (await userRepository.GetByUserIDAsync(userId))?.BuddyIds ?? null;
+            var buddyList = new List<User>();
+
+            if (!string.IsNullOrEmpty(buddyIds))
+            {
+                var getBuddyList = buddyIds.Split(',').Select(x => Guid.Parse(x)).ToList();
+
+                foreach (var buddy in getBuddyList)
+                {
+                    var buddyProfile = await userRepository.GetByUserIDAsync(buddy);
+                    buddyList.Add(buddyProfile);
+                }
+            }
+
+            return buddyList;
         }
 
         public async Task<User> GetAsync(int passcode)
@@ -109,6 +135,31 @@ namespace MyCalendar.Service
             }
         }
 
+        public async Task<bool> HasAccess(Guid[] userRoleIds, Feature feature)
+        {
+            var access = new List<bool> { false };
+
+            if (userRoleIds != null && userRoleIds.Any())
+            {
+                foreach (var roleId in userRoleIds)
+                {
+                    var role = await roleService.GetAsync(roleId);
+
+                    switch (feature)
+                    {
+                        case Feature.Calendar:
+                            access.Add(role.AccessCalendar);
+                            break;
+                        case Feature.Document:
+                            access.Add(role.AccessDocument);
+                            break;
+                    }
+                }
+            }
+
+            return access.Any(x => x == true);
+        }
+
         public async Task<User> GetUser(int? passcode = null)
         {
             var appCookie = HttpContext.Current.Request.Cookies.Get(AuthenticationName);
@@ -159,11 +210,6 @@ namespace MyCalendar.Service
             return null;
         }
 
-        public async Task<IList<User>> GetUsers(Guid userId)
-        {
-            return (await GetAllAsync()).Where(x => x.UserID != userId).ToList();
-        }
-
         public async Task<IEnumerable<Tag>> GetUserTags(Guid userId)
         {
             var user = await GetByUserIDAsync(userId);
@@ -188,7 +234,7 @@ namespace MyCalendar.Service
 
             if (events != null && events.Any())
             {
-                var users = await GetUsers(userId);
+                var users = (await GetAllAsync()).Where(x => x.UserID != userId);
 
                 foreach (var activity in events)
                 {
@@ -224,70 +270,5 @@ namespace MyCalendar.Service
 
             return currentActivity;
         }
-
-
-
-        public IEnumerable<Cronofy.Calendar> GetCalendars()
-        {
-            return cronofyService.GetCalendars();
-        }
-
-
-        //public Task DoWorkAsync() // No async because the method does not need await
-        //{
-        //    return Task.Run(() =>
-        //    {
-        //        SendMail("Hello world", "karimali831@googlemail.com", "TEST");
-        //    });
-        //}
-
-        //public static bool SendMail(string subject, string to, string body)
-        //{
-        //    string fromMailAddress = ConfigurationManager.AppSettings["MailAddress"];
-        //    string fromMailPassword = ConfigurationManager.AppSettings["MailPassword"];
-        //    string fromMailName = ConfigurationManager.AppSettings["MailName"];
-
-        //    fromMailAddress = "admin@karim-ali.co.uk";
-        //    fromMailPassword = "Xra63400*";
-        //    fromMailName = "iCalendarApp";
-
-
-        //    var networkConfig = new NetworkCredential(fromMailAddress, fromMailPassword);
-        //    var mailServer = new SmtpClient()
-        //    {
-        //        //Host = ConfigurationManager.AppSettings["SmtpHost"],
-        //        Host = "mail.karim-ali.co.uk",
-        //        UseDefaultCredentials = false,
-        //        Credentials = networkConfig
-        //    };
-        //    if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["SmtpPort"]))
-        //        mailServer.Port = Convert.ToInt32(ConfigurationManager.AppSettings["SmtpPort"]);
-
-        //    mailServer.Port = 465;
-
-        //    var message = new MailMessage()
-        //    {
-        //        Subject = subject,
-        //        SubjectEncoding = Encoding.UTF8,
-        //        IsBodyHtml = true,
-        //        BodyEncoding = Encoding.UTF8,
-        //    };
-
-        //    //message send config
-        //    message.To.Add(new MailAddress(to));
-        //    message.From = new MailAddress(fromMailAddress, fromMailName);
-        //    message.Body = body;
-
-        //    try
-        //    {
-        //        mailServer.SendAsync(message, null);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return false;
-        //    }
-
-        //    return true;
-        //}
     }
 }
