@@ -33,39 +33,47 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 @if (Model != null && Model.User != null)
                 {
-                <ul class="navbar-nav mr-auto">
-                    @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))
-                    {
-                        <li class="nav-item">
-                            <div class="dropdown show">
-                                <a class="nav-link dropdown-toggle" style="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.Overview || Model.MenuItem.Cronofy ? "color:#0094ff": "")" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="fas fa-calendar-alt"></span> Calendar
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                                    <a class="dropdown-item" style="@(Model.MenuItem.Home ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
-                                        <span class="fas fa-calendar"></span> Calendar
+                    <ul class="navbar-nav mr-auto">
+                        @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))
+                        {
+                            <li class="nav-item">
+                                <div class="dropdown show">
+                                    <a class="nav-link dropdown-toggle" style="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.Overview || Model.MenuItem.Cronofy ? "color:#0094ff": "")" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="fas fa-calendar-alt"></span> Calendar
                                     </a>
-                                    <a class="dropdown-item" style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
-                                        <span class="fas fa-calendar-check"></span> Scheduler
-                                    </a>
-                                    <a class="dropdown-item" style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
-                                        <span class="fas fa-chart-bar"></span> Activity Hub
-                                    </a>
-                                    @if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
-                                    {
-                                        <a class="dropdown-item" style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
-                                            <span class="fas fa-link"></span> Calendar Sync
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                        <a class="dropdown-item" style="@(Model.MenuItem.Home ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
+                                            <span class="fas fa-calendar"></span> Calendar
                                         </a>
-                                    }
+                                        <a class="dropdown-item" style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
+                                            <span class="fas fa-calendar-check"></span> Scheduler
+                                        </a>
+                                        <a class="dropdown-item" style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
+                                            <span class="fas fa-chart-bar"></span> Activity Hub
+                                        </a>
+                                        @if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
+                                        {
+                                            <a class="dropdown-item" style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
+                                                <span class="fas fa-link"></span> Calendar Sync
+                                            </a>
+                                        }
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    }
+                            </li>
+                        }
                         @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Write))
                         {
                             <li class="nav-item">
                                 <a class="nav-link" style="@(Model.MenuItem.Documents ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.Document).ActionName, Url.MvcRoute(Section.Document).ControllerName)">
                                     <span class="fas fa-pencil-alt"></span> Write
+                                </a>
+                            </li>
+                        }
+                        @if (Model.AccessibleFeatures.Any(x => x.Id == Features.ErrandRunner))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" style="@(Model.MenuItem.ErrandRunner ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.ErrandRunnerNewOrder).ActionName, Url.MvcRoute(Section.ErrandRunnerNewOrder).ControllerName)">
+                                    <span class="fas fa-running"></span> Errand Runner
                                 </a>
                             </li>
                         }

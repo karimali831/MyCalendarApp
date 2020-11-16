@@ -28,7 +28,8 @@ namespace MyCalendar.Helpers
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/cronofy/profiles"),
                 new KeyValuePair<Section, string>(Section.Document, "/document/index"),
                 new KeyValuePair<Section, string>(Section.Invite, "/invite/user"),
-                new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove")
+                new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove"),
+                new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/neworder")
             };
         }
 

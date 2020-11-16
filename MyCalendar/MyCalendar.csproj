@@ -163,7 +163,9 @@
     <Compile Include="Enums\Status.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Helpers\MVCRoutes.cs" />
+    <Compile Include="Helpers\UrlHelper.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Model\ER\Customer.cs" />
     <Compile Include="Model\ExtCalendarRights.cs" />
     <Compile Include="Model\Feature.cs" />
     <Compile Include="Model\FeatureGroupRole.cs" />
@@ -179,6 +181,7 @@
     <Compile Include="Model\User.cs" />
     <Compile Include="Model\Event.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\ER\CustomersRepository.cs" />
     <Compile Include="Repository\FeatureRepository.cs" />
     <Compile Include="Repository\GroupRepository.cs" />
     <Compile Include="Repository\FeatureRoleRepository.cs" />
@@ -194,6 +197,7 @@
     <Compile Include="Security\SessionPersister.cs" />
     <Compile Include="Service\CronofyService.cs" />
     <Compile Include="Service\DocumentService.cs" />
+    <Compile Include="Service\ER\CustomerService.cs" />
     <Compile Include="Service\FeatureRoleService.cs" />
     <Compile Include="Service\TypeService.cs" />
     <Compile Include="Service\TagService.cs" />

@@ -9,6 +9,7 @@ namespace MyCalendar.Enums
     public enum Features
     {
         Calendar = 1,
-        Write
+        Write,
+        ErrandRunner
     }
 }

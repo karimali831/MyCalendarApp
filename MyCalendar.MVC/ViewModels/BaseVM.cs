@@ -28,6 +28,7 @@ namespace MyCalendar.Website.ViewModels
         public bool Cronofy { get; set; } 
         public bool Overview { get; set; }
         public bool Documents { get; set; }
+        public bool ErrandRunner { get; set; }
         public bool None { get; set; }
     }
 }

@@ -21,6 +21,7 @@ namespace MyCalendar.Enums
         AddType,
         UpdateType,
         RemoveType,
-        Logout
+        Logout,
+        ErrandRunnerNewOrder
     }
 }
