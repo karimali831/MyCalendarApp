@@ -1,4 +1,4 @@
-﻿@model MyCalendar.Website.ViewModels.ChangeLogVM
+﻿@model IEnumerable<MyCalendar.Model.Document>
 @{
     ViewBag.Title = "ChangeLog";
 }
@@ -8,36 +8,20 @@
 <div id="accordion">
     @{
         int i = 1;
-        foreach (var c in Model.ChangeLog.OrderByDescending(x => x.Key))
+        foreach (var c in Model.OrderByDescending(x => x.Title))
         {
             <div class="card">
-                <div class="card-header" id="@c.Key">
+                <div class="card-header" id="@c.Title">
                     <h7 class="mb-0">
                         <a class="btn btn-link" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse@(i)" aria-expanded="true" aria-controls="collapse@(i)">
-                            <i class="fas fa-th-list"></i> @c.Key
+                            <i class="fas fa-th-list"></i> @c.Title
                         </a>
 
                     </h7>
                 </div>
                 <div id="collapse@(i)" class="panel-collapse collapse in  @(i == 1 ? "show" : "")" role="tabpanel" aria-labelledby="headingOne">
                     <div class="card-body">
-                        @if (c.Value[0].StartsWith("*"))
-                        {
-                            <strong>@c.Value[0].Remove(0, 1)</strong>
-                        }
-                        @if (c.Value.Count > 1)
-                        {
-                            <ul>
-                                @foreach (var text in c.Value.Where(x => !x.StartsWith("*")))
-                                {
-                                    <li>@text</li>
-                                }
-                            </ul>
-                        }
-                        else
-                        {
-                            <span>@c.Value[0]</span>
-                        }
+                        @Html.Raw(c.Text)
                     </div>
                 </div>
             </div>

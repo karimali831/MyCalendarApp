@@ -144,7 +144,7 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && HttpContext.Request.RawUrl.Equals(loginRoute.RouteUrl, StringComparison.InvariantCultureIgnoreCase))
+                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && (HttpContext.Request.RawUrl.Equals(loginRoute.RouteUrl, StringComparison.InvariantCultureIgnoreCase) || HttpContext.Request.RawUrl == "/"))
                 {
                     HttpContext.Response.Redirect(Url.MvcRoute(Section.Home).RouteUrl);
                 }

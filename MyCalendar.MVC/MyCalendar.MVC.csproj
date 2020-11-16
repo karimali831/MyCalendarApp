@@ -245,7 +245,6 @@
     <Compile Include="MVCModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\CalendarVM.cs" />
-    <Compile Include="ViewModels\ChangeLogVM.cs" />
     <Compile Include="ViewModels\DocumentVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="ViewModels\CronofyVM.cs" />

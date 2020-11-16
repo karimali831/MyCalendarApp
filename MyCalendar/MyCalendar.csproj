@@ -157,10 +157,10 @@
     <Compile Include="Enums\CronofyStatus.cs" />
     <Compile Include="Enums\DateFrequency.cs" />
     <Compile Include="Enums\Feature.cs" />
+    <Compile Include="Enums\Types.cs" />
     <Compile Include="Enums\TypeGroup.cs" />
     <Compile Include="Enums\Section.cs" />
     <Compile Include="Enums\Status.cs" />
-    <Compile Include="Helpers\ChangeLog.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Helpers\MVCRoutes.cs" />
     <Compile Include="Helpers\Utils.cs" />
