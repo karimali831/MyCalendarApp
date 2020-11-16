@@ -17,28 +17,23 @@ namespace MyCalendar.Controllers
         private readonly ICronofyService cronofyService;
         private readonly ITagService tagService;
 
-        public EventController(IEventService eventService, IUserService userService, ICronofyService cronofyService, ITagService tagService) : base(userService)
+        public EventController(
+            IEventService eventService, 
+            IUserService userService, 
+            ICronofyService cronofyService, 
+            ITagService tagService,
+            IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
         }
 
-        public async Task<JsonResult> Get(Guid? viewingId = null, bool combined = false)
+        public async Task<JsonResult> Get(int calendarId)
         {
-            Guid? viewing = null;
             var user = await GetUser();
 
-            if (combined)
-            {
-                viewing = null;
-            }
-            else
-            {
-                viewing = viewingId != null ? viewingId : user.UserID;
-            }
-
-            var events = await eventService.GetAllAsync(user, viewing);
+            var events = await eventService.GetAllAsync(user, calendarId);
             var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
@@ -101,13 +96,19 @@ namespace MyCalendar.Controllers
             await BaseViewModel(new MenuItem { MultiAdd = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var viewModel = new SchedulerVM { Dates = dates };
+            var viewModel = new SchedulerVM 
+            { 
+                Dates = dates, 
+                Calendars =  await eventService.GetUserCalendars(baseVM.User.UserID)
+            };
+
             var scheduler = (SchedulerVM)TempData["scheduler"];
 
             if (scheduler != null)
             {
+                viewModel.CalendarId = scheduler.CalendarId;
                 viewModel.Dates = scheduler.Dates;
-                viewModel.TagID = scheduler.TagID == Guid.Empty ? null : scheduler.TagID;
+                viewModel.TagId = scheduler.TagId ?? null;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
@@ -126,25 +127,22 @@ namespace MyCalendar.Controllers
 
             (Status? UpdateResponse, string UpdateMsg) status = (null, null);
 
-            int z = 1;
-            foreach (var item in model.StartDate)
+            int z = 0;
+            foreach (var item in model.TagId)
             {
-                events.Add(z, new Model.EventDTO { StartDate = item });
+                events.Add(z, new Model.EventDTO { 
+                    TagID = item,
+                    StartDate = model.StartDate[z],
+                    EndDate = model.EndDate[z]
+                });
                 z++;
-            }
-
-            int i = 1;
-            foreach (var item in model.EndDate)
-            {
-
-                events[i].EndDate = item;
-                i++;
             }
 
             model.Events = events.Values.Select(x => new Model.EventDTO
             {
+                CalendarId = model.CalendarId,
                 UserID = user.UserID,
-                TagID = model.TagID ?? null,
+                TagID = x.TagID ?? null,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate
             })
@@ -168,12 +166,12 @@ namespace MyCalendar.Controllers
             else
             {
                 status = await eventService.SaveEvents(model.Events.ToList())
-                    ? (Status.Success, "Scheduler has been saved and your calendar has been updated")
+                    ? (Status.Success, "Scheduled events has been added to your calendar")
                     : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
 
                 if (status.UpdateResponse == Status.Success)
                 {
-                    return RedirectToRoute(Url.Home(viewingId: (Guid?)null, combined: false, updateResponse: status.UpdateResponse, updateMsg: status.UpdateMsg));
+                    return RedirectToRoute(Url.Home(updateResponse: status.UpdateResponse, updateMsg: status.UpdateMsg));
 
                 }
                 else

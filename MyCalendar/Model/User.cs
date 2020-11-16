@@ -11,7 +11,7 @@ namespace MyCalendar.Model
     public class User
     {
         public Guid UserID { get; set; }
-        public int Passcode { get; set; }
+        public string Password { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
@@ -22,6 +22,8 @@ namespace MyCalendar.Model
         public bool EnableCronofy { get; set; } 
         public string RoleIds { get; set; }
         public string BuddyIds { get; set; }
+        [DbIgnore]
+        public IEnumerable<Guid> RoleIdsList => (RoleIds != null && RoleIds.Any() ? RoleIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
         [DbIgnore]
         public IEnumerable<ExtCalendarRights> ExtCalendarRights { get; set; } = Enumerable.Empty<ExtCalendarRights>();
         [DbIgnore]

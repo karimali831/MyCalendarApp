@@ -1,0 +1,55 @@
+﻿@model MyCalendar.Website.ViewModels.TypeVM
+@using MyCalendar.Helpers
+@using MyCalendar.Enums
+
+@using (Html.BeginForm((Model.Edit ? Url.MvcRoute(Section.UpdateType).ActionName : Url.MvcRoute(Section.AddType).ActionName), Url.MvcRoute(Section.AddType).ControllerName))
+{
+    @Html.AntiForgeryToken()
+    <div class="add-edit-@(Model.Type?.Id ?? (int?)null)">
+        <div class="form-group">
+            <input type="text" class="form-control" id="name" name="Name" value="@(Model.Edit ? Model.Type.Name : "")" placeholder="Name" required />
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-user-friends"></i>
+                <span>@Model.Group.InviteDescription</span>
+            </div>
+            <div class="card-body">
+                <div class="col-sm">
+                    <div class="form-group">
+                        @if (Model.Buddys != null && Model.Buddys.Any())
+                        {
+                            foreach (var buddy in Model.Buddys)
+                            {
+                                <div class="form-check" style="word-wrap:break-word; margin-left: 10px">
+                                    <input class="form-check-input" type="checkbox" name="InviteeId[]" value="@buddy.UserID" @(Model.Type != null && Model.Type.InviteeIdsList != null && Model.Type.InviteeIdsList.Contains(buddy.UserID) ? "checked=\"checked\"" : "")  /> @buddy.Name
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <span>No buddys</span>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <input type="hidden" name="UserCreatedId" value="@(Model.Type?.UserCreatedId ?? Model.User.UserID)" />
+                <input type="hidden" name="GroupId" value="@Model.Group.Id" />
+                @if (Model.Type != null)
+                {
+                    <input type="hidden" name="SuperTypeId" value="@Model.Type.SuperTypeId" />
+                    <input type="hidden" name="Id" value="@Model.Type.Id" />
+                }
+
+                <div class="float-right">
+                    <button type="submit" class="btn btn-primary">@(Model.Edit ? "Edit" : "Add")</button>
+                    @if (Model.Edit)
+                    {
+                        <a class="btn btn-danger" href="@Url.Action(Url.MvcRoute(Section.RemoveType).ActionName, new { Id = Model.Type.Id })" onclick="return confirm('Are you sure?')">Delete</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

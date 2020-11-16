@@ -8,24 +8,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Configuration;
-using MyFinances.Enums;
+using System.Web.UI;
+using MyCalendar.Security;
 
 namespace MyCalendar.Service
 {
     public interface IUserService
     {
         Task<IEnumerable<User>> GetAllAsync();
-        bool LoadUser(int passcode);
-        Task<User> GetAsync(int passcode);
+        Task<User> GetUser(string email = null, string password = null);
+        bool LoadUser(string email);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
         Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
         Task<IList<User>> GetBuddys(Guid userId);
-        Task<User> GetUser(int? passcode = null);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
-        Task<bool> HasAccess(Guid[] userRoleIds, Feature feature);
     }
     ;
     public class UserService : IUserService
@@ -34,23 +33,17 @@ namespace MyCalendar.Service
         private readonly ITagService tagService;
         private readonly ICronofyService cronofyService;
         private readonly ITagRepository tagRepository;
-        private readonly IRoleService roleService;
-        private readonly string AuthenticationName;
 
         public UserService(
             ITagService tagService, 
             IUserRepository userRepository, 
             ICronofyService cronofyService, 
-            ITagRepository tagRepository,
-            IRoleService roleService)
+            ITagRepository tagRepository)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
             this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
-            this.roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
-
-            AuthenticationName = ConfigurationManager.AppSettings["AuthenticationName"];
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
@@ -77,11 +70,6 @@ namespace MyCalendar.Service
             return buddyList;
         }
 
-        public async Task<User> GetAsync(int passcode)
-        {
-            return await userRepository.GetAsync(passcode); 
-        }
-
         public async Task<bool> UpdateAsync(User user)
         {
             user.ExtCalendarRights ??= Enumerable.Empty<ExtCalendarRights>();
@@ -93,9 +81,15 @@ namespace MyCalendar.Service
             return await userRepository.GetByUserIDAsync(userID);
         }
 
-        public bool LoadUser(int passcode)
+        public bool LoadUser(string email)
         {
-            var user = userRepository.Get(passcode);
+            var user = userRepository.Get(email);
+
+            if (user == null)
+            {
+                return false;
+            }
+
             return cronofyService.LoadUser(user);
         }
 
@@ -135,76 +129,39 @@ namespace MyCalendar.Service
             }
         }
 
-        public async Task<bool> HasAccess(Guid[] userRoleIds, Feature feature)
-        {
-            var access = new List<bool> { false };
+        public async Task<User> GetUser(string email = null, string password = null)
+        { 
+            var user = await userRepository.GetAsync(email ?? SessionPersister.Email, password);
 
-            if (userRoleIds != null && userRoleIds.Any())
+            if (user != null)
             {
-                foreach (var roleId in userRoleIds)
+                user.Authenticated = true;
+
+                if (!user.EnableCronofy)
                 {
-                    var role = await roleService.GetAsync(roleId);
-
-                    switch (feature)
-                    {
-                        case Feature.Calendar:
-                            access.Add(role.AccessCalendar);
-                            break;
-                        case Feature.Document:
-                            access.Add(role.AccessDocument);
-                            break;
-                    }
+                    user.CronofyReady = CronofyStatus.Disabled;
                 }
-            }
-
-            return access.Any(x => x == true);
-        }
-
-        public async Task<User> GetUser(int? passcode = null)
-        {
-            var appCookie = HttpContext.Current.Request.Cookies.Get(AuthenticationName);
-
-            if (passcode.HasValue)
-            {
-                return await GetAsync(passcode.Value);
-            }
-            else
-            {
-                if (appCookie != null)
+                else if (string.IsNullOrEmpty(user.CronofyUid) || string.IsNullOrEmpty(user.AccessToken) || string.IsNullOrEmpty(user.RefreshToken))
                 {
-                    var user = await GetAsync(int.Parse(appCookie.Value));
-
-                    if (user != null)
-                    {
-                        user.Authenticated = true;
-
-                        if (!user.EnableCronofy)
-                        {
-                            user.CronofyReady = CronofyStatus.Disabled;
-                        }
-                        else if (string.IsNullOrEmpty(user.CronofyUid) || string.IsNullOrEmpty(user.AccessToken) || string.IsNullOrEmpty(user.RefreshToken))
-                        {
-                            user.CronofyReady = CronofyStatus.NotAuthenticated;
-                        }
-                        else
-                        {
-                            var getCalendarNames = cronofyService.GetProfiles().Select(x => Utils.UppercaseFirst(x.ProviderName));
-                            user.CronofyReadyCalendarName = string.Format("{0} Calendar{1}", string.Join(", ", getCalendarNames), getCalendarNames.Count() > 1 ? "s" : "");
-
-                            if (user.ExtCalendarRights != null && user.ExtCalendarRights.Any(x => x.Read || x.Delete || x.Save))
-                            {
-                                user.CronofyReady = CronofyStatus.AuthenticatedRightsSet;
-                            }
-                            else
-                            {
-                                user.CronofyReady = CronofyStatus.AuthenticatedNoRightsSet;
-                            }
-
-                        }
-
-                        return user;
-                    }
+                    user.CronofyReady = CronofyStatus.NotAuthenticated;
                 }
+                else
+                {
+                    var getCalendarNames = cronofyService.GetProfiles().Select(x => Utils.UppercaseFirst(x.ProviderName));
+                    user.CronofyReadyCalendarName = string.Format("{0} Calendar{1}", string.Join(", ", getCalendarNames), getCalendarNames.Count() > 1 ? "s" : "");
+
+                    if (user.ExtCalendarRights != null && user.ExtCalendarRights.Any(x => x.Read || x.Delete || x.Save))
+                    {
+                        user.CronofyReady = CronofyStatus.AuthenticatedRightsSet;
+                    }
+                    else
+                    {
+                        user.CronofyReady = CronofyStatus.AuthenticatedNoRightsSet;
+                    }
+
+                }
+
+                return user;
             }
 
             return null;
@@ -242,7 +199,7 @@ namespace MyCalendar.Service
                     string userName = (await GetByUserIDAsync(activity.UserID)).Name;
                     string getName = "";
 
-                    if (tag != null && tag.Privacy == TagPrivacy.Shared)
+                    if (tag.InviteeIdsList.Any() || events.Any(x => x.InviteeIdsList.Contains(userId)))
                     {
                         getName += $"You, {string.Join(", ", users.Select(x => x.Name))}";
                     }

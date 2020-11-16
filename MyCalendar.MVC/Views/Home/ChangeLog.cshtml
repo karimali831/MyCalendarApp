@@ -6,41 +6,42 @@
 <h2>App Change Log</h2>
 
 <div id="accordion">
-@{
-    int i = 1;
-    foreach (var c in Model.ChangeLog.OrderByDescending(x => x.Key))
-    {
-        <div class="card">
-            <div class="card-header" id="@c.Key">
-                <h7 class="mb-0">
-                    <button class="btn btn-link" data-toggle="collapse" data-target="#@i" aria-expanded="true" aria-controls="@c.Key">
-                        <i class="glyphicon glyphicon-th-list"></i> @c.Key
-                    </button>
-                </h7>
-            </div>
-            <div id="@i" class="collapse @(i == 1 ? "show" : "")" aria-labelledby="@c.Key" data-parent="#accordion">
-                <div class="card-body">
-                    @if (c.Value[0].StartsWith("*"))
-                    {
-                        <strong>@c.Value[0].Remove(0,1)</strong>
-                    }
-                    @if (c.Value.Count > 1)
-                    {
-                        <ul>
-                            @foreach (var text in c.Value.Where(x => !x.StartsWith("*")))
-                            {
-                                <li>@text</li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <span>@c.Value[0]</span>
-                    }
+    @{
+        int i = 1;
+        foreach (var c in Model.ChangeLog.OrderByDescending(x => x.Key))
+        {
+            <div class="card">
+                <div class="card-header" id="@c.Key">
+                    <h7 class="mb-0">
+                        <a class="btn btn-link" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse@(i)" aria-expanded="true" aria-controls="collapse@(i)">
+                            <i class="fas fa-th-list"></i> @c.Key
+                        </a>
+
+                    </h7>
+                </div>
+                <div id="collapse@(i)" class="panel-collapse collapse in  @(i == 1 ? "show" : "")" role="tabpanel" aria-labelledby="headingOne">
+                    <div class="card-body">
+                        @if (c.Value[0].StartsWith("*"))
+                        {
+                            <strong>@c.Value[0].Remove(0, 1)</strong>
+                        }
+                        @if (c.Value.Count > 1)
+                        {
+                            <ul>
+                                @foreach (var text in c.Value.Where(x => !x.StartsWith("*")))
+                                {
+                                    <li>@text</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span>@c.Value[0]</span>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
-        {i++;}
+            { i++; }
+        }
     }
-}
 </div>

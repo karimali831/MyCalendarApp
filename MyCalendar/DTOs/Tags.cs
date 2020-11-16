@@ -15,6 +15,5 @@ namespace MyCalendar.DTOs
         public string[] Name { get; set; }
         public string[] ThemeColor { get; set; }
         public int[] TypeID { get; set; }
-        public TagPrivacy[] Privacy { get; set; } 
     }
 }

@@ -7,6 +7,7 @@ namespace MyCalendar.DTOs
     public class EventVM
     {
         public Guid EventID { get; set; }
+        public int CalendarId { get; set; }
         public Guid UserID { get; set; }
         public Guid? TagID { get; set; }
         public string Description { get; set; }
@@ -23,6 +24,7 @@ namespace MyCalendar.DTOs
     public class EventDTO
     {
         public Guid EventID { get; set; }
+        public int CalendarId { get; set; }
         public Guid UserID { get; set; }
         public Guid TagID { get; set; }
         public string Description { get; set; }
@@ -36,6 +38,7 @@ namespace MyCalendar.DTOs
             return new EventVM
             {
                 EventID = e.EventID,
+                CalendarId = e.CalendarId,
                 UserID = e.UserID,
                 TagID = e.TagID,
                 Description = e.Description,
@@ -54,6 +57,7 @@ namespace MyCalendar.DTOs
             return new Model.EventDTO
             {
                 EventID = e.EventID,
+                CalendarId = e.CalendarId,
                 UserID = e.UserID,
                 TagID = e.TagID,
                 Description = e.Description,

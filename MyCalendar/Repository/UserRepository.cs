@@ -14,12 +14,12 @@ namespace MyCalendar.Repository
 {
     public interface IUserRepository
     {
-        Task<User> GetAsync(int passcode);
+        Task<User> GetAsync(string email, string password = null);
         Task<IEnumerable<User>> GetAllAsync();
         Task<bool> UpdateAsync(User user);
         Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
         Task<User> GetByUserIDAsync(Guid userID);
-        User Get(int passcode);
+        User Get(string email);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
     }
 
@@ -35,15 +35,15 @@ namespace MyCalendar.Repository
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
         }
 
-        public async Task<User> GetAsync(int passcode)
+        public async Task<User> GetAsync(string email, string password = null)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Passcode = @passcode", new { passcode } ))
+                return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Email = @email {(password != null ? $"AND Password = '{password}'" : "")} ", new { email } ))
                         .Select(x => new User
                          {
                              UserID = x.UserID,
-                             Passcode = x.Passcode,
+                             Password = x.Password,
                              Name = x.Name,
                              Email = x.Email,
                              PhoneNumber = x.PhoneNumber,
@@ -68,11 +68,11 @@ namespace MyCalendar.Repository
             }
         }
 
-        public User Get(int passcode)
+        public User Get(string email)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (sql.Query<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Passcode = @passcode", new { passcode })).FirstOrDefault();
+                return (sql.Query<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Email = @email", new { email })).FirstOrDefault();
             }
         }
 
@@ -88,12 +88,12 @@ namespace MyCalendar.Repository
         public async Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID)
         {
             string sqlTxt = $@"
-                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.Privacy, COUNT(*) AS Count
+                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, COUNT(*) AS Count
                 FROM Events AS e
                 RIGHT JOIN Tags AS t
                 ON e.TagID = t.Id
-                WHERE t.UserId = '{userID}' OR Privacy = {(int)TagPrivacy.Shared}
-                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.Privacy
+                WHERE t.UserId = '{userID}'
+                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor
                 ORDER BY Count DESC
             ";
 
@@ -113,7 +113,7 @@ namespace MyCalendar.Repository
                         user.UserID,
                         user.Name,
                         user.Email,
-                        user.Passcode,
+                        user.Password,
                         user.PhoneNumber,
                         user.CronofyUid,
                         user.AccessToken,

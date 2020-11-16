@@ -15,10 +15,14 @@ namespace MyCalendar.Helpers
         public static IList<KeyValuePair<Section, string>> MvcRoutes()
         {
             return  new List<KeyValuePair<Section, string>>() {
-                new KeyValuePair<Section, string>(Section.Login, "/login/index"),
+                new KeyValuePair<Section, string>(Section.Login, "/account/index"),
                 new KeyValuePair<Section, string>(Section.Home, "/home/index"),
-                new KeyValuePair<Section, string>(Section.Profile, "/home/settings"),
-                new KeyValuePair<Section, string>(Section.Logout, "/home/logout"),
+                new KeyValuePair<Section, string>(Section.Profile, "/settings/index"),
+                new KeyValuePair<Section, string>(Section.UpdateTags, "/settings/updatetags"),
+                new KeyValuePair<Section, string>(Section.UpdateType, "/settings/updatetype"),
+                new KeyValuePair<Section, string>(Section.RemoveType, "/settings/removetype"),
+                new KeyValuePair<Section, string>(Section.AddType, "/settings/addtype"),
+                new KeyValuePair<Section, string>(Section.Logout, "/account/logout"),
                 new KeyValuePair<Section, string>(Section.Overview, "/event/overview"),
                 new KeyValuePair<Section, string>(Section.Scheduler, "/event/multiadd"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/cronofy/profiles"),
@@ -47,13 +51,11 @@ namespace MyCalendar.Helpers
             return new { action = route.ActionName, controller = route.ControllerName, inviteeId};
         }
 
-        public static object Home(this UrlHelper helper, Guid? viewingId = null, bool combined = false, Status? updateResponse = null, string updateMsg = null)
+        public static object Home(this UrlHelper helper, Status? updateResponse = null, string updateMsg = null)
         {
             return new {
                 action = MvcRoute(helper, Section.Home).ActionName, 
                 controller = MvcRoute(helper, Section.Home).ControllerName,
-                viewingId,
-                combined,
                 updateResponse,
                 updateMsg
             };

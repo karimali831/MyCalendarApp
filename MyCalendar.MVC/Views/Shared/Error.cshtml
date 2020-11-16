@@ -12,7 +12,7 @@
             <h2>An error occurred while processing your request.</h2>
         </hgroup>
         <div class="alert alert-danger" role="alert">
-            <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+            <span class="fas fa-exclamation-triangle-sign" aria-hidden="true"></span>
             <strong> @Model.Exception.Message</strong>
             &#8594; <a href="https://staxmanade.com/ExceptionMessageBeautifier/?ex=@Uri.EscapeUriString(Model.Exception.ToString())" target="_blank">Details</a>
         </div>

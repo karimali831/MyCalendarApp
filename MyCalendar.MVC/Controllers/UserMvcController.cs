@@ -5,16 +5,14 @@ using MyCalendar.DTOs;
 using MyCalendar.Enums;
 using MyCalendar.Helpers;
 using MyCalendar.Model;
+using MyCalendar.Security;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Http.Filters;
 using System.Web.Mvc;
 
 namespace MyCalendar.Controllers
@@ -22,17 +20,18 @@ namespace MyCalendar.Controllers
     public class UserMvcController : Controller
     {
         private readonly IExceptionHandlerService exceptionHandlerService;
-        private readonly IUserService userService; 
+        private readonly IUserService userService;
+        private readonly IFeatureRoleService featureRoleService;
         protected readonly string AuthenticationName;
         public BaseVM BaseVM { get; set; }
 
-        public UserMvcController(IUserService userService)
+        public UserMvcController(IUserService userService, IFeatureRoleService featureRoleService)
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            this.featureRoleService = featureRoleService ?? throw new ArgumentNullException(nameof(featureRoleService));
 
             AuthenticationName = ConfigurationManager.AppSettings["AuthenticationName"];
-            //userService.DoWorkAsync();
         }
 
         private async Task<BaseVM> getViewModel(MenuItem menuItem, Status? updateResponse = null, string updateMsg = null)
@@ -45,10 +44,17 @@ namespace MyCalendar.Controllers
             {
                 User = user,
                 Buddys = buddys,
+                AccessibleGroups = await AccessibleGroups(user.RoleIdsList),
+                AccessibleFeatures = await AccessibleFeatures(user.RoleIdsList),
                 UserTags = new TagsDTO { Tags = userTags },
                 UpdateStatus = (updateResponse, updateMsg),
                 MenuItem = menuItem
             };
+        }
+
+        public async Task<User> Login(string email, string password)
+        {
+            return await userService.GetUser(email, password);
         }
 
         public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
@@ -56,9 +62,9 @@ namespace MyCalendar.Controllers
             return await userService.CurrentUserActivity(events, userId);
         }
 
-        public async Task<User> GetUser(int? passcode = null)
+        public async Task<User> GetUser()
         {
-            return await userService.GetUser(passcode);
+            return await userService.GetUser();
         }
 
         public async Task<IEnumerable<User>> GetUsers()
@@ -76,18 +82,14 @@ namespace MyCalendar.Controllers
             return await userService.GetByUserIDAsync(userId);
         }
 
-        public void LogoutUser()
+        public async Task<IEnumerable<Group>> AccessibleGroups(IEnumerable<Guid> roleIds)
         {
-            var appCookie = Request.Cookies.Get(AuthenticationName);
+            return await featureRoleService.AccessibleGroups(roleIds);
+        }
 
-            if (appCookie != null)
-            {
-                HttpCookie cookie = new HttpCookie(AuthenticationName)
-                {
-                    Expires = DateTime.Now.AddDays(-1)
-                };
-                Response.Cookies.Set(cookie);
-            }
+        public async Task<IEnumerable<Feature>> AccessibleFeatures(IEnumerable<Guid> roleIds)
+        {
+            return await featureRoleService.AccessibleFeatures(roleIds);
         }
 
         public async Task<bool> UpdateUser(User user)
@@ -102,13 +104,13 @@ namespace MyCalendar.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var appCookie = Request.Cookies.Get(AuthenticationName);
+            var appCookie = SessionPersister.Email;
 
-            if (appCookie != null)
+            if (!string.IsNullOrEmpty(appCookie))
             {
-                if (!userService.LoadUser(int.Parse(appCookie.Value)))
+                if (!userService.LoadUser(appCookie))
                 {
-                    Response.Cookies.Remove(AuthenticationName);
+                    SessionPersister.Email = string.Empty;
                     HttpContext.Response.Redirect(Url.MvcRoute(Section.Home).RouteUrl);
                 }
             }
@@ -118,10 +120,10 @@ namespace MyCalendar.Controllers
 
         protected override void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            var appCookie = Request.Cookies.Get(AuthenticationName);
+            var appCookie = SessionPersister.Email;
             var loginRoute = Url.MvcRoute(Section.Login);
 
-            if (appCookie == null)
+            if (string.IsNullOrEmpty(appCookie))
             {
                 string controller = RouteData.Values["controller"].ToString();
                 string action = RouteData.Values["action"].ToString();
@@ -165,8 +167,8 @@ namespace MyCalendar.Controllers
 
             if (ex is CredentialsInvalidError)
             {
-                Response.Cookies.Remove(AuthenticationName);
-                HttpContext.Response.Redirect("/home");
+                SessionPersister.Email = string.Empty;
+                HttpContext.Response.Redirect("/account");
                 filterContext.ExceptionHandled = true;
             }
 

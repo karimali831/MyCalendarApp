@@ -15,7 +15,7 @@ namespace MyCalendar.Website.Controllers
 {
     public class InviteController : UserMvcController
     {
-        public InviteController(IUserService userService) : base(userService)
+        public InviteController(IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
         {
 
         }
@@ -38,7 +38,7 @@ namespace MyCalendar.Website.Controllers
                 if (baseVM.User.UserID == id)
                 {
                     status.UpdateResponse = Status.Failed;
-                    status.UpdateMsg = "You cannot add yourself as an invitee";
+                    status.UpdateMsg = "You cannot add yourself as a buddy";
                 }
                 else if (!(await GetUsers()).Any(x => x.UserID == id))
                 {

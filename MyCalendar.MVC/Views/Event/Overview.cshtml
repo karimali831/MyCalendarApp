@@ -7,10 +7,10 @@
 }
 
     <div class="jumbotron">
-        <h3><span class="glyphicon glyphicon-stats"> Overview</span></h3>
+        <h3><span class="fas fa-chart-bar"> Activity Hub</span></h3>
         <hr />
 
-        @using (Html.BeginForm("Overview", "Event", FormMethod.Get, new { @class = "form-inline" }))
+        @using (Html.BeginForm(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName, FormMethod.Get, new { @class = "form-inline" }))
         {
             <div class="form-group">
                 <select class="form-control" onchange='location.href = this.value' style = "width:150px">
@@ -55,12 +55,12 @@
                     <li class="list-group-item" style="background: @e.Color; color: @Utils.ContrastColor(e.Color)">
                         @if (e.MultiUsers)
                         {
-                            <span class="glyphicon glyphicon-user small" style="text-indent: -11px;"></span>
-                            <span class="glyphicon glyphicon-user small" style="text-indent: -8px;"></span>
+                            <span class="fas fa-user small" style="text-indent: -11px;"></span>
+                            <span class="fas fa-user small" style="text-indent: -8px;"></span>
                         }
                         else
                         {
-                            <span class="glyphicon glyphicon-tag small"></span>
+                            <span class="fas fa-tag small"></span>
                         }
                        <small>@e.Text<span style="float: right">#@e.TypeName</span></small>
                     </li>

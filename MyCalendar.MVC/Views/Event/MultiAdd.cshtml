@@ -5,62 +5,108 @@
     var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
 }
 
-@using (Html.BeginForm("MultiAdd"))
-{
-    @Html.Partial("_Status", new BaseVM { UpdateStatus = Model.UpdateStatus })
-    <div class="jumbotron">
-        <div class="form-group">
-            <label for="dates"><span class="glyphicon glyphicon-calendar"></span> How many dates?</label>
-            <select id="dates" name="dates" class="form-control" onchange="selectDates(this,'@Url.Action("MultiAdd", "Event")')">
+<link href="~/Content/Login.css" rel="stylesheet" type="text/css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<div class="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
+    @using (Html.BeginForm())
+    {
+        @Html.Partial("_Status", new BaseVM { UpdateStatus = Model.UpdateStatus })
+        <span class="login100-form-title p-b-49">
+            Scheduler
+        </span>
+
+        <div class="wrap-input100 validate-input m-b-23" data-validate="Event quantity is required">
+            <span class="label-input100">How many events to add?</span>
+            <select id="dates" name="dates" class="form input100" onchange="selectDates(this,'@Url.Action("MultiAdd", "Event")')">
                 <option value="">-- select quantity --</option>
                 @for (int i = 1; i <= 10; i++)
                 {
-                    <option value="@i" selected="@(i == Model.Dates ? true : false)">@i Dates</option>
+                    <option value="@i" selected="@(i == Model.Dates ? true : false)">@i Event@(i > 1 ? "s" : "")</option>
                 }
             </select>
+
+            <span class="focus-input100" data-symbol="&#xf206;"></span>
         </div>
-        <div class="form-group">
-            <label for="tag"><span class="glyphicon glyphicon-tag"></span> Tag</label>
-            <select id="tag" name="TagId" class="form-control" required>
-                <option value="">-- select tag --</option>
-                @foreach (var privacy in BaseViewModel.UserTags.Tags.GroupBy(x => x.Privacy))
-                {
-                    <optgroup label="@privacy.Key">
-                        @foreach (var tag in BaseViewModel.UserTags.Tags.Where(x => x.Privacy == privacy.Key))
-                        {
-                            <option value="@tag.Id" selected="@(tag.Id == Model.TagID ? true : false)">@tag.Name</option>
-                        }
-                    </optgroup>
-                }
-            </select>
-        </div>
-        @if (Model.Dates > 1)
+
+        if (Model.Dates > 0)
         {
-            <div class="form-group">
-                <label><span class="glyphicon glyphicon-time"></span> Apply same times to each date?</label>
-                <br />
-                From: <input type="time" name="fromTime" step="300" style="width: 107px; display: inline" class="form-control" />
-                To: <input type="time" name="toTime" step="300" style="width: 107px; display: inline" class="form-control" />
+            <div class="wrap-input100 validate-input m-b-23" data-validate="Select calendar is required">
+                <span class="label-input100">In what calendar?</span>
+
+                <select id="calendars" name="calendarId" class="form input100" required>
+                    <option value="">-- select calendar --</option>
+                    @foreach (var calendar in Model.Calendars)
+                    {
+                        <option value="@calendar.Id">@calendar.Name</option>
+                    }
+                </select>
+                <span class="focus-input100" data-symbol="&#xf206;"></span>
             </div>
-        }
-        @if (Model.Dates > 0)
-        {
+            if (Model.Dates > 1)
+            {
+                <div class="wrap-input100 validate-input m-b-23">
+                    <span class="label-input100">Apply same tag to each event?</span>
+
+                    <select id="defaultTag" name="defaulTagId" class="form input100">
+                        <option value="">-- select tag --</option>
+                        @foreach (var tag in BaseViewModel.UserTags.Tags)
+                        {
+                            <option value="@tag.Id">@tag.Name</option>
+                        }
+                    </select>
+                    <span class="focus-input100" data-symbol="&#xf206;"></span>
+                </div>
+
+                <div class="wrap-input100 validate-input">
+                    <span class="label-input100">Apply same from time for each event?</span>
+                    <input type="time" name="fromTime" step="300" class="form input100" />
+                    <span class="focus-input100" data-symbol="&#xf190;"></span>
+                </div>
+                <div class="wrap-input100 validate-input">
+                    <span class="label-input100">Apply same to time for each event?</span>
+                    <input type="time" name="toTime" step="300" class="form input100" />
+                    <span class="focus-input100" data-symbol="&#xf190;"></span>
+                </div>
+            }
+
             for (int i = 0; i < Model.Dates; i++)
             {
-                <hr />
-                <div class="form-group">
-                    <label for="start">Start Date #@(i+1)</label>
-                    <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form-control" step="300" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
+
+                <div class="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54 treeview border">
+                    <span class="login100-form-title p-b-49" style="font-size: 23px; margin-top: -30px; margin-bottom: -30px;">
+                        Event #@(i + 1)
+                    </span>
+                    <div class="wrap-input100 validate-input m-b-23">
+                        <span class="label-input100">Tag</span>
+
+                        <select id="tag@(i)" name="TagId[]" class="form input100" required>
+                            <option value="">-- select tag --</option>
+                            @foreach (var tag in BaseViewModel.UserTags.Tags)
+                            {
+                                <option value="@tag.Id" selected="@(Model.TagId != null && Model.TagId.Contains(tag.Id) ? true : false)">@tag.Name</option>
+                            }
+                        </select>
+                        <span class="focus-input100" data-symbol="&#xf206;"></span>
+                    </div>
+                    <div class="wrap-input100 validate-input" data-validate="Start date required">
+                        <span class="label-input100">Start Date</span>
+                        <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form input100" step="300" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
+                        <span class="focus-input100" data-symbol="&#xf190;"></span>
+                    </div>
+                    <div class="wrap-input100 validate-input" data-validate="End date required">
+                        <span class="label-input100">End Date</span>
+                        <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form input100" step="300" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
+                        <span class="focus-input100" data-symbol="&#xf190;"></span>
+                    </div>
                 </div>
-                <div class="form-group" id="divEndDate">
-                    <label for="end">End Date #@(i+1)</label>
-                    <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form-control" step="300" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
-                </div>
+
             }
             <button type="submit" class="btn btn-primary">Update</button>
         }
-    </div>
-}
+    }
+</div>
+
 
 @section Scripts{
     <script type="text/javascript">
@@ -80,6 +126,16 @@
                 function (n) {
                     var end = $('#end' + n).val();
                     $('#end' + n).val(end.substring(0, 11) + txtVal);
+                }
+            );
+        });
+
+        $('#defaultTag').change(function () {
+            var txtVal = $(this).val();
+            $.each(new Array(@Model.Dates),
+                function (n) {
+                    var tag = $('#tag' + n).val();
+                    $('#tag' + n).val(txtVal);
                 }
             );
         });

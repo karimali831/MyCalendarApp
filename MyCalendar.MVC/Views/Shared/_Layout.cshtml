@@ -4,7 +4,7 @@
 @using MyCalendar.Enums
 @{
     var Model = ViewData[nameof(BaseVM)] as BaseVM;
-    var AppName = ConfigurationManager.AppSettings["AppFullName"];
+    var AppName = ConfigurationManager.AppSettings["AppName"];
 }
 
 <!DOCTYPE html>
@@ -15,87 +15,101 @@
     <title>@AppName</title>
     <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.ckeditor.com/4.15.0/standard/ckeditor.js"></script>
+
+    <!-- forms -->
+    <link rel="stylesheet" type="text/css" href="~/Content/form/css/util.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/form/css/main.css">
+    <link rel="stylesheet" type="text/css" href="~/Content/form/fonts/iconic/css/material-design-iconic-font.min.css">
+    <script src="https://kit.fontawesome.com/b963a5daf8.js" crossorigin="anonymous"></script>
     <script src="~/Scripts/modernizr-2.8.3.js"></script>
 </head>
 <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fix fixed-top">
         <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                @Html.ActionLink(AppName, Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { area = "" }, new { @class = "navbar-brand" })
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav pull-right">
-                    @if (Model != null && Model.User != null)
+            @Html.ActionLink(AppName, Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { area = "" }, new { @class = "navbar-brand" })
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                @if (Model != null && Model.User != null)
+                {
+                <ul class="navbar-nav mr-auto">
+                    @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))
                     {
-                        <li>
-                            <a style="@((Model.MenuItem.Viewing.HasValue && Model.User.UserID == Model.MenuItem.Viewing.Value) || (Model.MenuItem.Home == true) ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { viewingId = Model.User.UserID })">
-                                <span class="glyphicon glyphicon-home"></span> @Model.User.Name
-                            </a>
+                        <li class="nav-item">
+                            <div class="dropdown show">
+                                <a class="nav-link dropdown-toggle" style="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.Overview || Model.MenuItem.Cronofy ? "color:#0094ff": "")" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="fas fa-calendar-alt"></span> Calendar
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <a class="dropdown-item" style="@(Model.MenuItem.Home ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
+                                        <span class="fas fa-calendar"></span> Calendar
+                                    </a>
+                                    <a class="dropdown-item" style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
+                                        <span class="fas fa-calendar-check"></span> Scheduler
+                                    </a>
+                                    <a class="dropdown-item" style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
+                                        <span class="fas fa-chart-bar"></span> Activity Hub
+                                    </a>
+                                    @if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
+                                    {
+                                        <a class="dropdown-item" style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
+                                            <span class="fas fa-link"></span> Calendar Sync
+                                        </a>
+                                    }
+                                </div>
+                            </div>
                         </li>
-                        <li>
-                            <a style="@(Model.MenuItem.Combined ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { combined = true })">
-                                <span class="glyphicon glyphicon-calendar"></span> Combined
-                            </a>
-                        </li>
-                        <li>
-                            <a style="@(Model.MenuItem.Overview ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
-                                <span class="glyphicon glyphicon-stats"></span> Overview
-                            </a>
-                        </li>
-                        <li>
-                            <a style="@(Model.MenuItem.MultiAdd ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
-                                <span class="glyphicon glyphicon-edit"></span> Scheduler
-                            </a>
-                        </li>
-                        if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
+                    }
+                        @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Write))
                         {
-                            <li>
-                                <a style="@(Model.MenuItem.Cronofy ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
-                                    <span class="glyphicon glyphicon-check"></span> MiCal Sync
+                            <li class="nav-item">
+                                <a class="nav-link" style="@(Model.MenuItem.Documents ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.Document).ActionName, Url.MvcRoute(Section.Document).ControllerName)">
+                                    <span class="fas fa-pencil-alt"></span> Write
                                 </a>
                             </li>
                         }
-                        <li>
-                            <a style="@(Model.MenuItem.Documents ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Document).ActionName, Url.MvcRoute(Section.Document).ControllerName)">
-                                <span class="glyphicon glyphicon-file"></span> Documents
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <div class="dropdown show">
+                                <a class="nav-link dropdown-toggle" style="@(Model.MenuItem.Settings ? "color:#0094ff": "")" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="fas fa-user"></span> @Model.User.Name
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <a class="dropdown-item" style="@(Model.MenuItem.Settings ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Profile).ActionName, Url.MvcRoute(Section.Profile).ControllerName)">
+                                        <span class="fas fa-user-edit"></span> Settings
+                                    </a>
+                                    <a class="dropdown-item" href="@Url.Action(Url.MvcRoute(Section.Logout).ActionName, Url.MvcRoute(Section.Logout).ControllerName)">
+                                        <span class="fas fa-sign-out-alt"></span> Logout
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                }
+                else
+                {
+                    <ul class="navbar-nav mr-auto"></ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action(Url.MvcRoute(Section.Login).ActionName, Url.MvcRoute(Section.Login).ControllerName)">
+                                <span class="fas fa-sign-in-alt"></span> Login
                             </a>
                         </li>
-                        <li>
-                            <a style="@(Model.MenuItem.Settings ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.Profile).ActionName, Url.MvcRoute(Section.Profile).ControllerName)">
-                                <span class="glyphicon glyphicon-user"></span> Profile
-                            </a>
-                        </li>
-                        <li>
-                            <a href="@Url.Action(Url.MvcRoute(Section.Logout).ActionName, Url.MvcRoute(Section.Logout).ControllerName)">
-                                <span class="glyphicon glyphicon-log-out"></span> Logout
-                            </a>
-                        </li>
-                    }
-                    else
-                    {
-                        <li>
-                            <a href="@Url.Action(Url.MvcRoute(Section.Login).ActionName, Url.MvcRoute(Section.Login).ControllerName)">
-                                <span class="glyphicon glyphicon-log-in"></span> Login
-                            </a>
-                        </li>
-                    }
-                </ul>
+                    </ul>
+                }
             </div>
         </div>
-    </div>
+    </nav>
 
     <div class="container body-content">
         <br />
+        <div id="cover-spin"></div>
         @RenderBody()
         <hr />
         <footer>
-            <small>&copy; @DateTime.Now.Year - @AppName <a href="/home/changelog" class="pull-right">@ChangeLog.GetChangeList().OrderByDescending(x => x.Key).First().Key</a></small>
+            <small>&copy; @DateTime.Now.Year - @AppName <a href="/home/changelog" class="float-right">@ChangeLog.GetChangeList().OrderByDescending(x => x.Key).First().Key</a></small>
         </footer>
     </div>
 

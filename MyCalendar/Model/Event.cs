@@ -1,12 +1,16 @@
-﻿using MyCalendar.Enums;
+﻿using DFM.Utils;
+using MyCalendar.Enums;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 
 namespace MyCalendar.Model
 {
     public class Event
     {
         public Guid EventID { get; set; }
+        public int CalendarId { get; set; }
         public Guid UserID { get; set; }
         public Guid TagID { get; set; }
         public string Subject { get; set; }
@@ -16,14 +20,17 @@ namespace MyCalendar.Model
         public string ThemeColor { get; set; }
         public bool IsFullDay { get; set; }
         public bool Tentative { get; set; }
-        public TagPrivacy? Privacy { get; set; }
         public string EventUid { get; set; }
         public string CalendarUid { get; set; }
+        public string InviteeIds { get; set; }
+        [DbIgnore]
+        public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
     }
 
     public class EventDTO
     {
         public Guid EventID { get; set; }
+        public int CalendarId { get; set; }
         public Guid UserID { get; set; }
         public Guid? TagID { get; set; }
         public string Description { get; set; }

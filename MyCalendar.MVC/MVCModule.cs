@@ -19,7 +19,7 @@ namespace MyCalendar.Ninject
             Bind<ITypeService>().To<TypeService>();
             Bind<ICronofyService>().To<CronofyService>();
             Bind<IDocumentService>().To<DocumentService>();
-            Bind<IRoleService>().To<RoleService>();
+            Bind<IFeatureRoleService>().To<FeatureRoleService>();
 
             // Repositories
             Bind<IEventRepository>().To<EventRepository>();
@@ -28,6 +28,9 @@ namespace MyCalendar.Ninject
             Bind<ITypeRepository>().To<TypeRepository>();
             Bind<IDocumentRepository>().To<DocumentRepository>();
             Bind<IRoleRepository>().To<RoleRepository>();
+            Bind<IGroupRepository>().To<GroupRepository>();
+            Bind<IFeatureRepository>().To<FeatureRepository>();
+            Bind<IFeatureRoleRepository>().To<FeatureRoleRepository>();
         }
     }
 }

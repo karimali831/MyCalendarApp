@@ -1,15 +1,14 @@
-﻿using Cronofy;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyFinances.Enums
+namespace MyCalendar.Enums
 {
-    public enum Feature
+    public enum Features
     {
-        Calendar,
-        Document
+        Calendar = 1,
+        Write
     }
 }

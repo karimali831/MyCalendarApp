@@ -34,7 +34,12 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Tag>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @tagID", new { tagID })).FirstOrDefault();
+                return (await sql.QueryAsync<Tag>(@$" 
+                    SELECT t.Id, t.UserId, t.TypeId, t.Name, t.ThemeColor, ty.InviteeIds
+                    FROM {TABLE} t
+                    LEFT JOIN Types ty
+                    ON t.TypeID = ty.Id
+                    WHERE t.Id = @tagID", new { tagID })).FirstOrDefault();
             }
         }
 
@@ -80,8 +85,7 @@ namespace MyCalendar.Repository
                                     userId = userID,
                                     typeId = t.TypeID,
                                     name = t.Name,
-                                    themeColor = t.ThemeColor,
-                                    privacy = t.Privacy
+                                    themeColor = t.ThemeColor
                                 };
 
                             var existing = await UserTagExists(tag.Id);

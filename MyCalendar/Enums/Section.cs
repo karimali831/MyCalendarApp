@@ -17,6 +17,10 @@ namespace MyCalendar.Enums
         CronofyProfiles,
         Document,
         Profile,
+        UpdateTags,
+        AddType,
+        UpdateType,
+        RemoveType,
         Logout
     }
 }

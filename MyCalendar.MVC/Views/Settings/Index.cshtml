@@ -1,0 +1,228 @@
+﻿@model MyCalendar.Website.ViewModels.SettingsVM
+@using MyCalendar.Website.ViewModels
+@using MyCalendar.Enums
+@using MyCalendar.Helpers
+@using System.Configuration
+@{
+    var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
+}
+
+<div id="accordion">
+    @Html.Partial("_Status", BaseViewModel)
+    <div class="card">
+        <div class="card-header" id="headingOne">
+            <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <h5 class="fas fa-user"> Profile</h5>
+            </button>
+        </div>
+
+        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+            <div class="card-body">
+                @using (Html.BeginForm())
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.Name)
+                        @Html.TextBoxFor(s => s.User.Name, new { @class = "form-control", @type = "text", @placeholder = "Name", @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.Password, "Login Password") <font color="red"><small>(changing this will log you out)</small></font>
+                        @Html.TextBoxFor(s => s.User.Password, new { @class = "form-control", @type = "number", @placeholder = "Password", @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.Email)
+                        @Html.TextBoxFor(s => s.User.Email, new { @class = "form-control", @type = "text", @placeholder = "Email" })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.User.PhoneNumber)
+                        @Html.TextBoxFor(s => s.User.PhoneNumber, new { @class = "form-control", @type = "text", @placeholder = "Phone number" })
+                    </div>
+                    <div class="form-group">
+                        @Html.CheckBoxFor(s => s.User.EnableCronofy)
+                        <span>Enable Appology Calendar sync</span>
+                    </div>
+                    @Html.HiddenFor(x => x.User.UserID)
+                    @Html.HiddenFor(x => x.User.CronofyUid)
+                    @Html.HiddenFor(x => x.User.AccessToken)
+                    @Html.HiddenFor(x => x.User.RefreshToken)
+                    @Html.HiddenFor(x => x.User.ExtCalendars)
+                    @Html.HiddenFor(x => x.User.RoleIds)
+                    @Html.HiddenFor(x => x.User.BuddyIds)
+                    <button type="submit" class="btn btn-primary">Update</button>
+
+                }
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="headingTwo">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                <h5 class="fas fa-user-tag"> Calendar Tags</h5>
+            </button>
+        </div>
+        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+            <div class="card-body">
+                @Html.Partial("_Tags",
+                    new MyCalendar.DTOs.TagsDTO
+                         {
+                        Tags = BaseViewModel.UserTags.Tags,
+                        TagTypes = Model.UserTypes.Where(x => x.GroupId == TypeGroup.TagGroups),
+                        UserID = Model.User.UserID
+                    })
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="headingThree">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                <h5 class="fas fa-th-list"> Groups</h5>
+            </button>
+        </div>
+        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+            <div class="card-body">
+                @Html.Partial("_Types",
+                    new MyCalendar.DTOs.TypesDTO
+                         {
+                        Buddys = Model.Buddys,
+                        UserTypes = Model.UserTypes,
+                        AccessibleGroups = Model.AccessibleGroups,
+                        User = Model.User
+                    })
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" id="headingFour"">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                <h5 class="fas fa-user-friends"> Buddys</h5>
+            </button>
+        </div>
+        <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+            <div class="card-body">
+                <div>
+                    <h5><i class="fas fa-share"></i> Share this link with a user to add each other as a buddy</h5>
+                </div>
+                <div class="input-group">
+                    <input type="text" readonly="readonly" id="inviteeShareLink" class="form-control" value="@Url.InviterShareLink(BaseViewModel.User.UserID)" />
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="button" onclick="myFunction()"><i class="fas fa-link"></i> Copy</button>
+                    </span>
+                </div>
+
+                @if (BaseViewModel.Buddys != null && BaseViewModel.Buddys.Any())
+                {
+                    <ul class="nav navbar navbar-left">
+                        @foreach (var user in BaseViewModel.Buddys)
+                        {
+                            <li>
+                                <hr />
+                                <span class="fas fa-user"></span> @user.Name
+                                <a href="@Url.Action(Url.MvcRoute(Section.RemoveBuddy).ActionName, Url.MvcRoute(Section.RemoveBuddy).ControllerName, new { id = user.UserID })" onclick="return confirm('Are you sure?')">
+                                    <i class="fas fa-times"></i> Remove
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        function myFunction() {
+            /* Get the text field */
+            var copyText = document.getElementById("inviteeShareLink");
+
+            /* Select the text field */
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /*For mobile devices*/
+
+            /* Copy the text inside the text field */
+            document.execCommand("copy");
+
+            /* Alert the copied text */
+            alert("Share link copied");
+            //alert("Copied the text: " + copyText.value);
+        }
+        $(document).ready(function () {
+            /* tags */
+            $(".add-more").click(function () {
+                var html = $(".copy").html();
+                $(".after-add-more").after(html);
+            });
+
+            $("body").on("click", ".remove-type", function () {
+                $(this).parents(".control-group").remove();
+            });
+
+            /* types */
+            $('li.expandable').click(function (e) {
+                e.preventDefault();
+                $(this).children('ul').toggle(500);
+                $(this).children('i').toggleClass('fa-folder-open fa-folder');
+
+                $('.selectedUserTypeId').each(function () {
+                    var userTypeId = $(this).text();
+                    $('.add-' + userTypeId).hide(500);
+                    $('.edit-' + userTypeId).hide(500);
+                    $('#add-' + userTypeId).removeClass("active");
+                    $('#edit-' + userTypeId).removeClass("active");
+                });
+
+                return false;
+            });
+
+            
+            $('.selectedGroupId').each(function () {
+                var selectedGroupId = $(this).text();
+
+                $('#add-' + selectedGroupId).click(function (e) {
+                    $('.add-' + selectedGroupId).toggle(500);
+                });
+
+
+                $('.selectedUserTypeId').each(function () {
+                    var selectedUserTypeId = $(this).text();
+
+                    $('#add-' + selectedUserTypeId).unbind('click').click(function (e) {
+                        e.stopPropagation();
+                        $(this).toggleClass("active");
+                        $('#edit-' + selectedUserTypeId).removeClass("active");
+                        $('.edit-' + selectedUserTypeId).hide(500);
+                        $('.add-' + selectedUserTypeId).toggle(500);
+                    });
+
+                    $('#edit-' + selectedUserTypeId).unbind('click').click(function (e) {
+                        e.stopPropagation();
+                        $(this).toggleClass("active");
+                        $('#add-' + selectedUserTypeId).removeClass("active");
+                        $('.add-' + selectedUserTypeId).hide(500);
+                        $('.edit-' + selectedUserTypeId).toggle(500);
+                    });
+
+                    $('.add-edit-' + selectedUserTypeId).click(function (e) {
+                        e.stopPropagation();
+                    });
+                });
+
+                $('.show-groups-btn-' + selectedGroupId).click(function () {
+                    $('.groupId').each(function () {
+                        var groupId = $(this).text();
+
+                        if (groupId != selectedGroupId) {
+                            $("#show-groups-" + groupId).hide(500);
+                            $("#btn-" + groupId).removeClass(".btn btn-primary").addClass(".btn btn-light");
+                        }
+                        else {
+                            $('.btn btn-primary').css('background-color', 'blue');
+                            $("#btn-" + groupId).removeClass(".btn btn-light").addClass(".btn btn-primary");
+                            $("#show-groups-" + selectedGroupId).show(500);
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+}

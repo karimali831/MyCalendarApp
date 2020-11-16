@@ -10,33 +10,33 @@ namespace MyCalendar.Helpers
             {
                 {
                     "v1.2.4 BETA", new List<string> {
-                        "*Many changes with flexibility and automation of Cronofy and MiCalendar App integration",
+                        "*Many changes with flexibility and automation of Cronofy and Appology App integration",
                         "Option to enable Cronofy in user profile",
                         "Instead of syncing one default calendar we can dynmically set permissions (read, save, delete) for each authenticated calendar per calendar provider.",
                         "Fixed redirect issue",
                         "Fix date filter in Overview",
                         "Fix bug with updating user profile",
-                        "Fix issue with MiCalendar re-authentication",
+                        "Fix issue with Appology re-authentication",
                         "Set default times when adding new event in calendar",
                         "Auto set alerts to 50 mins and 2 hours prior to event start time",
-                        "Rename app from iCalendar to MiCalendar",
+                        "Rename app from iCalendar to Appology",
                         "Current activity text corrections",
                         "Code refactoring and other improvements"
                     }
                 },
                 {
                     "v1.2.3", new List<string> {
-                        "*Add Cronofy and MiCalendar App integration features",
+                        "*Add Cronofy and Appology App integration features",
                         "Update in external calendar when creating, updating or deleting events in real-time",
-                        "Authenticate to third party calendar inc iCloud, Google, Outlook and select default calendar to sync with MiCalendar App.",
+                        "Authenticate to third party calendar inc iCloud, Google, Outlook and select default calendar to sync with Appology App.",
                         "Cannot add events without either tag or description or both",
-                        "New page setup for integrating external calendar provider with MiCalendar App"
+                        "New page setup for integrating external calendar provider with Appology App"
                     }
                 },
                 {
                     "v1.2.2", new List<string> {
                         "Add website background and other style changes",
-                        "Remove Cronofy cookie and only use MiCalendar authentication cookie to authenticate",
+                        "Remove Cronofy cookie and only use Appology authentication cookie to authenticate",
                         "Move cronofy authentication link in Settings and show if account is linked or not",
                         "Cleaner display for displaying user tags in dropdown list"
                     }
@@ -48,7 +48,7 @@ namespace MyCalendar.Helpers
                 },
                 {
                     "v1.1.0", new List<string> {
-                        "Initial implementation of MiCalendar App",
+                        "Initial implementation of Appology App",
                         "Implement session authentication",
                         "Implement tags feature assignable for events",
                         "Ability to update user profile"
@@ -115,7 +115,7 @@ namespace MyCalendar.Helpers
                     "v1.2.0", new List<string> {
                         "*Various changes/improvements including:",
                         "Added changelog (this)",
-                        "Add Cronofy API endpoint to start integrating MiCalendar App with iCloud Calendar",
+                        "Add Cronofy API endpoint to start integrating Appology App with iCloud Calendar",
                         "Use cookie authentication - stay logged in for longer",
                         "Prevent editing or removing events not created by the user",
                         "Show last 7 days as default preset for events overview",

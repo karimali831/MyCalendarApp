@@ -11,10 +11,7 @@ namespace MyCalendar.Model
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public bool AccessCalendar { get; set; }
-        public bool AccessDocument { get; set; }
-        public bool EditUsers { get; set; }
-        public bool EditRoles { get; set; }
+        public bool Superadmin { get; set; } = false;
     }
 
     public class RoleMap : EntityTypeConfiguration<Role>

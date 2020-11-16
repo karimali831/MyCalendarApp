@@ -15,7 +15,7 @@ namespace MyCalendar.Repository
     public interface IEventRepository
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(DateFilter filter = null);
+        Task<IEnumerable<Event>> GetAllAsync(int? calendarId = null, DateFilter filter = null);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> EventUExists(string eventUid, string calendarUid);
@@ -24,6 +24,7 @@ namespace MyCalendar.Repository
         Task<bool> DeleteAsync(Guid eventId);
         Task DeleteExtAsync(string eventUid, string calendarUid);
         Task<bool> EventsByTagExist(Guid tagID);
+        Task<bool> EventExistsInCalendar(int calendarId);
     }
 
     public class EventRepository : IEventRepository
@@ -46,16 +47,19 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(DateFilter filter = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(int? calendarId = null, DateFilter filter = null)
         {
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.EventID,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, t.Privacy, e.EventUid, e.CalendarUid
+                    SELECT e.EventID,e.CalendarId,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds
                     FROM Events e
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id
+                    LEFT JOIN Types ty
+                    ON t.TypeID = ty.Id
                     {(filter != null && filter.Frequency.HasValue ? " WHERE " + Utils.FilterDateSql(filter) : null)}
+                    {(calendarId.HasValue ? $"WHERE CalendarId = {calendarId}" : null)}
                     ORDER BY StartDate DESC";
 
                 return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
@@ -104,6 +108,7 @@ namespace MyCalendar.Repository
                         new
                         {
                             eventId = e.EventID,
+                            calendarId = e.CalendarId,
                             userId = e.UserID,
                             description = e.Description,
                             startDate = e.StartDate,
@@ -148,6 +153,7 @@ namespace MyCalendar.Repository
                             new
                             {
                                 eventId = e.EventID,
+                                calendarId = e.CalendarId,
                                 userId = e.UserID,
                                 description = e.Description,
                                 startDate = Utils.FromTimeZoneToUtc(e.StartDate),
@@ -192,6 +198,14 @@ namespace MyCalendar.Repository
                     string.IsNullOrEmpty(exp.Message);
                     return false;
                 }
+            }
+        }
+
+        public async Task<bool> EventExistsInCalendar(int calendarId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE CalendarId = @CalendarId", new { CalendarId = calendarId });
             }
         }
     }

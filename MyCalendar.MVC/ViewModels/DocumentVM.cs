@@ -8,6 +8,8 @@ namespace MyCalendar.Website.ViewModels
 {
     public class DocumentVM
     {
+        public Guid UserId { get; set; }
         public IEnumerable<Document> Documents { get; set; }
+        public IEnumerable<Types> UserFolders { get; set; }
     }
 }

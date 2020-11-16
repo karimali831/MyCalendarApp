@@ -14,35 +14,35 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(User user, Guid? viewing = null, DateFilter filter = null);
+        Task<IEnumerable<Event>> GetAllAsync(User user, int? calendarId = null, DateFilter filter = null);
         Task<bool> SaveEvent(EventVM e);
         Task<bool> SaveEvents(IList<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
-        Task<IEnumerable<Types>> GetUserTypes(Guid userId);
-        Task<Types> GetTypeAsync(int Id);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter);
         Task<bool> EventUExists(string eventUId, string calendarUid);
-        Task<IEnumerable<Types>> GetSuperTypes();
+        Task<bool> EventExistsInCalendar(int calendarId);
+        Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId);
+        Task<IEnumerable<Types>> GetUserCalendars(Guid userId);
     }
 
     public class EventService : IEventService
     {
         private readonly IEventRepository eventRepository;
-        private readonly ITypeService typeService;
         private readonly ICronofyService cronofyService;
         private readonly IUserService userService;
+        private readonly ITypeService typeService;
 
         public EventService(
             IEventRepository eventRepository, 
-            ITypeService typeService, 
             ICronofyService cronofyService, 
+            ITypeService typeService,
             IUserService userService)
         {
             this.eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
-            this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(Cronofy));
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
         }
 
         public async Task<Event> GetAsync(Guid eventId)
@@ -57,28 +57,27 @@ namespace MyCalendar.Service
                         (!x.EndDate.HasValue && Utils.FromUtcToTimeZone(x.StartDate).Date == Utils.DateTime().Date));
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(User user, Guid? viewing = null, DateFilter filter = null)
+        public async Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId)
         {
-            var events = await eventRepository.GetAllAsync(filter);
+            return (await typeService.GetUserTypesAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
+        }
 
-            if (viewing.HasValue)
-            {
-                if (user.UserID == viewing)
-                {
-                    events = events.Where(x => x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared);
-                }
+        public async Task<IEnumerable<Types>> GetUserCalendars(Guid userId)
+        {
+            return (await typeService.GetAllByUserIdAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
+        }
 
-                else
-                {
-                    events = events.Where(x => (x.UserID == viewing && x.Privacy != TagPrivacy.Private) || x.Privacy == TagPrivacy.Shared);
-                }
-            }
-            //combined
-            else
+        public async Task<IEnumerable<Event>> GetAllAsync(User user, int? calendarId = null, DateFilter filter = null)
+        {
+            var accessibleCalendars = (await GetAccessibleCalendars(user.UserID)).Select(x => x.Id);
+
+            if (calendarId.HasValue && !accessibleCalendars.Contains(calendarId.Value))
             {
-                events = events.Where(x => (x.UserID != user.UserID && x.Privacy != TagPrivacy.Private) || x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared);
+                throw new ApplicationException("No permission to view calendar events");
             }
 
+            var events = await eventRepository.GetAllAsync(calendarId, filter);
+         
             if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
                 var unsycnedEvents = new List<Model.EventDTO>();
@@ -184,7 +183,7 @@ namespace MyCalendar.Service
         {
             var dto = DTOs.EventDTO.MapFrom(e);
             var daysBetweenDays = e.End.HasValue ? (e.End.Value.Date - e.Start.Date).Days : 0;
-
+       
             bool status;
             if (string.IsNullOrEmpty(e.SplitDates) || daysBetweenDays == 0 || e.IsFullDay)
             {
@@ -205,6 +204,7 @@ namespace MyCalendar.Service
                         EndDate = new DateTime(date.Year, date.Month, date.Day, e.End.Value.Hour, e.End.Value.Minute, 0),
                         Description = dto.Description,
                         EventID = dto.EventID,
+                        CalendarId = dto.CalendarId,
                         IsFullDay = dto.IsFullDay,
                         TagID = dto.TagID,
                         Tentative = dto.Tentative,
@@ -235,8 +235,8 @@ namespace MyCalendar.Service
         public async Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter)
         {
             var buddys = await userService.GetBuddys(user.UserID);
-            var events = (await GetAllAsync(user, viewing: null, filter: dateFilter))
-                .Where(x => x.UserID == user.UserID || x.Privacy == TagPrivacy.Shared)
+            var events = (await GetAllAsync(user, filter: dateFilter))
+                .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID))
                 .GroupBy(x => x.TagID);
 
             var hoursWorkedInTag = new List<HoursWorkedInTag>();
@@ -248,11 +248,11 @@ namespace MyCalendar.Service
                     if (e.Key != Guid.Empty)
                     {
                         var tag = await userService.GetUserTagAysnc(e.Key);
-                        var type = await GetTypeAsync(tag.TypeID);
+                        var type = await typeService.GetAsync(tag.TypeID);
                         string userName = "You";
                         bool multiUser = false;
 
-                        if (tag.Privacy == TagPrivacy.Shared)
+                        if (tag.InviteeIdsList.Any())
                         {
                             userName += ", " + string.Join(", ", buddys.Select(x => x.Name));
                             multiUser = true;
@@ -316,24 +316,14 @@ namespace MyCalendar.Service
             return await eventRepository.DeleteAsync(eventId);
         }
 
-        public async Task<IEnumerable<Types>> GetUserTypes(Guid userId)
-        {
-            return await typeService.GetAllByUserIdAsync(userId);
-        }
-
-        public async Task<IEnumerable<Types>> GetSuperTypes()
-        {
-            return await typeService.GetSuperTypesAsync();
-        }
-
-        public async Task<Types> GetTypeAsync(int Id)
-        {
-            return await typeService.GetAsync(Id);
-        }
-
         public async Task<bool> EventUExists(string eventUId, string calendarUid)
         {
             return await eventRepository.EventUExists(eventUId, calendarUid);
+        }
+
+        public async Task<bool> EventExistsInCalendar(int calendarId)
+        {
+            return await eventRepository.EventExistsInCalendar(calendarId);
         }
     }
 }
