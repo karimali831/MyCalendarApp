@@ -4,9 +4,8 @@ import { Route, Switch } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import initialiseStore from '../../state/InitialiseStore';
 import { ConnectedRouter } from 'connected-react-router';
-import Menu from '../base/Menu';
 import { createHashHistory, createBrowserHistory } from 'history';
-import Landing from '../roots/landing/Landing';
+import NewOrder from '../roots/errandrunner/NewOrder';
 
 const browserHistory = history.pushState ? createBrowserHistory() : createHashHistory();
 
@@ -19,11 +18,10 @@ class App extends React.Component {
     return (
       <Provider store={store}>
         <ConnectedRouter history={(browserHistory)}>
-            <Menu />
             <div className="App" ref={this.appElement}>
               <Switch>
-                  <Route exact={true} path="/" component={Landing} />
-                  <Route path="/home" component={Landing} />
+                  <Route exact={true} path="/" component={NewOrder} />
+                  <Route path="/home" component={NewOrder} />
               </Switch>
             </div>
         </ConnectedRouter>
