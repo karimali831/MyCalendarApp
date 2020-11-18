@@ -83,6 +83,14 @@ module.exports = {
             },
           },
           {
+            test: /\.less$/,
+            use: [
+                { loader: 'style-loader' },
+                { loader: 'css-loader' },
+                { loader: 'less-loader' }
+            ]
+          },
+          {
             test: /\.(js|jsx|mjs)$/,
             include: paths.appSrc,
             loader: require.resolve('babel-loader'),
