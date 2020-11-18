@@ -31,7 +31,7 @@ module.exports = {
   entry: [require.resolve('./polyfills'), paths.appIndexJs],
   output: {
     path: paths.appBuild,
-    filename: '../dist/bundle.js',
+    filename: '../../MyCalendar.MVC/Scripts/dist/bundle.js',
     publicPath: publicPath,
     jsonpFunction: 'jsonpFunctionNavV2',
     devtoolModuleFilenameTemplate: info =>
