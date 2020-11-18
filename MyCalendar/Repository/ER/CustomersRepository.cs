@@ -19,7 +19,7 @@ namespace MyCalendar.ER.Repository
     public class CustomerRepository : ICustomerRepository
     {
         private readonly Func<IDbConnection> dbConnectionFactory;
-        private static readonly string TABLE = "ER.Customers";
+        private static readonly string TABLE = "[ER.Customers]";
         private static readonly string[] FIELDS = typeof(Customer).DapperFields();
 
         public CustomerRepository(Func<IDbConnection> dbConnectionFactory)

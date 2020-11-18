@@ -11,14 +11,14 @@ using System.Web.Http.Cors;
 
 namespace MyCalendar.Website.Controllers.API
 {
-    [RoutePrefix("api")]
+    [RoutePrefix("api/errandrunner")]
     [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
-    public class BaseCommonController : ApiController
+    public class ErrandRunnerController : ApiController
     {
         private readonly ICustomerService customerService;
 
-        public BaseCommonController(ICustomerService customerService)
+        public ErrandRunnerController(ICustomerService customerService)
         {
             this.customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
         }
@@ -28,7 +28,7 @@ namespace MyCalendar.Website.Controllers.API
         public async Task<HttpResponseMessage> GetCustomers()
         {
             var customers = await customerService.GetAllAsync();
-            return Request.CreateResponse(HttpStatusCode.OK, customers);
+            return Request.CreateResponse(HttpStatusCode.OK, new { customers });
         }
 
     }

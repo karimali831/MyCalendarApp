@@ -27,7 +27,7 @@ namespace MyCalendar.ER.Model
 
             // Properties
             // Table & Column Mappings
-            this.ToTable("dbo.ER.Customers");
+            this.ToTable("dbo.[ER.Customers]");
 
             // Relationships
         }

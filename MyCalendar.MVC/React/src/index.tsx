@@ -2,12 +2,11 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import './index.less';
 import registerServiceWorker from './registerServiceWorker';
-import { MyFinanceApp } from './components/roots/MyFinanceApp';
+import { ERNewOrder } from './components/roots/Appology';
 
-ReactDOM.render(
-  <MyFinanceApp />,
-  document.getElementById('root') || document.createElement('div') // for testing purposes
-  
-);
+// ReactDOM.render(<Appology />, document.getElementById('root'));
+
+
+ReactDOM.render(<ERNewOrder />, document.getElementById('er-neworder'));
 
 registerServiceWorker();
