@@ -72,9 +72,16 @@
                         @if (Model.AccessibleFeatures.Any(x => x.Id == Features.ErrandRunner))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" style="@(Model.MenuItem.ErrandRunner ? "color:#0094ff" : "")" href="@Url.Action(Url.MvcRoute(Section.ErrandRunnerNewOrder).ActionName, Url.MvcRoute(Section.ErrandRunnerNewOrder).ControllerName)">
-                                    <span class="fas fa-running"></span> Errand Runner
-                                </a>
+                                <div class="dropdown show">
+                                    <a class="nav-link dropdown-toggle" style="@(Model.MenuItem.ERNewOrder ? "color:#0094ff": "")" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <span class="fas fa-running"></span> Errand Runner
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                        <a class="dropdown-item" style="@(Model.MenuItem.ERNewOrder ? "color:#0094ff": "")" href="@Url.Action(Url.MvcRoute(Section.ErrandRunnerNewOrder).ActionName, Url.MvcRoute(Section.ErrandRunnerNewOrder).ControllerName)">
+                                            <span class="fas fa-user-edit"></span> New Order
+                                        </a>
+                                    </div>
+                                </div>
                             </li>
                         }
                     </ul>

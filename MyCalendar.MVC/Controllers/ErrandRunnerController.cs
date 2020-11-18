@@ -19,8 +19,9 @@ namespace MyCalendar.Website.Controllers
         {
 
         }
-        public ActionResult NewOrder()
+        public async Task<ActionResult> NewOrder()
         {
+            await BaseViewModel(new MenuItem { ERNewOrder = true });
             return View();
         }
     }
