@@ -47,7 +47,7 @@ namespace MyCalendar.Website.Controllers
                 return RedirectToRoute(Url.Login(inviteeId));
             }
             SessionPersister.Email = email;
-
+        
             if (inviteeId.HasValue)
             {
                 return RedirectToRoute(Url.Invite(inviteeId.Value));
