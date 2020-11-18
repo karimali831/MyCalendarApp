@@ -1,0 +1,116 @@
+.toggle-switch {
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+  display: inline-block;
+  position: relative;
+  text-align: left;
+  vertical-align: middle;
+  width: 75px;
+}
+.toggle-switch.small-switch {
+  width: 40px;
+}
+.toggle-switch.small-switch .toggle-switch-inner:after,
+.toggle-switch.small-switch .toggle-switch-inner:before {
+  content: "";
+  height: 20px;
+  line-height: 20px;
+}
+.toggle-switch.small-switch .toggle-switch-switch {
+  width: 16px;
+  right: 20px;
+  margin: 2px;
+}
+@media screen and (max-width: 991px) {
+  .toggle-switch {
+    transform: scale(0.9);
+  }
+}
+@media screen and (max-width: 767px) {
+  .toggle-switch {
+    transform: scale(0.825);
+  }
+}
+@media screen and (max-width: 575px) {
+  .toggle-switch {
+    transform: scale(0.75);
+  }
+}
+.toggle-switch-checkbox {
+  display: none;
+}
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-inner {
+  margin-left: 0;
+}
+.toggle-switch-checkbox:checked + .toggle-switch-label .toggle-switch-switch {
+  right: 0px;
+}
+.toggle-switch-label {
+  border-radius: 20px;
+  border: 0 solid #bbb;
+  cursor: pointer;
+  display: block;
+  margin: 0;
+  overflow: hidden;
+}
+.toggle-switch-inner {
+  display: block;
+  margin-left: -100%;
+  transition: margin 0.3s ease-in 0s;
+  width: 200%;
+}
+.toggle-switch-inner:before {
+  background-color: #0094ff;
+  box-sizing: border-box;
+  color: #fff;
+  content: attr(data-yes);
+  display: block;
+  float: left;
+  font-size: 14px;
+  font-weight: bold;
+  height: 34px;
+  line-height: 34px;
+  padding-left: 10px;
+  padding: 0;
+  text-transform: uppercase;
+  width: 50%;
+}
+.toggle-switch-inner:after {
+  background-color: #bbb;
+  box-sizing: border-box;
+  color: #fff;
+  content: attr(data-no);
+  display: block;
+  float: left;
+  font-size: 14px;
+  font-weight: bold;
+  height: 34px;
+  line-height: 34px;
+  padding-right: 10px;
+  padding: 0;
+  text-align: right;
+  text-transform: uppercase;
+  width: 50%;
+}
+.toggle-switch-disabled {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+.toggle-switch-disabled:before {
+  background-color: #ddd;
+  cursor: not-allowed;
+}
+.toggle-switch-switch {
+  background: #fff;
+  border-radius: 20px;
+  border: 0 solid #bbb;
+  bottom: 0;
+  display: block;
+  margin: 5px;
+  position: absolute;
+  right: 40px;
+  top: 0;
+  transition: all 0.3s ease-in 0s;
+  width: 24px;
+}
