@@ -16,10 +16,10 @@ interface IOwnState {
 export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
 
     public raiseDoSearchWhenUserStoppedTyping = debounce(() => {
-        if (this.state.filter != null) {
+        if (this.state.filter !== "") {
             this.props.onChange(this.state.filter);
         }
-      }, 2000);
+      }, 1000);
 
     private inputRef: React.RefObject<HTMLInputElement>;
 
@@ -40,6 +40,7 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
             ref={this.inputRef}
             defaultValue={(this.props.filter != null ? this.props.filter : this.state.filter)}
             placeholder={this.props.placeholder}
+            onKeyDown={this.handleKeyPress}
             onChange={this.handleCriteriaChange}
         />
     )
@@ -47,6 +48,13 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
     public focus = () => {
         if (this.inputRef.current) {
             this.inputRef.current.focus()
+        }
+    }
+
+    private handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && this.state.filter !== "" && this.state.filter !== this.props.filter) {
+            this.props.onLoading(true);
+            this.props.onChange(this.state.filter);
         }
     }
 

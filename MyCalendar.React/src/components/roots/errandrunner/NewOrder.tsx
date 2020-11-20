@@ -10,7 +10,7 @@ export interface IOwnProps {
 }
 
 export interface IOwnState {
-    filter: string | null,
+    filter: string,
     customers: ICustomer[],
     registrationOn: boolean,
     selectedCustomer: ICustomer | null
@@ -22,7 +22,7 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
     constructor(props: IOwnProps) {
         super(props);
         this.state = {
-            filter: null,
+            filter: "",
             customers: [],
             registrationOn: false,
             selectedCustomer: null,
@@ -31,10 +31,10 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
     }
 
     public componentDidUpdate = (prevProps: IOwnProps, prevState: IOwnState) => {
-        if (prevState.filter !== this.state.filter && this.state.filter != null) {
+        if (prevState.filter !== this.state.filter && this.state.filter !== "") {
             api.customers(this.state.filter)
                 .then((c) => this.customersSuccess(c.customers));
-            }
+        }
     }
 
     public render() {
@@ -59,7 +59,7 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
                                     }
                                 </> 
                                 : (
-                                    this.state.filter !== null && this.state.filter !== "" ? 
+                                    this.state.filter !== "" ? 
                                         <div>
                                             <span className="badge badge-danger">No customers found with filtered search</span> 
                                             <hr />
@@ -156,11 +156,21 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
     
 
     private selectedCustomer = (customer: ICustomer) => {
-        this.setState({ selectedCustomer: customer, customers: [], filter: null })
+        this.setState({ 
+            selectedCustomer: customer, 
+            customers: [], 
+            filter: "",
+            registrationOn: false
+        })
     }
 
     private registrationOn = (checked: boolean) => {
-        this.setState({ registrationOn: checked })
+        this.setState({ 
+            registrationOn: checked,
+            selectedCustomer: null,
+            filter: "",
+            customers: []
+        })
     }
 
     private keywordsChanged = (filter: string) => {

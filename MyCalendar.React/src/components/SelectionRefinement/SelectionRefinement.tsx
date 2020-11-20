@@ -4,7 +4,7 @@ import { RefinementInput } from './RefinementInput';
 
 
 interface IOwnProps {
-    filter?: string | null
+    filter: string 
     onChange: (filter: string) => void
     onLoading: (loading: boolean) => void
 }
