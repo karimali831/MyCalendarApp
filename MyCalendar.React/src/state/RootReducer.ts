@@ -10,5 +10,5 @@ export default
     (history: History<any>) =>
         combineReducers<IStoreState>({
             router: connectRouter(history),
-            notification: CustomerReducer
+            customer: CustomerReducer
         }); 

@@ -8,7 +8,7 @@ namespace MyCalendar.ER.Service
 {
     public interface ICustomerService
     {
-        Task<IEnumerable<Customer>> GetAllAsync();
+        Task<IEnumerable<Customer>> GetAllAsync(string filter = null);
     }
 
     public class CustomerService : ICustomerService
@@ -20,9 +20,9 @@ namespace MyCalendar.ER.Service
             this.customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
         }
 
-        public async Task<IEnumerable<Customer>> GetAllAsync()
+        public async Task<IEnumerable<Customer>> GetAllAsync(string filter = null)
         {
-            return await customerRepository.GetAllAsync();
+            return await customerRepository.GetAllAsync(filter);
         }
     }
 }

@@ -3,14 +3,13 @@ import { IBaseModel } from 'src/models/IBaseModel';
 import { RefinementInput } from './RefinementInput';
 
 interface IOwnState {
-    filter: string,
     loading: boolean
     showResults: boolean
 }
 
 interface IOwnProps {
-    filter?: string,
-    filterChanged: (filter: string) => void
+    filter?: string | null
+    onChange: (filter: string) => void
 }
 
 export class SelectionRefinement<T extends IBaseModel<T>> extends React.Component<IOwnProps, IOwnState> {
@@ -21,7 +20,6 @@ export class SelectionRefinement<T extends IBaseModel<T>> extends React.Componen
         super(props);
 
         this.state = {
-            filter: this.props.filter !== undefined ? this.props.filter : "",
             loading: false,
             showResults: false
         };
@@ -29,9 +27,13 @@ export class SelectionRefinement<T extends IBaseModel<T>> extends React.Componen
 
     public render() {
         return (
-            <div className="form-group form-group-lg">
-                <RefinementInput ref={this.inputRef} filter={this.state.filter} onChange={(e) => this.keywordsChanged(e)} placeholder="Search by categories..." />
+
+            <div className="wrap-input100 validate-input m-b-23">
+                <span className="label-input100">Customer Search</span>
+                <RefinementInput ref={this.inputRef} filter={this.props.filter} placeholder="Search by customer info..." onChange={this.props.onChange} />
+                <span className="focus-input100" data-symbol="&#xf190;" />
             </div>
+
         );
     }
 
@@ -39,24 +41,9 @@ export class SelectionRefinement<T extends IBaseModel<T>> extends React.Componen
         this.focusInput()
     }
 
-    public componentDidUpdate = (prevProps: IOwnProps, prevState: IOwnState) => {
-        if (prevState.filter !== this.state.filter) {
-            this.props.filterChanged(this.state.filter);
-        }
-    }
-
     public focusInput = () => {
         // if (this.inputRef.current) {
         //     this.inputRef.current.focus();
         // }
     }
-
-    private keywordsChanged = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const filter = e.target.value;
-
-        this.setState({
-            filter: filter
-        });
-    }
-
 }

@@ -13,7 +13,7 @@ namespace MyCalendar.ER.Repository
 {
     public interface ICustomerRepository
     {
-        Task<IEnumerable<Customer>> GetAllAsync();
+        Task<IEnumerable<Customer>> GetAllAsync(string filter = null);
     }
 
     public class CustomerRepository : ICustomerRepository
@@ -28,12 +28,22 @@ namespace MyCalendar.ER.Repository
         }
 
 
-        public async Task<IEnumerable<Customer>> GetAllAsync()
+        public async Task<IEnumerable<Customer>> GetAllAsync(string filter = null)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Customer>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
+                string sqlTxt = $@"
+                    {DapperHelper.SELECT(TABLE, FIELDS)}
+                    {(filter != null ? $@"WHERE
+                        FirstName LIKE '%{filter}%' OR
+                        LastName LIKE '%{filter}%' OR
+                        Address1 LIKE '%{filter}%' OR
+                        Postcode LIKE '%{filter}%' OR
+                        CustId LIKE '%{filter}%'" : "")}";
+
+                return (await sql.QueryAsync<Customer>(sqlTxt)).ToArray();
             }
         }
+
     }
 }

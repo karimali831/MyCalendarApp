@@ -191,7 +191,7 @@
                 success: function (data) {
                     if (data.status) {
                         $('#doc-saved').hide();
-                        $("#success-alert").fadeTo(2000, 500).slideUp(500, function () {
+                        $("#success-alert").fadeTo(1000, 500).slideUp(500, function () {
                             $('#editor').hide(500);
                             GetDoc($('#typeId').val());
                             $("#success-alert").slideUp(500);

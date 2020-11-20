@@ -1,12 +1,24 @@
 import * as React from 'react'
+import { debounce } from "lodash";
+
 
 interface IOwnProps {
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     placeholder: string
+    filter?: string | null,
+    onChange: (filter: string) => void
+}
+
+interface IOwnState {
     filter: string
 }
 
-export class RefinementInput extends React.Component<IOwnProps> {
+export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
+
+    public raiseDoSearchWhenUserStoppedTyping = debounce(() => {
+        if (this.state.filter != null) {
+            this.props.onChange(this.state.filter);
+        }
+      }, 2000);
 
     private inputRef: React.RefObject<HTMLInputElement>;
 
@@ -14,7 +26,22 @@ export class RefinementInput extends React.Component<IOwnProps> {
         super(props);
 
         this.inputRef = React.createRef<HTMLInputElement>();
+        this.state = {
+            filter: ""
+        };
     }
+    
+
+    public render = () => (
+        <input
+            className="form input100"
+            type="text"
+            ref={this.inputRef}
+            defaultValue={(this.props.filter != null ? this.props.filter : this.state.filter)}
+            placeholder={this.props.placeholder}
+            onChange={this.handleCriteriaChange}
+        />
+    )
 
     public focus = () => {
         if (this.inputRef.current) {
@@ -22,15 +49,10 @@ export class RefinementInput extends React.Component<IOwnProps> {
         }
     }
 
-    public render = () => (
-        <input
-            className="form-control"
-            type="text"
-            ref={this.inputRef}
-            value={this.props.filter}
-            onChange={this.props.onChange}
-            placeholder={this.props.placeholder}
-        />
-    )
+    private handleCriteriaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
+        this.setState({ filter: e.target.value }, () => {
+            this.raiseDoSearchWhenUserStoppedTyping();
+        });
+    };
 }

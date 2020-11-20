@@ -1,19 +1,21 @@
 
 import ICustomersState, { CustomerState } from './ICustomerState';
 import { Reducer } from 'redux';
-import { LandingSummaryActions, LandingSummaryActionTypes } from './Actions';
+import { LandingActions, LandingActionTypes } from './Actions';
 
-const CustomerReducer: Reducer<ICustomersState, LandingSummaryActions> =
+const CustomerReducer: Reducer<ICustomersState, LandingActions> =
     (state = CustomerState.intialState, action) => {
         switch (action.type) {
-            case LandingSummaryActionTypes.LoadCustomersSuccess:
+            case LandingActionTypes.LoadCustomersSuccess:
                 return {
                     ...state,
                     ...{
                         loading: false
                     }
                 }
-                
+
+            case LandingActionTypes.FilterChanged:
+                return { ...state, ...{ categoryFilter: action.filter } }   
 
             default:
                 return state;

@@ -8,13 +8,13 @@ import { IRouteState, RouteState } from './contexts/router/IRouteState';
 
 export default interface IStoreState {
     router: IRouteState,
-    notification: ICustomerState,
+    customer: ICustomerState,
 }
 
 export class StoreState {
     public static readonly initialState: IStoreState = {
         router: RouteState.initialState,
-        notification: CustomerState.intialState
+        customer: CustomerState.intialState
     };
 }
 

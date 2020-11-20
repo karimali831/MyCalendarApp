@@ -1,17 +1,17 @@
 import { api, ICustomerResponse } from '../../../Api/Api'
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { ReportErrorAction } from '../../contexts/error/Actions';
-import { LandingSummaryActionTypes, LoadCustomersSuccessAction, LoadCustomersFailureAction } from '../../contexts/landing/Actions';
+import { LandingActionTypes, LoadCustomersSuccessAction, LoadCustomersFailureAction } from '../../contexts/landing/Actions';
 
 export default function* loadCustomersApiSaga() {
-    yield takeLatest(LandingSummaryActionTypes.LoadCustomers, LoadCustomers);
+    yield takeLatest(LandingActionTypes.LoadCustomers, LoadCustomers);
 }
 
 export function* LoadCustomers() {
     try {
         
         // Start the API call asynchronously
-        const result: ICustomerResponse = yield call(api.customers);
+        const result: ICustomerResponse = yield call(api.customers, "");
 
         // Create an action to dispatch on success with the returned entity from API
         const resultAction = new LoadCustomersSuccessAction(result.customers);

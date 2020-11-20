@@ -23,12 +23,12 @@ namespace MyCalendar.Website.Controllers.API
             this.customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
         }
 
-        [Route("customers")]
+        [Route("customers/{filter}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetCustomers()
+        public async Task<HttpResponseMessage> GetCustomers(string filter)
         {
-            var customers = await customerService.GetAllAsync();
-            return Request.CreateResponse(HttpStatusCode.OK, new { customers });
+            var customers = await customerService.GetAllAsync(filter);
+            return Request.CreateResponse(HttpStatusCode.OK, new { Customers = customers });
         }
 
     }
