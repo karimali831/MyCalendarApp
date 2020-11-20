@@ -34,7 +34,7 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
         if (prevState.filter !== this.state.filter && this.state.filter != null) {
             api.customers(this.state.filter)
                 .then((c) => this.customersSuccess(c.customers));
-            }
+        }
     }
 
     public render() {
@@ -156,11 +156,19 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
     
 
     private selectedCustomer = (customer: ICustomer) => {
-        this.setState({ selectedCustomer: customer, customers: [], filter: null })
+        this.setState({ 
+            selectedCustomer: customer, 
+            customers: [], 
+            filter: null,
+            registrationOn: false
+        })
     }
 
     private registrationOn = (checked: boolean) => {
-        this.setState({ registrationOn: checked })
+        this.setState({ 
+            registrationOn: checked,
+            selectedCustomer: null
+        })
     }
 
     private keywordsChanged = (filter: string) => {

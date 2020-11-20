@@ -19,7 +19,7 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
         if (this.state.filter != null) {
             this.props.onChange(this.state.filter);
         }
-      }, 2000);
+      }, 1000);
 
     private inputRef: React.RefObject<HTMLInputElement>;
 
