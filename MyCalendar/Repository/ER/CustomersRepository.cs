@@ -37,6 +37,7 @@ namespace MyCalendar.ER.Repository
                     {(filter != null ? $@"WHERE
                         FirstName LIKE '%{filter}%' OR
                         LastName LIKE '%{filter}%' OR
+                        Email LIKE '%{filter}%' OR
                         Address1 LIKE '%{filter}%' OR
                         Postcode LIKE '%{filter}%' OR
                         CustId LIKE '%{filter}%'" : "")}";

@@ -370,6 +370,7 @@
     <Content Include="Content\froala\third_party\spell_checker.css" />
     <Content Include="Content\froala\third_party\spell_checker.min.css" />
     <Content Include="Content\Login.css" />
+    <Content Include="Content\Loader.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />

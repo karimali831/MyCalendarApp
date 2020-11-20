@@ -21,7 +21,7 @@ export class AppologyApi {
             return response.json();
 
         })
-        .then(data =>  data as ICustomerResponse);
+        .then(data => data as ICustomerResponse);
     }
 }
 

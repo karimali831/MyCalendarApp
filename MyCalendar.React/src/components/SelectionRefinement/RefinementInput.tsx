@@ -5,7 +5,8 @@ import { debounce } from "lodash";
 interface IOwnProps {
     placeholder: string
     filter?: string | null,
-    onChange: (filter: string) => void
+    onChange: (filter: string) => void,
+    onLoading: (loading: boolean) => void
 }
 
 interface IOwnState {
@@ -50,9 +51,12 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
     }
 
     private handleCriteriaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value.length > 2) {
+            this.props.onLoading(true);
 
-        this.setState({ filter: e.target.value }, () => {
-            this.raiseDoSearchWhenUserStoppedTyping();
-        });
+            this.setState({ filter: e.target.value }, () => {
+                this.raiseDoSearchWhenUserStoppedTyping();
+            });
+        }
     };
 }
