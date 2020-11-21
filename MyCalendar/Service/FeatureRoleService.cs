@@ -64,13 +64,16 @@ namespace MyCalendar.Service
 
                 var group = await groupRepository.GetAsync(featureGroupRole.GroupId);
 
-                if (roleIds.Any(x => superAdminRole.Any(r => r == x)))
+                if (group != null)
                 {
-                    accessibleGroups.Add(group);
-                }
-                else if (featureGroupRole.RoleIdsList.Any(x => roleIds.Any(r => r == x)))
-                {
-                    accessibleGroups.Add(group);
+                    if (roleIds.Any(x => superAdminRole.Any(r => r == x)))
+                    {
+                        accessibleGroups.Add(group);
+                    }
+                    else if (featureGroupRole.RoleIdsList.Any(x => roleIds.Any(r => r == x)))
+                    {
+                        accessibleGroups.Add(group);
+                    }
                 }
             }
 
@@ -90,13 +93,16 @@ namespace MyCalendar.Service
 
                 var feature = await featureRepository.GetAsync(featureGroupRole.FeatureId);
 
-                if (roleIds.Any(x => superAdminRole.Any(r => r == x)))
+                if (feature != null)
                 {
-                    accessibleFeatures.Add(feature);
-                }
-                else if (featureGroupRole.RoleIdsList.Any(x => roleIds.Any(r => r == x)))
-                {
-                    accessibleFeatures.Add(feature);
+                    if (roleIds.Any(x => superAdminRole.Any(r => r == x)))
+                    {
+                        accessibleFeatures.Add(feature);
+                    }
+                    else if (featureGroupRole.RoleIdsList.Any(x => roleIds.Any(r => r == x)))
+                    {
+                        accessibleFeatures.Add(feature);
+                    }
                 }
             }
 
