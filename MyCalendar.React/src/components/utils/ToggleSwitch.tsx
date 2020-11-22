@@ -14,7 +14,7 @@ interface IOwnProps {
 export const ToggleSwitch: React.FC<IOwnProps> = (props) => {
     return (
         <div>
-          <span style={{ marginRight: 10 }}>{props.name}</span>
+          <span className="label-input100" style={{ marginRight: 5 }}>{props.name}</span>
           <div className="toggle-switch small-switch">
             <input
               type="checkbox"

@@ -236,11 +236,11 @@ iframe {
 }
 
 .input100:focus + .focus-input100::after {
-  color: #a64bf4;
+  color: #0094ff;
 }
 
 .has-val.input100 + .focus-input100::after {
-  color: #a64bf4;
+  color: #0094ff;
 }
 
 
@@ -277,7 +277,7 @@ iframe {
   z-index: -1;
   width: 300%;
   height: 100%;
-  background: #a64bf4;
+  background: #0094ff;
   background: -webkit-linear-gradient(right, #00dbde, #fc00ff, #00dbde, #fc00ff);
   background: -o-linear-gradient(right, #00dbde, #fc00ff, #00dbde, #fc00ff);
   background: -moz-linear-gradient(right, #00dbde, #fc00ff, #00dbde, #fc00ff);

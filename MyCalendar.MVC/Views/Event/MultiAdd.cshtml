@@ -13,9 +13,9 @@
             Scheduler
         </span>
 
-        <div class="wrap-input100 validate-input m-b-23" data-validate="Event quantity is required">
+        <div class="wrap-input100 m-b-23">
             <span class="label-input100">How many events to add?</span>
-            <select id="dates" name="dates" class="form input100" onchange="selectDates(this,'@Url.Action("MultiAdd", "Event")')">
+            <select id="dates" name="dates" class="form input100" onchange="selectDates(this,'@Url.Action("MultiAdd", "Event")')" required>
                 <option value="">-- select quantity --</option>
                 @for (int i = 1; i <= 10; i++)
                 {
@@ -28,7 +28,7 @@
 
         if (Model.Dates > 0)
         {
-            <div class="wrap-input100 validate-input m-b-23" data-validate="Select calendar is required">
+            <div class="wrap-input100 m-b-23">
                 <span class="label-input100">In what calendar?</span>
 
                 <select id="calendars" name="calendarId" class="form input100" required>
@@ -42,7 +42,7 @@
             </div>
             if (Model.Dates > 1)
             {
-                <div class="wrap-input100 validate-input m-b-23">
+                <div class="wrap-input100 m-b-23">
                     <span class="label-input100">Apply same tag to each event?</span>
 
                     <select id="defaultTag" name="defaulTagId" class="form input100">
@@ -55,13 +55,13 @@
                     <span class="focus-input100" data-symbol="&#xf188;"></span>
                 </div>
 
-                <div class="wrap-input100 validate-input">
-                    <span class="label-input100">Apply same from time for each event?</span>
+                <div class="wrap-input100 m-b-23">
+                    <span class="label-input100">Apply same start time to each event?</span>
                     <input type="time" name="fromTime" step="300" class="form input100" />
                     <span class="focus-input100" data-symbol="&#xf337;"></span>
                 </div>
-                <div class="wrap-input100 validate-input">
-                    <span class="label-input100">Apply same to time for each event?</span>
+                <div class="wrap-input100 m-b-23">
+                    <span class="label-input100">Apply same end time to each event?</span>
                     <input type="time" name="toTime" step="300" class="form input100" />
                     <span class="focus-input100" data-symbol="&#xf337;"></span>
                 </div>
@@ -74,7 +74,7 @@
                     <span class="login100-form-title p-b-49" style="font-size: 23px; margin-top: -30px; margin-bottom: -30px;">
                         Event #@(i + 1)
                     </span>
-                    <div class="wrap-input100 validate-input m-b-23">
+                    <div class="wrap-input100 m-b-23">
                         <span class="label-input100">Tag</span>
 
                         <select id="tag@(i)" name="TagId[]" class="form input100" required>
@@ -84,14 +84,14 @@
                                 <option value="@tag.Id" selected="@(Model.TagId != null && Model.TagId.Contains(tag.Id) ? true : false)">@tag.Name</option>
                             }
                         </select>
-                        <span class="focus-input100" data-symbol="&#xf1db;"></span>
+                        <span class="focus-input100" data-symbol="&#xf187;"></span>
                     </div>
-                    <div class="wrap-input100 validate-input" data-validate="Start date required">
+                    <div class="wrap-input100 m-b-23">
                         <span class="label-input100">Start Date</span>
                         <input type="datetime-local" id="start@(i)" name="StartDate[]" class="form input100" step="300" value="@(Model.StartDate != null && Model.StartDate[i] != null ? Model.StartDate[i].ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(1).ToString("yyy-MM-ddTHH:00"))" required />
                         <span class="focus-input100" data-symbol="&#xf337;"></span>
                     </div>
-                    <div class="wrap-input100 validate-input" data-validate="End date required">
+                    <div class="wrap-input100 m-b-23">
                         <span class="label-input100">End Date</span>
                         <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form input100" step="300" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
                         <span class="focus-input100" data-symbol="&#xf337;"></span>
