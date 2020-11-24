@@ -32,7 +32,7 @@
             <input type="checkbox" id="tm">
             <ul class="main-menu clearfix">
                 <li class="home-link">
-                    @Html.ActionLink(AppName, Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName, new { area = "" })
+                    @Html.ActionLink(AppName, Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)
                 </li>
                 @if (Model != null && Model.User != null)
                 {

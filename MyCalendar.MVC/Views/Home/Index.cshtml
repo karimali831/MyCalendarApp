@@ -113,6 +113,7 @@ else
         <script>
             $(document).ready(function () {
                 var defaultCalendarId = '@baseModel.UserCalendars.FirstOrDefault(x => x.Defaulted).Id';
+
                 var selectedCalendars = [defaultCalendarId]
                 $("input[name='selectedCalendar[]']").click(function () {
                     selectedCalendars = [];
@@ -265,12 +266,10 @@ else
                     openAddEditForm();
                 })
                 $('#btnDelete').click(function () {
-                    var userId = '@baseModel.User.UserID';
+                    if (!canEdit()) {
+                        return;
+                    }
 
-                    //if (userId != SelectedCalendar().calenderUserId) {
-                    //    alert('Cannot remove event - selected calendar is not yours');
-                    //    return;
-                    //}
                     if (selectedEvent != null && confirm('Are you sure?')) {
                         $.ajax({
                             type: "POST",
@@ -334,13 +333,26 @@ else
                     }
                 }
 
-                function openAddEditForm() {
-                    var userId = '@baseModel.User.UserID';
+                function canEdit() {
+                    var ownCalendarIds = @Html.Raw(Json.Encode(baseModel.UserCalendars.Where(x => x.UserCreatedId == baseModel.User.UserID).Select(x => x.Id).ToArray()));
 
-                    //if (userId != SelectedCalendar().calenderUserId) {
-                    //    alert('Cannot add/edit event - selected calendar is not yours');
-                    //    return;
-                    //}
+                    if (selectedCalendars.length != 1) {
+                        alert('You must select one of your Calendars. Deselect other calendars in the Menu.');
+                        return false;
+                    }
+                    else {
+                        if (ownCalendarIds.some(item => item != selectedCalendars[0])) {
+                            alert('You must select one Calendar in the menu that is yours.');
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                function openAddEditForm() {
+                    if (!canEdit()) {
+                        return;
+                    }
 
                     if (selectedEvent != null) {
                         $('#hdEventID').val(selectedEvent.eventID);
@@ -391,7 +403,7 @@ else
                     var data = {
                         EventID: $('#hdEventID').val(),
                         TagID: $('#ddTagID').val(),
-                        //CalendarId: SelectedCalendar().calendarId,
+                        CalendarId: selectedCalendars[0],
                         Start: $('#txtStart').val().trim(),
                         End: $('#chkIsFullDay').is(':checked') ? null : $('#txtEnd').val().trim(),
                         Description: $('#txtDescription').val(),
