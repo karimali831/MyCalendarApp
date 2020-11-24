@@ -207,17 +207,22 @@ namespace MyCalendar.Service
 
             if (events != null && events.Any())
             {
-                var users = (await GetAllAsync()).Where(x => x.UserID != userId);
-
                 foreach (var activity in events)
                 {
                     var tag = await GetUserTagAysnc(activity.TagID);
                     string userName = (await GetByUserIDAsync(activity.UserID)).Name;
                     string getName = "";
 
-                    if (tag.InviteeIdsList.Any() || events.Any(x => x.InviteeIdsList.Contains(userId)))
+                    if (activity.InviteeIdsList.Any())
                     {
-                        getName += $"You, {string.Join(", ", users.Select(x => x.Name))}";
+                        var inviteeList = new List<string>();
+                        foreach (var invitee in activity.InviteeIdsList)
+                        {
+                            var inviteeName = (await GetByUserIDAsync(invitee)).Name;
+                            inviteeList.Add(inviteeName);
+                        }
+
+                        getName += $"You, {string.Join(", ", string.Join(", ", inviteeList))}";
                     }
                     else
                     {
