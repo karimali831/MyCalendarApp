@@ -11,6 +11,7 @@ using MyCalendar.Website.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -39,11 +40,13 @@ namespace MyCalendar.Controllers
             var user = await userService.GetUser();
             var buddys = await userService.GetBuddys(user.UserID);
             var userTags = await userService.GetUserTags(user.UserID);
+            var userCalendars = await userService.UserCalendars(user.UserID);
 
             return new BaseVM
             {
                 User = user,
                 Buddys = buddys,
+                UserCalendars = userCalendars,
                 AccessibleGroups = await AccessibleGroups(user.RoleIdsList),
                 AccessibleFeatures = await AccessibleFeatures(user.RoleIdsList),
                 UserTags = new TagsDTO { Tags = userTags },

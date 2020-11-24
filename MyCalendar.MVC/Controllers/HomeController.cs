@@ -14,12 +14,10 @@ namespace MyCalendar.Controllers
 {
     public class HomeController : UserMvcController
     {
-        private readonly ITypeService typeService;
         private readonly IDocumentService documentService;
 
-        public HomeController(IUserService userService, IFeatureRoleService featureRoleService, ITypeService typeService, IDocumentService documentService) : base(userService, featureRoleService)
+        public HomeController(IUserService userService, IFeatureRoleService featureRoleService, IDocumentService documentService) : base(userService, featureRoleService)
         {
-            this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
             this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         }
 
@@ -27,15 +25,7 @@ namespace MyCalendar.Controllers
         {
             await BaseViewModel(new MenuItem { Home = true }, updateResponse, updateMsg);
             var baseVM = ViewData["BaseVM"] as BaseVM;
-
-            var userCalendars = (await typeService.GetUserTypesAsync(baseVM.User.UserID)).Where(x => x.GroupId == TypeGroup.Calendars);
-           
-            foreach (var calendar in userCalendars)
-            {
-                calendar.InviteeName = (await GetUserById(calendar.UserCreatedId)).Name;
-            }
-
-            return View(new CalendarVM { UserCalendars = userCalendars });
+            return View(new CalendarVM { UserCalendars = baseVM.UserCalendars });
         }
 
         public async Task<ActionResult> ChangeLog()

@@ -14,30 +14,24 @@ namespace MyCalendar.Controllers
     public class EventController : UserMvcController
     {
         private readonly IEventService eventService;
-        private readonly ICronofyService cronofyService;
-        private readonly ITagService tagService;
 
-        public EventController(
-            IEventService eventService, 
-            IUserService userService, 
-            ICronofyService cronofyService, 
-            ITagService tagService,
-            IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public EventController(IEventService eventService, IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
-            this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
-            this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
+   
         }
-
-        public async Task<JsonResult> Get(int calendarId)
+         
+        [HttpPost]
+        public async Task<JsonResult> Get(int[] calendarId)
         {
-            var user = await GetUser();
+            await BaseViewModel(new MenuItem { Home = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var events = await eventService.GetAllAsync(user, calendarId);
+            var events = await eventService.GetAllAsync(baseVM.User, calendarId);
             var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
-            var currentActivity = await CurrentUserActivity(activeEvents, user.UserID);
+            var currentActivity = await CurrentUserActivity(activeEvents, baseVM.User.UserID);
 
             return new JsonResult { Data = new { events = dto, currentActivity }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
@@ -182,7 +176,8 @@ namespace MyCalendar.Controllers
             
         }
 
-        public async Task<ActionResult> Overview(DateFrequency? frequency = null, int? interval = null, DateTime? fromDate = null, DateTime? toDate = null)
+
+        public async Task<ActionResult> Overview()
         {
             await BaseViewModel(new MenuItem { Overview = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
@@ -192,10 +187,8 @@ namespace MyCalendar.Controllers
 
             var dateFilter = new DateFilter
             {
-                Frequency = frequency ?? DateFrequency.LastXDays,
-                Interval = interval ?? 7,
-                FromDateRange = fromDate ?? Utils.DateTime(),
-                ToDateRange = toDate ?? Utils.DateTime()
+                Frequency = DateFrequency.LastXDays,
+                Interval = 7
             };
 
             var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User, dateFilter);
@@ -207,6 +200,23 @@ namespace MyCalendar.Controllers
                     HoursWorkedInTag = hoursWorkedInTag
                 });
 
+        }
+
+        public async Task<JsonResult> GetFilteredOverview(DateFrequency frequency, int interval, DateTime? fromDate = null, DateTime? toDate = null)
+        {
+            await BaseViewModel(new MenuItem { Overview = true });
+            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
+
+            var dateFilter = new DateFilter
+            {
+                Frequency = frequency,
+                Interval = interval,
+                FromDateRange = fromDate,
+                ToDateRange = toDate
+            };
+
+            var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User, dateFilter);
+            return new JsonResult { Data = hoursWorkedInTag, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
     }
 }

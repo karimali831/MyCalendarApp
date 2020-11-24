@@ -16,6 +16,8 @@ namespace MyCalendar.Model
         public string Name { get; set; }
         public string ThemeColor { get; set; }
         [DbIgnore]
+        public string TypeName { get; set; }
+        [DbIgnore]
         public string InviteeIds { get; set; }
         [DbIgnore]
         public bool UpdateDisabled { get; set; }

@@ -6,70 +6,116 @@
     ViewBag.Frequency = ((DateFrequency)Model.Filter.Frequency);
 }
 
-    <div class="jumbotron">
-        <h3><span class="fas fa-chart-bar"> Activity Hub</span></h3>
-        <hr />
-
-        @using (Html.BeginForm(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName, FormMethod.Get, new { @class = "form-inline" }))
-        {
+<div class="jumbotron">
+    <h3><span class="fas fa-chart-bar"> Activity Hub</span></h3>
+    <hr />
+    <div class="form-inline" role="form">
+        <div class="row">
             <div class="form-group">
-                <select class="form-control" onchange='location.href = this.value' style = "width:150px">
+                <select class="form-control" id="frequency" style="width:150px; display: inline">
                     @foreach (DateFrequency frequency in Enum.GetValues(typeof(DateFrequency)))
                     {
-                        <option value="@Url.Action("Overview", new { frequency = frequency, interval = Model.Filter.Interval })" selected="@(Model.Filter.Frequency == frequency ? true : false)">@frequency</option>
+                        <option value="@frequency" selected="@(Model.Filter.Frequency == frequency ? true: false)">@frequency</option>
                     }
                 </select>
             </div>
 
-            if (Model.Filter.Frequency.ToString().Contains("Last"))
-            {
-                <div class="form-group">
-                    <select class="form-control" onchange='location.href = this.value'  style = "width:80px">
-                        @for (int i = 1; i <= 30; i++)
-                        {
-                            <option value="@Url.Action("Overview", new { frequency = Model.Filter.Frequency, interval = i })" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
-                        }
-                    </select>
-                </div>
-            }
+            <div class="form-group" id="showInterval">
+                <select class="form-control" id="interval" style="width:90px; display: inline">
+                    @for (int i = 1; i <= 30; i++)
+                    {
+                        <option value="@i" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
+                    }
+                </select>
+            </div>
 
-            if (Model.Filter.Frequency == DateFrequency.DateRange)
-            {
-                <div class="form-group">
-                    @Html.TextBoxFor(x => x.Filter.FromDateRange, "{0:yyyy-MM-dd}", new { Name = "fromDate", style = "width:150px", @class = "form-control", required = "required", @type = "date" })
+            <div id="showDateRanges" style="display: none">
+                <div class="form-group" style="display: inline">
+                    @Html.TextBoxFor(x => x.Filter.FromDateRange, "{0:yyyy-MM-dd}", new { id = "fromDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
                 </div>
-                <div class="form-group">
-                    @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { Name = "toDate", style = "width:150px", @class = "form-control", required = "required", @type = "date" })
+                <div class="form-group" style="display: inline">
+                    @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { id = "toDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
                 </div>
-            }
-            <input type="hidden" name="frequency" value="@Model.Filter.Frequency" />
-            <input type="hidden" name="interval" value="@Model.Filter.Interval" />
-            <button type="submit" class="btn btn-primary">Show Me</button>
-        }
+            </div>
 
-        @if (Model.HoursWorkedInTag != null && Model.HoursWorkedInTag.Any())
-        {
-            <ul class="list-group">
-                @foreach (var e in Model.HoursWorkedInTag)
-                {
-                    <li class="list-group-item" style="background: @e.Color; color: @Utils.ContrastColor(e.Color)">
-                        @if (e.MultiUsers)
-                        {
-                            <span class="fas fa-user small" style="text-indent: -11px;"></span>
-                            <span class="fas fa-user small" style="text-indent: -8px;"></span>
-                        }
-                        else
-                        {
-                            <span class="fas fa-tag small"></span>
-                        }
-                       <small>@e.Text<span style="float: right">#@e.TypeName</span></small>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <p>Nothing found</p>
-        }
+            <button class="btn btn-primary" id="btnFilter" style="display: inline">Show Me</button>
+        </div>
     </div>
+    <hr />
+    <div id="load-activities" style="display: none">
+        <div class="loader"></div>
+    </div>
+    @if (Model.HoursWorkedInTag != null && Model.HoursWorkedInTag.Any())
+    {
+        <ul class="list-group" id="activities">
+            @foreach (var e in Model.HoursWorkedInTag)
+            {
+                <li class="list-group-item" style="background: @e.Color; color: @e.ContrastColor">
+                    <span class="fas @e.ActivityTag"></span> <small> @e.Text<span style="float: right">#@e.TypeName</span></small>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>Nothing found</p>
+    }
+</div>
 
+ @section Scripts{
+    <script>
+        $(document).ready(function () {
+            $("#frequency").change(function () {
+                if ($(this).val().indexOf('Last') >= 0) {
+                    $('#showInterval').show(500);
+                    $('#showDateRanges').hide(500);
+                }
+                else if ($(this).val() == '@DateFrequency.DateRange') {
+                    $('#showDateRanges').show(500);
+                    $('#showInterval').hide(500);
+                }
+                else {
+                    $('#showDateRanges').hide(500);
+                    $('#showInterval').hide(500);
+                }
+            });
+
+            $("#btnFilter").click(function () {
+                var interval = $('#interval').val() == "" ? '@Model.Filter.Interval' : $('#interval').val();
+                var fromDate = $('#fromDate').val() == "" ? '@Model.Filter.FromDateRange' : $('#fromDate').val();
+                var toDate = $('#toDate').val() == "" ? '@Model.Filter.ToDateRange' : $('#toDate').val();
+
+                $("#load-activities").show();
+                $.ajax({
+                    type: "GET",
+                    data: {
+                        'frequency': $('#frequency').val(),
+                        'interval': interval,
+                        'fromDate': fromDate,
+                        'toDate': toDate
+                    },
+                    url: "/Event/GetFilteredOverview/",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        $("#load-activities").hide();
+                        $("#activities").html("");
+                        var trHTML = '';
+                        if (response.length == 0) {
+                            trHTML += '<li class="list-group-item">No activities</li>';
+                        } else {
+                            $.each(response, function (i, item) {
+                                trHTML += '<li class="list-group-item" style="background: ' + item.Color + '; color: ' + item.ContrastColor + '"><span class="fas ' + item.ActivityTag + ' small"></span><small>' + item.Text + ' <span style="float: right">#' + item.TypeName + '</span></small></li>';
+                            });
+                        }
+
+                        $('#activities').append(trHTML);
+                    },
+                    error: function (result) {
+                        alert("Error: " + result.status);
+                    }
+                })
+            });
+        })
+    </script>
+}

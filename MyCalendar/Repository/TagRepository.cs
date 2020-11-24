@@ -35,7 +35,7 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return (await sql.QueryAsync<Tag>(@$" 
-                    SELECT t.Id, t.UserId, t.TypeId, t.Name, t.ThemeColor, ty.InviteeIds
+                    SELECT t.Id, t.UserId, t.TypeId, t.Name, t.ThemeColor, ty.InviteeIds, ty.Name AS TypeName
                     FROM {TABLE} t
                     LEFT JOIN Types ty
                     ON t.TypeID = ty.Id

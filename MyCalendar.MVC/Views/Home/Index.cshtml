@@ -21,22 +21,7 @@
 }
 else
 {
-
     <div id="currentActivity" class="alert alert-info" role="alert" style="display: none"></div>
-    <div id="selectCalendar" class="form-group">
-        <select id="selectedCalendar" class="form-control">
-            @foreach (var userCalendar in Model.UserCalendars.GroupBy(x => (UserCreatedId: x.UserCreatedId, InviteeName: x.InviteeName)))
-            {
-                <optgroup label="@(userCalendar.Key.UserCreatedId == baseModel.User.UserID ? "My Calendars" : "Calendars shared by " + userCalendar.Key.InviteeName)">
-                    @foreach (var calendar in userCalendar.Where(x => x.UserCreatedId == userCalendar.Key.UserCreatedId))
-                    {
-                        <option value="@calendar.UserCreatedId#@calendar.Id">Calendar - @calendar.Name</option>
-                    }
-                </optgroup>
-            }
-        </select>
-    </div>
-
     <div id="calender"></div>
     <div id="myModal" class="modal fade" role="dialog">
         <div class="modal-dialog">
@@ -127,11 +112,17 @@ else
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
         <script>
             $(document).ready(function () {
+                var defaultCalendarId = '@baseModel.UserCalendars.FirstOrDefault(x => x.Defaulted).Id';
+                var selectedCalendars = [defaultCalendarId]
+                $("input[name='selectedCalendar[]']").click(function () {
+                    selectedCalendars = [];
+                    $("input[name='selectedCalendar[]']").each(function () {
+                        if ($(this).is(":checked"))
+                            selectedCalendars.push($(this).val());
+                    });
 
-                $('#selectedCalendar').change(function () {
-                    //Refresh the calender
                     FetchEventAndRenderCalendar();
-                })
+                });
 
                 var events = [];
                 var activity = [];
@@ -142,8 +133,8 @@ else
                     activity = [];
                     $("#cover-spin").show();
                     $.ajax({
-                        type: "GET",
-                        data: { 'calendarId': SelectedCalendar().calendarId },
+                        type: "POST",
+                        data: { 'calendarId': selectedCalendars },
                         url: "/Event/Get/",
                         success: function (data) {
                             $("#cover-spin").hide();
@@ -173,14 +164,6 @@ else
                             alert('failed');
                         }
                     })
-                }
-
-                function SelectedCalendar() {
-                    var selectedCalendar = $('#selectedCalendar option:selected').attr("value").split("#");
-                    return {
-                        calenderUserId: selectedCalendar[0],
-                        calendarId: selectedCalendar[1],
-                    };
                 }
 
                 function CurrentUserActivity(activity) {
@@ -284,10 +267,10 @@ else
                 $('#btnDelete').click(function () {
                     var userId = '@baseModel.User.UserID';
 
-                    if (userId != SelectedCalendar().calenderUserId) {
-                        alert('Cannot remove event - selected calendar is not yours');
-                        return;
-                    }
+                    //if (userId != SelectedCalendar().calenderUserId) {
+                    //    alert('Cannot remove event - selected calendar is not yours');
+                    //    return;
+                    //}
                     if (selectedEvent != null && confirm('Are you sure?')) {
                         $.ajax({
                             type: "POST",
@@ -354,10 +337,10 @@ else
                 function openAddEditForm() {
                     var userId = '@baseModel.User.UserID';
 
-                    if (userId != SelectedCalendar().calenderUserId) {
-                        alert('Cannot add/edit event - selected calendar is not yours');
-                        return;
-                    }
+                    //if (userId != SelectedCalendar().calenderUserId) {
+                    //    alert('Cannot add/edit event - selected calendar is not yours');
+                    //    return;
+                    //}
 
                     if (selectedEvent != null) {
                         $('#hdEventID').val(selectedEvent.eventID);
@@ -408,7 +391,7 @@ else
                     var data = {
                         EventID: $('#hdEventID').val(),
                         TagID: $('#ddTagID').val(),
-                        CalendarId: SelectedCalendar().calendarId,
+                        //CalendarId: SelectedCalendar().calendarId,
                         Start: $('#txtStart').val().trim(),
                         End: $('#chkIsFullDay').is(':checked') ? null : $('#txtEnd').val().trim(),
                         Description: $('#txtDescription').val(),

@@ -61,7 +61,7 @@
   width: 200%;
 }
 .toggle-switch-inner:before {
-  background-color: #0094ff;
+  background-color: #09c;
   box-sizing: border-box;
   color: #fff;
   content: attr(data-yes);

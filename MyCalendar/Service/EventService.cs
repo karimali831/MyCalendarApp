@@ -14,7 +14,7 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(User user, int? calendarId = null, DateFilter filter = null);
+        Task<IEnumerable<Event>> GetAllAsync(User user, int[] calendarIds, DateFilter filter = null);
         Task<bool> SaveEvent(EventVM e);
         Task<bool> SaveEvents(IList<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId);
@@ -67,16 +67,16 @@ namespace MyCalendar.Service
             return (await typeService.GetAllByUserIdAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(User user, int? calendarId = null, DateFilter filter = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(User user, int[] calendarIds, DateFilter filter = null)
         {
             var accessibleCalendars = (await GetAccessibleCalendars(user.UserID)).Select(x => x.Id);
 
-            if (calendarId.HasValue && !accessibleCalendars.Contains(calendarId.Value))
+            if (!accessibleCalendars.Any(x => calendarIds.Any(y => x == y)))
             {
                 throw new ApplicationException("No permission to view calendar events");
             }
 
-            var events = await eventRepository.GetAllAsync(calendarId, filter);
+            var events = await eventRepository.GetAllAsync(calendarIds, filter);
          
             if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
@@ -234,8 +234,9 @@ namespace MyCalendar.Service
 
         public async Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, DateFilter dateFilter)
         {
-            var buddys = await userService.GetBuddys(user.UserID);
-            var events = (await GetAllAsync(user, filter: dateFilter))
+            var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
+
+            var events = (await GetAllAsync(user, userCalendarIds, filter: dateFilter))
                 .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID))
                 .GroupBy(x => x.TagID);
 
@@ -248,13 +249,20 @@ namespace MyCalendar.Service
                     if (e.Key != Guid.Empty)
                     {
                         var tag = await userService.GetUserTagAysnc(e.Key);
-                        var type = await typeService.GetAsync(tag.TypeID);
                         string userName = "You";
                         bool multiUser = false;
 
                         if (tag.InviteeIdsList.Any())
                         {
-                            userName += ", " + string.Join(", ", buddys.Select(x => x.Name));
+                            var inviteeList = new List<string>();
+                            foreach (var invitee in tag.InviteeIdsList)
+                            {
+                                var id = invitee == user.UserID ? tag.UserID : invitee;
+                                var inviteeName = (await userService.GetByUserIDAsync(id)).Name;
+                                inviteeList.Add(inviteeName);
+                            }
+
+                            userName += ", " + string.Join(", ", inviteeList);
                             multiUser = true;
                         }
 
@@ -287,7 +295,9 @@ namespace MyCalendar.Service
                                 Text = text,
                                 MultiUsers = multiUser,
                                 Color = tag.ThemeColor,
-                                TypeName = type.Name
+                                ContrastColor = Utils.ContrastColor(tag.ThemeColor),
+                                TypeName = tag.TypeName,
+                                ActivityTag = multiUser ? "fa-user-friends" : "fa-tag"
                             });
                         }
                     }

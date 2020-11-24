@@ -25,11 +25,13 @@ namespace MyCalendar.Service
         Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
         Task<IList<User>> GetBuddys(Guid userId);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
+        Task<IEnumerable<Types>> UserCalendars(Guid userId);
     }
     ;
     public class UserService : IUserService
     {
         private readonly IUserRepository userRepository;
+        private readonly ITypeService typeService;
         private readonly ITagService tagService;
         private readonly ICronofyService cronofyService;
         private readonly ITagRepository tagRepository;
@@ -38,12 +40,14 @@ namespace MyCalendar.Service
             ITagService tagService, 
             IUserRepository userRepository, 
             ICronofyService cronofyService, 
-            ITagRepository tagRepository)
+            ITagRepository tagRepository,
+            ITypeService typeService)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
             this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
+            this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
@@ -68,6 +72,18 @@ namespace MyCalendar.Service
             }
 
             return buddyList;
+        }
+
+        public async Task<IEnumerable<Types>> UserCalendars(Guid userId)
+        {
+            var userCalendars = (await typeService.GetUserTypesAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
+
+            foreach (var calendar in userCalendars)
+            {
+                calendar.InviteeName = (await GetByUserIDAsync(calendar.UserCreatedId)).Name;
+            }
+
+            return userCalendars;
         }
 
         public async Task<bool> UpdateAsync(User user)

@@ -10,7 +10,9 @@ namespace MyCalendar.Model
     {
         public string Text { get; set; }
         public bool MultiUsers { get; set; }
+        public string ActivityTag { get; set; }
         public string Color { get; set; }
+        public string ContrastColor { get; set; }
         public string TypeName { get; set; }
     }
 }
