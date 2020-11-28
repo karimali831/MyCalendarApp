@@ -142,7 +142,7 @@
                 $('#start' + n).change(function () {
                     var start = $(this).val();
                     var end = $('#end' + n).val();
-                    var date = end.substring(0, 8) + start.substring(8, 10) + end.substring(10, 16);
+                    var date = start.substring(0, 10) + end.substring(10, 16);
                     $('#end' + n).val(date);
                 });
             }
