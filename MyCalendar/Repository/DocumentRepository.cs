@@ -16,6 +16,7 @@ namespace MyCalendar.Repository
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
         Task<Document> GetAsync(Guid Id);
         Task<bool> InsertOrUpdateAsync(Document dto);
+        Task<bool> MoveAsync(Guid docId, int moveToId);
     }
 
     public class DocumentRepository : IDocumentRepository
@@ -59,6 +60,23 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE Id = @Id", new { Id = docId });
+            }
+        }
+
+        public async Task<bool> MoveAsync(Guid docId, int moveToId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET TypeId = @moveToId WHERE Id = @docId", new { docId, moveToId });
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
             }
         }
 

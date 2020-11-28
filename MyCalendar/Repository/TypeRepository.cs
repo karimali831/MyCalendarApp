@@ -19,6 +19,7 @@ namespace MyCalendar.Repository
         Task<bool> UpdateTypeAsync(Types type);
         Task<bool> AddTypeAsync(TypeDTO type);
         Task<bool> DeleteTypeAsync(int Id);
+        Task<bool> MoveTypeAsync(int Id, int? moveToId = null);
     }
 
     public class TypeRepository : ITypeRepository
@@ -98,6 +99,23 @@ namespace MyCalendar.Repository
                 try
                 {
                     await sql.ExecuteAsync($"{DapperHelper.DELETE(TABLE)} WHERE Id = @Id", new { Id } );
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
+            }
+        }
+
+        public async Task<bool> MoveTypeAsync(int Id, int? moveToId = null)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET SuperTypeId = {(moveToId.HasValue ? moveToId : "null")} WHERE Id = @Id", new { Id });
                     return true;
                 }
                 catch (Exception exp)

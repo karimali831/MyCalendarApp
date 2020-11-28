@@ -2,7 +2,6 @@
 @using MyCalendar.Website.ViewModels
 @using MyCalendar.Enums
 @using MyCalendar.Helpers
-@using System.Configuration
 @{
     var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
 }
@@ -92,7 +91,7 @@
         </div>
     </div>
     <div class="card">
-        <div class="card-header" id="headingFour"">
+        <div class="card-header" id="headingFour">
             <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
                 <h5 class="fas fa-user-friends"> Buddys</h5>
             </button>
@@ -147,6 +146,7 @@
             //alert("Copied the text: " + copyText.value);
         }
         $(document).ready(function () {
+
             /* tags */
             $(".add-more").click(function () {
                 var html = $(".copy").html();
@@ -174,32 +174,23 @@
                 return false;
             });
 
-            
             $('.selectedGroupId').each(function () {
                 var selectedGroupId = $(this).text();
-
-                $('#add-' + selectedGroupId).click(function (e) {
-                    $('.add-' + selectedGroupId).toggle(500);
+                $('#addroot-' + selectedGroupId).click(function (e) {
+                    e.stopPropagation();
+                    $('.addroot-' + selectedGroupId).show(500);
                 });
-
 
                 $('.selectedUserTypeId').each(function () {
                     var selectedUserTypeId = $(this).text();
-
-                    $('#add-' + selectedUserTypeId).unbind('click').click(function (e) {
+                    $('#add-' + selectedUserTypeId).click(function (e) {
                         e.stopPropagation();
-                        $(this).toggleClass("active");
-                        $('#edit-' + selectedUserTypeId).removeClass("active");
-                        $('.edit-' + selectedUserTypeId).hide(500);
-                        $('.add-' + selectedUserTypeId).toggle(500);
+                        $('.add-' + selectedUserTypeId).show(500);
                     });
 
-                    $('#edit-' + selectedUserTypeId).unbind('click').click(function (e) {
+                    $('#edit-' + selectedUserTypeId).click(function (e) {
                         e.stopPropagation();
-                        $(this).toggleClass("active");
-                        $('#add-' + selectedUserTypeId).removeClass("active");
-                        $('.add-' + selectedUserTypeId).hide(500);
-                        $('.edit-' + selectedUserTypeId).toggle(500);
+                        $('.edit-' + selectedUserTypeId).show(500);
                     });
 
                     $('.add-edit-' + selectedUserTypeId).click(function (e) {

@@ -16,6 +16,7 @@ namespace MyCalendar.Service
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
         Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId);
         Task<bool> InsertOrUpdateAsync(Document doc);
+        Task<bool> MoveAsync(Guid docId, int moveToId);
     }
 
     public class DocumentService : IDocumentService
@@ -89,6 +90,11 @@ namespace MyCalendar.Service
         public async Task<bool> InsertOrUpdateAsync(Document doc)
         {
             return await documentRepository.InsertOrUpdateAsync(doc);
+        }
+
+        public async Task<bool> MoveAsync(Guid docId, int moveToId)
+        {
+            return await documentRepository.MoveAsync(docId, moveToId);
         }
     }
 }

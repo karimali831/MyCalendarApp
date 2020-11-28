@@ -20,6 +20,7 @@ namespace MyCalendar.Helpers
                 new KeyValuePair<Section, string>(Section.Profile, "/settings/index"),
                 new KeyValuePair<Section, string>(Section.UpdateTags, "/settings/updatetags"),
                 new KeyValuePair<Section, string>(Section.UpdateType, "/settings/updatetype"),
+                new KeyValuePair<Section, string>(Section.MoveType, "/settings/movetype"),
                 new KeyValuePair<Section, string>(Section.RemoveType, "/settings/removetype"),
                 new KeyValuePair<Section, string>(Section.AddType, "/settings/addtype"),
                 new KeyValuePair<Section, string>(Section.Logout, "/account/logout"),
@@ -27,6 +28,8 @@ namespace MyCalendar.Helpers
                 new KeyValuePair<Section, string>(Section.Scheduler, "/event/multiadd"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/cronofy/profiles"),
                 new KeyValuePair<Section, string>(Section.Document, "/document/index"),
+                new KeyValuePair<Section, string>(Section.MoveDocument, "/document/move"),
+                new KeyValuePair<Section, string>(Section.DocumentFolderSelection, "/document/folderselection"),
                 new KeyValuePair<Section, string>(Section.Invite, "/invite/user"),
                 new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove"),
                 new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/neworder")

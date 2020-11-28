@@ -52,6 +52,7 @@ namespace MyCalendar.Website.Controllers
             return View(viewModel);
         }
 
+
         [ValidateAntiForgeryToken()]
         [HttpPost]
         public async Task<ActionResult> Index(SettingsVM model)
@@ -97,6 +98,44 @@ namespace MyCalendar.Website.Controllers
                 : (Status.Failed, "An error occured");
 
             return RedirectToRoute(Url.Settings(status.UpdateResponse, status.UpdateMsg));
+        }
+
+        public async Task<JsonResult> MoveType(string Id, int? moveToId = null)
+        {
+            bool status = true;
+            string responseText = "";
+            if (int.TryParse(Id, out int typeId))
+            {
+                var menuItem = new MenuItem { Settings = true };
+                await BaseViewModel(menuItem);
+
+                var baseVM = ViewData["BaseVM"] as BaseVM;
+                var type = await typeService.GetAsync(typeId);
+
+                if (baseVM.User.UserID != type.UserCreatedId)
+                {
+                    status = false;
+                    responseText = "The folder you're attempting to move was not created by you";
+                }
+
+                if (moveToId.HasValue)
+                {
+                    var superType = await typeService.GetAsync(moveToId.Value);
+
+                    if (baseVM.User.UserID != superType.UserCreatedId)
+                    {
+                        status = false;
+                        responseText = "The folder you're attempting to move was not created by you";
+                    }
+                }
+
+                if (status == true)
+                {
+                    status = await typeService.MoveTypeAsync(typeId, moveToId);
+                }
+            }
+
+            return new JsonResult { Data = new { status, responseText }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
         public async Task<ActionResult> RemoveType(int Id)

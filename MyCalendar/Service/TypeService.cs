@@ -19,6 +19,7 @@ namespace MyCalendar.Service
         Task<bool> UpdateTypeAsync(Types type);
         Task<bool> AddTypeAsync(TypeDTO type);
         Task<bool> DeleteTypeAsync(int Id);
+        Task<bool> MoveTypeAsync(int Id, int? moveToId = null);
     }
 
     public class TypeService : ITypeService
@@ -90,6 +91,11 @@ namespace MyCalendar.Service
         public async Task<bool> DeleteTypeAsync(int Id)
         {
             return await typeRepository.DeleteTypeAsync(Id);
+        }
+
+        public async Task<bool> MoveTypeAsync(int Id, int? moveToId = null)
+        {
+            return await typeRepository.MoveTypeAsync(Id, moveToId);
         }
     }
 }

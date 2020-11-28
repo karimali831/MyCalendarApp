@@ -19,8 +19,8 @@
             <span class="groupId" style="display: none">@group.Id</span>
             <div id="edit-group-@group.Id">
                 <div class="treeview w-20 border" style="padding: 10px">
-                    <h6 class="pt-3 pl-3" style="margin-bottom: 10px" id="add-@group.Id"><i class="fas fa-plus"></i> Add</h6>
-                    <div style="display: none" id="add" class="add-@group.Id">
+                    <h6 class="pt-3 pl-3" style="margin-bottom: 10px" onclick="$('#addmodalroot-@group.Id').modal('toggle')" id="addroot-@group.Id"><i class="fas fa-plus"></i> Add</h6>
+                    <div style="display: none" class="addroot-@group.Id">
                         @Html.Partial("_AddEditType", new TypeVM
                             {
                                 Buddys = Model.Buddys,
@@ -49,10 +49,10 @@
                                             <i class="@(userType.Children.Any() ? "" : "fas fa-angle-right")"></i> @userType.Name
                                         </span>
                                         <div class="float-right">
-                                            <i class="fas fa-plus" id="add-@userType.Id"> <span class="add-type">Add</span></i>
-                                            <i class="fas fa-edit" id="edit-@userType.Id"> <span class="edit-type">Edit</span></i>
+                                            <i class="fas fa-plus" id="add-@userType.Id" onclick="$('#addmodal-@userType.Id').modal('toggle')"> <span class="add-type">Add</span></i>
+                                            <i class="fas fa-edit" id="edit-@userType.Id" onclick="$('#editmodal-@userType.Id').modal('toggle')"> <span class="edit-type">Edit</span></i>
                                         </div>
-                                        <div style="display: none" id="add" class="add-@userType.Id">
+                                        <div style="display: none" class="add-@userType.Id">
                                             @Html.Partial("_AddEditType", new TypeVM
                                                 {
                                                     Buddys = Model.Buddys,
@@ -62,13 +62,14 @@
                                                     Edit = false
                                                 })
                                         </div>
-                                        <div style="display: none" id="edit" class="edit-@userType.Id">
+                                        <div style="display: none" class="edit-@userType.Id">
                                             @Html.Partial("_AddEditType", new TypeVM
                                                 {
                                                     Buddys = Model.Buddys,
                                                     Group = group,
                                                     Type = userType,
                                                     User = Model.User,
+                                                    UserTypes = Model.UserTypes.Where(x => x.GroupId == group.Id),
                                                     Edit = true
                                                 })
                                         </div>

@@ -21,6 +21,9 @@ namespace MyCalendar.Enums
         AddType,
         UpdateType,
         RemoveType,
+        MoveType,
+        MoveDocument,
+        DocumentFolderSelection,
         Logout,
         ErrandRunnerNewOrder
     }

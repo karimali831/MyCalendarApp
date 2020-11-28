@@ -16,10 +16,16 @@ namespace MyCalendar.Website.Controllers
     public class DocumentController : UserMvcController
     {
         private readonly IDocumentService documentService;
+        private readonly ITypeService typeService;
 
-        public DocumentController(IDocumentService documentService, IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public DocumentController(
+            IDocumentService documentService, 
+            IUserService userService, 
+            ITypeService typeService,
+            IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
         {
             this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
+            this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
         }
 
         // GET: Document
@@ -37,6 +43,56 @@ namespace MyCalendar.Website.Controllers
                 Documents = documents ?? Enumerable.Empty<Document>(),
                 UserFolders = folders
             });
+        }
+
+        public async Task<JsonResult> Move(string Id, int moveToId)
+        {
+            bool status = false;
+            string responseText = "";
+            if (Guid.TryParse(Id, out Guid docId))
+            {
+                var menuItem = new MenuItem { Settings = true };
+                await BaseViewModel(menuItem);
+                var baseVM = ViewData["BaseVM"] as BaseVM;
+
+                var document = await documentService.GetAsync(docId);
+                var type = await typeService.GetAsync(moveToId);
+
+                if (baseVM.User.UserID != document.UserCreatedId)
+                {
+                    status = false;
+                    responseText = "The document you're attempting to move was not created by you";
+                }
+
+                else if (baseVM.User.UserID != type.UserCreatedId)
+                {
+                    status = false;
+                    responseText = "The document you're trying to move cannot be moved because it's contained in a folder not created by you";
+                }
+                else
+                {
+                    status = await documentService.MoveAsync(docId, moveToId);
+                }
+            }
+
+            return new JsonResult { Data = new { status, responseText }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+    }
+
+        public async Task<ActionResult> FolderSelection(Guid Id, string name)
+        {
+            await BaseViewModel(new MenuItem { Documents = true });
+            var baseVM = ViewData["BaseVM"] as BaseVM;
+
+            var folders = await documentService.GetDocumentFoldersByUserIdAsync(baseVM.User.UserID);
+
+            var model = new DocumentMoveVM
+            {
+                Type = (Id.ToString(), name),
+                UserTypes = folders,
+                IsDocument = true
+            };
+
+            return PartialView("_FolderSelection", model);
         }
 
         public async Task<JsonResult> Get(int typeId)

@@ -26,9 +26,9 @@
 </head>
 <body>
 
-    <nav id="menu" class="fixed-top">
+    <nav class="menu fixed-top">
         <div class="container">
-            <label for="tm" id="toggle-menu">@AppName <span class="drop-icon"><span class="fas fa-caret-down"></span></span></label>
+            <label for="tm" class="toggle-menu">@AppName <span class="drop-icon"><span class="fas fa-angle-down"></span></span></label>
             <input type="checkbox" id="tm">
             <ul class="main-menu clearfix">
                 <li class="home-link">
@@ -42,10 +42,10 @@
                             <a href="#" style="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.Overview || Model.MenuItem.Cronofy ? "color:#09c" : "")">
                                 <span class="fas fa-calendar-alt"></span> Calendar
                                 <span class="drop-icon">
-                                    <span class="fas fa-caret-down"></span>
+                                    <span class="fas fa-angle-down"></span>
                                 </span>
                                 <label title="Toggle Drop-down" class="drop-icon" for="sm1">
-                                    <span class="fas fa-caret-down"></span>
+                                    <span class="fas fa-angle-down"></span>
                                 </label>
                             </a>
                             <input type="checkbox" id="sm1">
@@ -64,10 +64,10 @@
                                         <a href="#" style="@(Model.MenuItem.Home ? "color:#09c" : "")">
                                             <span class="fas fa-calendar"></span> Calendars
                                             <span class="drop-icon">
-                                                <span class="fas fa-caret-down"></span>
+                                                <span class="fas fa-angle-down"></span>
                                             </span>
                                             <label title="Toggle Drop-down" class="drop-icon" for="sm2">
-                                                <span class="fas fa-caret-down"></span>
+                                                <span class="fas fa-angle-down"></span>
                                             </label>
                                         </a>
                                         <input type="checkbox" id="sm2">
@@ -91,8 +91,8 @@
                                             @*<li>
                                                 <a href="#">
                                                     Item 2.2.2
-                                                    <span class="drop-icon"><span class="fas fa-caret-down"></span></span>
-                                                    <label title="Toggle Drop-down" class="drop-icon" for="sm3"><span class="fas fa-caret-down"></span></label>
+                                                    <span class="drop-icon"><span class="fas fa-angle-down"></span></span>
+                                                    <label title="Toggle Drop-down" class="drop-icon" for="sm3"><span class="fas fa-angle-down"></span></label>
                                                 </a>
                                                 <input type="checkbox" id="sm3">
                                                 <ul class="sub-menu">
@@ -142,10 +142,10 @@
                             <a href="#" style="@(Model.MenuItem.ERNewOrder ? "color:#09c" : "")">
                                 <span class="fas fa-running"></span> Errand Runner
                                 <span class="drop-icon">
-                                    <span class="fas fa-caret-down"></span>
+                                    <span class="fas fa-angle-down"></span>
                                 </span>
                                 <label title="Toggle Drop-down" class="drop-icon" for="sm3">
-                                    <span class="fas fa-caret-down"></span>
+                                    <span class="fas fa-angle-down"></span>
                                 </label>
                             </a>
                             <input type="checkbox" id="sm3">
@@ -163,9 +163,9 @@
                         <a href="#" style="@(Model.MenuItem.Settings ? "color:#09c" : "")">
                             <span class="fas fa-user"></span> @Model.User.Name
                             <span class="drop-icon">
-                                <span class="fas fa-caret-down"></span>
+                                <span class="fas fa-angle-down"></span>
                             </span>
-                            <label title="Toggle Drop-down" class="drop-icon" for="sm4"><span class="fas fa-caret-down"></span></label>
+                            <label title="Toggle Drop-down" class="drop-icon" for="sm4"><span class="fas fa-angle-down"></span></label>
                         </a>
                         <input type="checkbox" id="sm4">
                         <ul class="sub-menu">

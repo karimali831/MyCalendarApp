@@ -1,4 +1,5 @@
 ﻿@model MyCalendar.Website.ViewModels.DocumentVM
+@using MyCalendar.Website.ViewModels
 @{
     ViewBag.Title = "Documents";
 }
@@ -77,7 +78,11 @@
             </div>
             <hr />
             <div id="editor" style="display: none">
-                <h6 class="pt-3 pl-3" style="margin-bottom: 10px"><i class="fas fa-pencil-alt"></i> Document</h6>
+                <h6 class="pt-3 pl-3" style="margin-bottom: 10px"><i class="fas fa-random"></i> Move Document</h6>
+                <div id="load-folders" style="display: none">
+                    <div class="loader"></div>
+                </div>
+                <div id="folder-selection"></div>
                 <hr />
                 <input type="text" id="title" name="title" value="" class="form-control" placeholder="Enter title" />
                 <textarea id="edit" name="text" style="margin-top: 30px;" placeholder=""></textarea>
@@ -143,8 +148,8 @@
         function GetDoc(id) {
             $('#docs').show(500);
             $('.new').removeClass('active');
-            $('.item-' + id).addClass('active'); 
-            $('.label').removeClass('active'); 
+            $('.item-' + id).addClass('active');
+            $('.label').removeClass('active');
             $('.label-' + id).addClass('active');
             $("#load-docs").show();
             $('#editor').hide(500);
@@ -211,6 +216,7 @@
         }
 
         function loadDocument(id) {
+
             $('#viewer').show(500);
             $('#editor').hide(500);
             $('.load-doc').removeClass('active');
@@ -229,7 +235,27 @@
             $('#viewer').html($('.document-content-' + id).html());
         }
 
+        function LoadFolders(id, title) {
+            $('#folder-selection').html('');
+            $('#load-folders').show();
+            $.ajax({
+                url: '@Url.Action("FolderSelection")',
+                type: 'GET',
+                data: { Id: id, name: title },
+                success: function (response) {
+                    $('#load-folders').hide();
+                    $('#folder-selection').html(response);
+                },
+                error: function (result) {
+                    alert("Error: " + result.status);
+                }
+            });
+        }
+
         function editDocument(id, typeId, title) {
+
+            this.LoadFolders(id, title);         
+
             $('#Id').val(id);
             $('#typeId').val(typeId);
             $('#title').val(title);
@@ -277,7 +303,7 @@
                 var selectedUserTypeId = $(this).text();
                 $('.item-' + selectedUserTypeId).click(function (e) {
                     e.stopPropagation();
-                }); 
+                });
 
                 $('#add-' + selectedUserTypeId).click(function (e) {
                     e.stopPropagation();
@@ -296,6 +322,11 @@
                     $('#viewer').hide(500);
                     $('#doc-footer').hide(500);
                     $('#docs').hide(500);
+                });
+
+                $('#move-' + selectedUserTypeId).click(function (e) {
+                    e.stopPropagation();
+                    $('.move-' + selectedUserTypeId).show(500);
                 });
             });
         });

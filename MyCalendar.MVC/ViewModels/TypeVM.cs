@@ -21,6 +21,7 @@ namespace MyCalendar.Website.ViewModels
         public User User { get; set; }
         public Types Type { get; set; }
         public Group Group { get; set; }
+        public IEnumerable<Types> UserTypes { get; set; }
 
     }
 }

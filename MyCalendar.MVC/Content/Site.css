@@ -171,17 +171,17 @@ textarea {
 }
 
 /* multi level dropdown*/
-#menu {
+.menu {
 
     font-size: medium;
 }
 
-#menu ul {
+.menu ul {
   margin: 0;
   padding: 0;
 }
 
-#menu .main-menu {
+.menu .main-menu {
   display: none;
 }
 
@@ -189,143 +189,143 @@ textarea {
   display: block;
 }
 
-#menu input[type="checkbox"], 
-#menu ul span.drop-icon {
+.menu input[type="checkbox"], 
+.menu ul span.drop-icon {
   display: none;
 }
 
-#menu li, 
-#toggle-menu, 
-#menu .sub-menu {
+.menu li, 
+.toggle-menu, 
+.menu .sub-menu {
   border-style: solid;
   border-color: rgba(0, 0, 0, .05);
 }
 
-#menu li, 
-#toggle-menu {
+.menu li, 
+.toggle-menu {
   border-width: 0 0 1px;
 }
 
 
-#menu .sub-menu {
+.menu .sub-menu {
   background-color: #343a40;
   border-width: 1px 1px 0;
   margin: 0 1em;
 }
 
-#menu .sub-menu li:last-child {
+.menu .sub-menu li:last-child {
   border-width: 0;
 }
 
-#menu li, 
-#toggle-menu, 
-#menu a {
+.menu li, 
+.toggle-menu, 
+.menu a {
   position: relative;
   display: block;
   color: white;
   text-shadow: 1px 1px 0 rgba(0, 0, 0, .125);
 }
 
-#menu,
-#toggle-menu {
+.menu,
+.toggle-menu {
     background-color: #343a40;
 }
 
-#toggle-menu, 
-#menu a {
+.toggle-menu, 
+.menu a {
   padding: 1em 1.5em;
 }
 
-#menu a {
+.menu a {
   transition: all .125s ease-in-out;
   -webkit-transition: all .125s ease-in-out;
 }
 
-#menu a:hover {
+.menu a:hover {
   color: #09c;
   text-decoration: none;
 }
 
-#menu .sub-menu {
+.menu .sub-menu {
   display: none;
 }
 
-#menu input[type="checkbox"]:checked + .sub-menu {
+.menu input[type="checkbox"]:checked + .sub-menu {
   display: block;
 }
 
-#toggle-menu .drop-icon, 
-#menu li label.drop-icon {
+.toggle-menu .drop-icon, 
+.menu li label.drop-icon {
   position: absolute;
   right: 1.5em;
   top: 1.25em;
 }
 
-#menu .drop-icon {
+.menu .drop-icon {
   line-height: 1;
 }
 
-#menu .home-link {
+.menu .home-link {
     font-size: 17px;
 }
 
-#menu li.menu-right {
+.menu li.menu-right {
     float: right;
 }
 
 @media (max-width: 991.98px) {
-    #toggle-menu {
+    .toggle-menu {
         margin: 0px;
     }
 
-    #menu .home-link {
+    .menu .home-link {
         display: none;
     }
 
-    #menu .container {
+    .menu .container {
         padding-right: 0px;
         padding-left: 0px;
     }
 
-    #menu li.menu-right {
+    .menu li.menu-right {
         float: none;
     }
 }
 
 @media only screen and (max-width: 64em) and (min-width: 52.01em) {
-  #menu li {
+  .menu li {
     width: 33.333%;
   }
 
-  #menu .sub-menu li {
+  .menu .sub-menu li {
     width: auto;
   }
 }
 
 @media only screen and (min-width: 52em) {
-  #menu .main-menu {
+  .menu .main-menu {
     display: block;
   }
 
-  #toggle-menu, 
-  #menu label.drop-icon {
+  .toggle-menu, 
+  .menu label.drop-icon {
     display: none;
   }
 
-  #menu ul span.drop-icon {
+  .menu ul span.drop-icon {
     display: inline-block;
   }
 
-  #menu li {
+  .menu li {
     float: left;
     border-width: 0 1px 0 0;
   }
 
-  #menu .sub-menu li {
+  .menu .sub-menu li {
     float: none;
   }
 
-  #menu .sub-menu {
+  .menu .sub-menu {
     border-width: 0;
     margin: 0;
     position: absolute;
@@ -335,26 +335,31 @@ textarea {
     z-index: 3000;
   }
 
-  #menu .sub-menu, 
-  #menu input[type="checkbox"]:checked + .sub-menu {
+  .menu .sub-menu, 
+  .menu input[type="checkbox"]:checked + .sub-menu {
     display: none;
   }
 
-  #menu .sub-menu li {
+  .menu .sub-menu li {
     border-width: 0 0 1px;
   }
 
-  #menu .sub-menu .sub-menu {
+  .menu .sub-menu .sub-menu {
     top: 0;
     left: 100%;
   }
 
-  #menu li:hover > input[type="checkbox"] + .sub-menu {
+  .menu li:hover > input[type="checkbox"] + .sub-menu {
     display: block;
   }
 }
 
 /* bootstrap overrides*/
+
+.icon-align {
+    margin-left: -5px;
+    margin-right: -20px;
+}
 
 .btn-link {
     color: #09c !important;
@@ -363,3 +368,4 @@ textarea {
 .btn-link a {
     color: #09c !important;
 }
+

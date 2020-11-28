@@ -254,6 +254,7 @@
     <Compile Include="MVCModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\CalendarVM.cs" />
+    <Compile Include="ViewModels\DocumentMoveVM.cs" />
     <Compile Include="ViewModels\DocumentVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="ViewModels\CronofyVM.cs" />
@@ -667,6 +668,7 @@
     <Content Include="Scripts\popper-utils.js.map" />
     <Content Include="Views\Settings\_AddEditType.cshtml" />
     <Content Include="Views\ErrandRunner\NewOrder.cshtml" />
+    <Content Include="Views\Shared\_FolderSelection.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
