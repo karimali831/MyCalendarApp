@@ -59,6 +59,7 @@
                                             <hr />
                                             @Html.Partial("_FolderSelection", new DocumentMoveVM
                                                 {
+                                                    UserId = Model.User.UserID,
                                                     UserTypes = Model.UserTypes,
                                                     Type = (Model.Type.Id.ToString(), Model.Type.Name),
                                                     IsDocument = false

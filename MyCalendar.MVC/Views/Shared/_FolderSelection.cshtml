@@ -45,7 +45,7 @@
                                     </a>
                                 }
                             </li>
-                            @foreach (var userType in types)
+                            @foreach (var userType in types.Where(x => x.UserCreatedId == Model.UserId || (x.InviteeIdsList != null && x.InviteeIdsList.Contains(Model.UserId))))
                             {
                                 <li style="width:250px">
                                     <a onclick="MoveFolder('@Model.Type.Name', '@userType.Name', '@Model.Type.Id', @userType.Id )" style="padding: 15px">

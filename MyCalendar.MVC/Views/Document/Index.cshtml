@@ -39,8 +39,7 @@
                                 <i class="@(userType.Children.Any() ? "" : "fas fa-angle-right")"></i> @userType.Name
                                 @if (userType.UserCreatedId != userId && !string.IsNullOrEmpty(userType.InviteeName))
                                 {
-                                    <i class="fas fa-share"></i> <small style="color: grey">shared by @userType.InviteeName</small>
-
+                                    <span class="badge badge-info text-small">shared by @userType.InviteeName</span>
                                 }
                             </span>
                             <span id="add-@userType.Id" class="new float-right">

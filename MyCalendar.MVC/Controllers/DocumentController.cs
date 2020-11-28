@@ -87,6 +87,7 @@ namespace MyCalendar.Website.Controllers
 
             var model = new DocumentMoveVM
             {
+                UserId = baseVM.User.UserID,
                 Type = (Id.ToString(), name),
                 UserTypes = folders,
                 IsDocument = true
