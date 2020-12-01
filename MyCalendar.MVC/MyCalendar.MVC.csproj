@@ -370,6 +370,7 @@
     <Content Include="Content\froala\third_party\image_tui.min.css" />
     <Content Include="Content\froala\third_party\spell_checker.css" />
     <Content Include="Content\froala\third_party\spell_checker.min.css" />
+    <Content Include="Content\fullcalendar\main.min.css" />
     <Content Include="Content\Login.css" />
     <Content Include="Content\Loader.css" />
     <Content Include="favicon.ico" />
@@ -540,6 +541,7 @@
     <Content Include="Scripts\froala\third_party\font_awesome.min.js" />
     <Content Include="Scripts\froala\third_party\image_tui.min.js" />
     <Content Include="Scripts\froala\third_party\spell_checker.min.js" />
+    <Content Include="Scripts\fullcalendar\main.min.js" />
     <Content Include="Scripts\index.js.flow" />
     <Content Include="Scripts\esm\popper.min.js.map" />
     <Content Include="Scripts\esm\popper.js.map" />
@@ -669,6 +671,7 @@
     <Content Include="Views\Settings\_AddEditType.cshtml" />
     <Content Include="Views\ErrandRunner\NewOrder.cshtml" />
     <Content Include="Views\Shared\_FolderSelection.cshtml" />
+    <Content Include="Views\Home\v5.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
