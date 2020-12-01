@@ -46,51 +46,57 @@ else
         <div class="modal-dialog">
             <div class="modal-content" style="padding: 5px;">
                 <div class="modal-header">
-                    <h4 class="modal-title">Save Event</h4>
+                    <h4 class="modal-title"><i class="fas fa-calendar-check"></i> Save Event</h4>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
                 <div class="modal-body" style="margin-left: 10px">
                     <form class="form-horizontal">
                         <input type="hidden" id="hdEventID" value="0" />
-                        <div class="form-group">
-                            <label>Tag</label>
-                            <select id="ddTagID" class="form-control" required>
+                        <div class="wrap-input100 m-b-23">
+                            <span class="label-input100">Tag</span>
+                            <select id="ddTagID" class="form input100" required>
                                 <option value="">-- select tag --</option>
                                 @foreach (var tag in baseModel.UserTags.Tags)
                                 {
                                     <option value="@tag.Id">@tag.Name</option>
                                 }
                             </select>
+                            <span class="focus-input100" data-symbol="&#xf188;"></span>
                         </div>
-                        <div class="form-group" id="divSplitDates" style="display:none">
-                            <label>Split dates into multiple events?</label>
-                            <select id="splitDates" class="form-control">
+
+                        <div class="wrap-input100 m-b-23" id="divSplitDates" style="display:none">
+                            <span class="label-input100">Split dates into multiple events?</span>
+                            <select id="splitDates" class="form input100">
                                 <option value="" selected>-- select times --</option>
                                 @foreach (var preset in Utils.TimePresets())
                                 {
                                     <option value="@preset.Key">@preset.Value</option>
                                 }
                             </select>
+                            <span class="focus-input100" data-symbol="&#xf331;"></span>
+                        </div>
+                        <div class="wrap-input100 m-b-23">
+                            <span class="label-input100">Start Date</span>
+                            <input type="datetime-local" step="300" id="txtStart" class="form input100" />
+                            <span class="focus-input100" data-symbol="&#xf337;"></span>
                         </div>
                         <div class="form-group">
-                            <label>Start</label>
-                            <input type="datetime-local" step="300" id="txtStart" class="form-control" />
-                        </div>
-                        <div class="form-group">
-                            <div class="checkbox checkbox-inline">
+                            <div class="checkbox checkbox-inline" style="display: inline; margin-right: 10px">
                                 <label><input type="checkbox" id="chkIsFullDay" checked="checked" />  Full Day</label>
                             </div>
-                            <div class="checkbox checkbox-inline">
+                            <div class="checkbox checkbox-inline" style="display: inline">
                                 <label><input type="checkbox" id="chkTentative" checked="checked" />  Tentative</label>
                             </div>
                         </div>
-                        <div class="form-group" id="divEndDate" style="display:none">
-                            <label>End</label>
-                            <input type="datetime-local" step="300" id="txtEnd" class="form-control" />
+                        <div class="wrap-input100 m-b-23" id="divEndDate" style="display:none">
+                            <span class="label-input100">End Date</span>
+                            <input type="datetime-local" step="300" id="txtEnd" class="form input100" />
+                            <span class="focus-input100" data-symbol="&#xf337;"></span>
                         </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea id="txtDescription" rows="2" class="form-control"></textarea>
+                        <div class="wrap-input100 m-b-23">
+                            <span class="label-input100">Event Details</span>
+                            <textarea id="txtDescription" rows="4" class="form input100"></textarea>
+                            <span class="focus-input100" data-symbol="&#xf1f7;"></span>
                         </div>
                         <button type="button" id="btnSave" class="btn btn-success">Save</button>
                         <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
@@ -184,7 +190,7 @@ else
                 function GenerateCalender(events) {
                     $('#calender').fullCalendar('destroy');
                     $('#calender').fullCalendar({
-                        contentHeight: 550,
+                        contentHeight: 500,
                         defaultDate: new Date(),
                         timeFormat: 'h(:mm)a',
                         longPressDelay: 150,

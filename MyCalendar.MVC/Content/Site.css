@@ -369,3 +369,7 @@ textarea {
     color: #09c !important;
 }
 
+/*caledar overrides*/
+.fc-more {
+    font-size: x-small !important;
+}

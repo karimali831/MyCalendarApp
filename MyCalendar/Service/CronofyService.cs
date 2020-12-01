@@ -4,6 +4,7 @@ using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Web;
 
 namespace MyCalendar.Service
 {
@@ -47,10 +48,19 @@ namespace MyCalendar.Service
 
             LogHelper.Log(String.Format("LoadUser success - CronofyUID=`{0}`", user.CronofyUid));
 
-            
-            _cronofyUid = user.CronofyUid;
-            _accessToken = user.AccessToken;
-            _refreshToken = user.RefreshToken;
+            if (HttpContext.Current.Request.IsLocal)
+            {
+                _cronofyUid = "acc_5f74b7a07cb751005e276faa";
+                _accessToken = "eM4SEZ8QbMiZBajjCXnSrpIiELU9gaMg";
+                _refreshToken = "GcwiYPh-JjQq26JbEDpVwJ5Dne9aMCgw";
+            }
+            else
+            {
+                _cronofyUid = user.CronofyUid;
+                _accessToken = user.AccessToken;
+                _refreshToken = user.RefreshToken;
+
+            }
 
             return true;
         }
