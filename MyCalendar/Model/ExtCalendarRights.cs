@@ -8,7 +8,8 @@ namespace MyCalendar.Model
 {
     public class ExtCalendarRights
     {
-        public string Id { get; set; }
+        public string SyncFromCalendarId { get; set; }
+        public int SyncToCalendarId { get; set; }
         public bool Read { get; set; }
         public bool Save { get; set; }
         public bool Delete { get; set; }

@@ -76,7 +76,13 @@ namespace MyCalendar.Website.Controllers
                 }
             }
 
-            return View("Profiles", new CronofyVM { Profiles = profiles, CronofyCalendarAuthUrl = cronofyService.GetAuthUrl() } );
+            return View("Profiles", 
+                new CronofyVM { 
+                    UserCalendars = baseVM.UserCalendars,
+                    Profiles = profiles, 
+                    CronofyCalendarAuthUrl = cronofyService.GetAuthUrl() 
+                } 
+            );
         }
 
         private Expression<Func<string[], bool>> GetCalendarRights(string calendarId)
@@ -90,13 +96,14 @@ namespace MyCalendar.Website.Controllers
             var rights = new Dictionary<int, ExtCalendarRights>();
 
             int a = 0;
-            foreach (var item in dto.Id)
+            foreach (var item in dto.SyncFromCalendarId)
             {
                 rights.Add(a, new ExtCalendarRights {
-                    Id = item, 
-                    Read = (dto.Read.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false),
-                    Save = (dto.Save.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false),
-                    Delete = (dto.Delete.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1) ? true : false)
+                    SyncFromCalendarId = item,
+                    SyncToCalendarId = dto.SyncToCalendarId[a],
+                    Read = dto.Read.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1),
+                    Save = dto.Save.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1),
+                    Delete = dto.Delete.Where(x => x == item).GroupBy(x => x).Any(g => g.Count() > 1)
                 });
                     
                 a++;

@@ -153,7 +153,7 @@ namespace MyCalendar.Service
             {
                 user.Authenticated = true;
 
-                if (!user.EnableCronofy)
+                if (!user.EnableCronofy || HttpContext.Current.Request.IsLocal)
                 {
                     user.CronofyReady = CronofyStatus.Disabled;
                 }

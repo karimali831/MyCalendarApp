@@ -85,10 +85,10 @@ namespace MyCalendar.Service
        
                 foreach (var extCal in user.ExtCalendarRights.Where(x => x.Read == true))
                 {
-                    var cronofyEvents = cronofyService.ReadEventsForCalendar(extCal.Id).Where(x => x.EventId == null);
+                    var cronofyEvents = cronofyService.ReadEventsForCalendar(extCal.SyncFromCalendarId).Where(x => x.EventId == null);
 
                     // check events deleted in Cronofy but not deleted in Calendar App
-                    var deletedCronofyEvents = events.Where(x => x.EventUid != null && x.CalendarUid != null && x.CalendarUid == extCal.Id && cronofyEvents.All(c => c.EventUid != x.EventUid));
+                    var deletedCronofyEvents = events.Where(x => x.EventUid != null && x.CalendarUid != null && x.CalendarUid == extCal.SyncFromCalendarId && cronofyEvents.All(c => c.EventUid != x.EventUid));
       
                     if (deletedCronofyEvents != null && deletedCronofyEvents.Any())
                     {
@@ -109,8 +109,9 @@ namespace MyCalendar.Service
                                     .FirstOrDefault(t => Utils.Contains(t.Name, e.Summary, StringComparison.OrdinalIgnoreCase));
 
                                 string calendarName = cronofyService.GetCalendars().FirstOrDefault(x => x.CalendarId == e.CalendarId)?.Profile.ProviderName ?? "Unknown";
+                                var extCalendar = user.ExtCalendarRights.FirstOrDefault(x => x.SyncFromCalendarId == e.CalendarId);
 
-                                if (e.Start.HasTime)
+                                if (e.Start.HasTime && extCalendar != null)
                                 {
                                     unsycnedEvents.Add(new Model.EventDTO
                                     {
@@ -121,6 +122,7 @@ namespace MyCalendar.Service
                                         StartDate = Utils.FromTimeZoneToUtc(e.Start.DateTimeOffset.DateTime),
                                         EndDate = Utils.FromTimeZoneToUtc(e.End.DateTimeOffset.DateTime),
                                         EventUid = e.EventUid,
+                                        CalendarId = extCalendar.SyncToCalendarId,
                                         CalendarUid = e.CalendarId
                                     });
                                 }
@@ -173,7 +175,7 @@ namespace MyCalendar.Service
                 {
                     if (extCal.Save)
                     {
-                        cronofyService.UpsertEvent(dto.EventID.ToString(), extCal.Id, subject, dto.Description, dto.StartDate, endDate, color);
+                        cronofyService.UpsertEvent(dto.EventID.ToString(), extCal.SyncFromCalendarId, subject, dto.Description, dto.StartDate, endDate, color);
                     }
                 }
             }
@@ -318,7 +320,7 @@ namespace MyCalendar.Service
                 {
                     if (extCal.Delete)
                     {
-                        cronofyService.DeleteEvent(extCal.Id, eventId.ToString());
+                        cronofyService.DeleteEvent(extCal.SyncFromCalendarId, eventId.ToString());
                     }
                 }
             }

@@ -29,7 +29,6 @@ namespace MyCalendar.Service
         private static string _accessToken;
         private static string _refreshToken;
         private readonly IUserRepository userRepo;
-
         private static CronofyOAuthClient _oauthClient;
 
         public CronofyService(IUserRepository userRepo)
@@ -48,19 +47,9 @@ namespace MyCalendar.Service
 
             LogHelper.Log(String.Format("LoadUser success - CronofyUID=`{0}`", user.CronofyUid));
 
-            if (HttpContext.Current.Request.IsLocal)
-            {
-                _cronofyUid = "acc_5f74b7a07cb751005e276faa";
-                _accessToken = "eM4SEZ8QbMiZBajjCXnSrpIiELU9gaMg";
-                _refreshToken = "GcwiYPh-JjQq26JbEDpVwJ5Dne9aMCgw";
-            }
-            else
-            {
-                _cronofyUid = user.CronofyUid;
-                _accessToken = user.AccessToken;
-                _refreshToken = user.RefreshToken;
-
-            }
+            _cronofyUid = user.CronofyUid;
+            _accessToken = user.AccessToken;
+            _refreshToken = user.RefreshToken;
 
             return true;
         }
@@ -412,10 +401,7 @@ namespace MyCalendar.Service
                     // First time this fails, attempt to get a new access token and store it for the user
                     var token = OAuthClient.GetTokenFromRefreshToken(_refreshToken);
 
-                    if (!HttpContext.Current.Request.IsLocal)
-                    {
-                        userRepo.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid);
-                    }
+                    userRepo.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid);
 
                     SetToken(token);
 
