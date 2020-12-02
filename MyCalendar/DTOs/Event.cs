@@ -19,6 +19,7 @@ namespace MyCalendar.DTOs
         public string ThemeColor { get; set; }
         public string Subject { get; set; }
         public string SplitDates { get; set; }
+        public string Alarm { get; set; }
     }
 
     public class EventDTO
@@ -32,6 +33,7 @@ namespace MyCalendar.DTOs
         public DateTime? End { get; set; }
         public bool IsFullDay { get; set; }
         public bool Tentative { get; set; }
+        public string Alarm { get; set; }
 
         public static EventVM MapFrom(Event e)
         {
@@ -48,7 +50,8 @@ namespace MyCalendar.DTOs
                 Tentative = e.Tentative,
                 Subject = e.Subject,
                 ThemeColor = e.ThemeColor,
-                Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value, e.StartDate) : string.Empty
+                Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value, e.StartDate) : string.Empty,
+                Alarm = e.Alarm
             };
         }
 
@@ -64,7 +67,8 @@ namespace MyCalendar.DTOs
                 StartDate = Utils.FromTimeZoneToUtc(e.Start),
                 EndDate =  e.End.HasValue ? Utils.FromTimeZoneToUtc(e.End.Value) : (DateTime?)null,
                 IsFullDay = e.IsFullDay,
-                Tentative = e.Tentative
+                Tentative = e.Tentative,
+                Alarm = e.Alarm
             };
         }
     }

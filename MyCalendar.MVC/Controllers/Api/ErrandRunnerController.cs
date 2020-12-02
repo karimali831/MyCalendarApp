@@ -1,4 +1,5 @@
-﻿using MyCalendar.ER.Service;
+﻿using MyCalendar.ER.Model;
+using MyCalendar.ER.Service;
 using MyCalendar.Website.Controllers.Api;
 using System;
 using System.Globalization;
@@ -29,6 +30,14 @@ namespace MyCalendar.Website.Controllers.API
         {
             var customers = await customerService.GetAllAsync(filter);
             return Request.CreateResponse(HttpStatusCode.OK, new { Customers = customers });
+        }
+
+        [Route("customers/register")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RegisterCustomer(Customer customer)
+        {
+            var register = await customerService.RegisterAsync(customer);
+            return Request.CreateResponse(HttpStatusCode.OK, new { Customer = register.customer, Message = register.Message });
         }
 
     }

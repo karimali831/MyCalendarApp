@@ -1,4 +1,5 @@
 ﻿@using MyCalendar.Helpers
+@using MyCalendar.Enums
 @model MyCalendar.Website.ViewModels.CalendarVM
 @using MyCalendar.Website.ViewModels
 @{
@@ -98,6 +99,14 @@ else
                             <textarea id="txtDescription" rows="4" class="form input100"></textarea>
                             <span class="focus-input100" data-symbol="&#xf1f7;"></span>
                         </div>
+                        @if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                        {
+                            <div class="wrap-input100 m-b-23">
+                                <span class="label-input100">Set alarm in minutes seperated by commas</span>
+                                <input type="text" class="form input100" name="txtAlarm" />
+                                <span class="focus-input100" data-symbol="&#xf32d;"></span>
+                            </div>
+                        }
                         <button type="button" id="btnSave" class="btn btn-success">Save</button>
                         <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                     </form>
@@ -157,7 +166,8 @@ else
                                     allDay: v.IsFullDay,
                                     tentative: v.Tentative,
                                     duration: v.Duration,
-                                    userId: v.UserId
+                                    userId: v.UserId,
+                                    alarm: v.Alarm
                                 });
                             })
                             $.each(data.currentActivity, function (i, v) {
@@ -228,7 +238,10 @@ else
                                 $description.append($('<p/>').html('<b>Description:</b> ' + calEvent.description));
                             }
                             if (calEvent.tentative) {
-                                $description.append($('<p/>').html('<b>Tentative</b>: Yes'));
+                                $description.append($('<p/>').html('<b>Tentative:</b> Yes'));
+                            }
+                            if (calEvent.alarm) {
+                                $description.append($('<p/>').html('<b>Alarm:</b> ' + calEvent.alarm));
                             }
 
                             $('#myModal #pDetails').empty().html($description);
@@ -246,7 +259,8 @@ else
                                 allDay: false,
                                 tentative: false,
                                 color: '',
-                                userId: ''
+                                userId: '',
+                                alarm: '30, 60'
                             };
                             openAddEditForm();
                             $('#calendar').fullCalendar('unselect');
@@ -260,7 +274,8 @@ else
                                 End: event.end != null ? event.end.format('YYYY-MM-DD[T]HH:mm') : null,
                                 Description: event.description,
                                 IsFullDay: event.allDay,
-                                Tentative: event.tentative
+                                Tentative: event.tentative,
+                                Alarm: event.alarm
                             };
                             SaveEvent(data);
                         }
@@ -382,6 +397,7 @@ else
                         $('#txtDescription').val(selectedEvent.description);
                         $('#ddTagID').val(selectedEvent.tagID);
                         $('#splitDates').val('');
+                        $('#txtAlarm').val(selectedEvent.alarm);
                         hideSplitDates(moment(selectedEvent.start), moment(selectedEvent.end))
                     }
                     $('#myModal').modal('hide');
@@ -415,7 +431,8 @@ else
                         Description: $('#txtDescription').val(),
                         IsFullDay: $('#chkIsFullDay').is(':checked'),
                         Tentative: $('#chkTentative').is(':checked'),
-                        SplitDates: $('#splitDates').val()
+                        SplitDates: $('#splitDates').val(),
+                        Alarm: $('#txtAlarm').val(),
                     }
                     SaveEvent(data);
                     // call function for submit data to the server

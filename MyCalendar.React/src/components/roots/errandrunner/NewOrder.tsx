@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { api } from 'src/Api/Api';
-import { AddressFinder } from 'src/components/addressFinder/AddressFinder';
 import { Load } from 'src/components/base/Loader';
 import { SelectionRefinement } from 'src/components/SelectionRefinement/SelectionRefinement';
 import { ToggleSwitch } from 'src/components/utils/ToggleSwitch';
 import { ICustomer } from 'src/models/ICustomer';
+import CustomerRegistration from './CustomerRegistration';
 
 export interface IOwnProps {
 
@@ -74,7 +74,7 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
                     <ToggleSwitch id="custReg" name='New Customer' onChange={c => this.registrationOn(c)} checked={this.state.registrationOn} />
                     <hr />
                     {
-                        this.state.registrationOn ? <AddressFinder /> :
+                        this.state.registrationOn ? <CustomerRegistration onRegistrationChange={c => this.registrationChange(c)} /> :
                         <>
                             {
                                 this.state.selectedCustomer != null ?
@@ -121,6 +121,10 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
             filter: "",
             customers: []
         })
+    }
+
+    private registrationChange = (customer: ICustomer) => {
+        this.selectedCustomer(customer)
     }
 
     private keywordsChanged = (filter: string) => {

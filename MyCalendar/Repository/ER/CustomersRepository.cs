@@ -13,7 +13,10 @@ namespace MyCalendar.ER.Repository
 {
     public interface ICustomerRepository
     {
+        Task<Customer> GetAsync(Guid custId);
         Task<IEnumerable<Customer>> GetAllAsync(string filter = null);
+        Task<(Customer newCustomer, bool Status)> RegisterAsync(Customer customer);
+        Task<bool> UserDetailsExists(string field, string value);
     }
 
     public class CustomerRepository : ICustomerRepository
@@ -27,6 +30,13 @@ namespace MyCalendar.ER.Repository
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
         }
 
+        public async Task<Customer> GetAsync(Guid custId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Customer>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE CustId = @custId", new { custId })).FirstOrDefault();
+            }
+        }
 
         public async Task<IEnumerable<Customer>> GetAllAsync(string filter = null)
         {
@@ -46,5 +56,32 @@ namespace MyCalendar.ER.Repository
             }
         }
 
+        public async Task<bool> UserDetailsExists(string field, string value)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE {field} = @Value", new { Value = value.Trim() });
+            }
+        }
+
+        public async Task<(Customer newCustomer, bool Status)> RegisterAsync(Customer customer)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    customer.CustId = Guid.NewGuid();
+                    await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", customer);
+
+                    var newCustomer = await GetAsync(customer.CustId);
+                    return (newCustomer, true);
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return (null, false);
+                }
+            }
+        }
     }
 }

@@ -412,7 +412,10 @@ namespace MyCalendar.Service
                     // First time this fails, attempt to get a new access token and store it for the user
                     var token = OAuthClient.GetTokenFromRefreshToken(_refreshToken);
 
-                    userRepo.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid);
+                    if (!HttpContext.Current.Request.IsLocal)
+                    {
+                        userRepo.CronofyAccountRequest(token.AccessToken, token.RefreshToken, _cronofyUid);
+                    }
 
                     SetToken(token);
 

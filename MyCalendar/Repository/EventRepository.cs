@@ -52,7 +52,7 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.EventID,e.CalendarId,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds
+                    SELECT e.EventID,e.CalendarId,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm
                     FROM Events e
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id
@@ -117,7 +117,8 @@ namespace MyCalendar.Repository
                             tagID = e.TagID,
                             isFullDay = e.IsFullDay,
                             eventUid = e.EventUid,
-                            calendarUid = e.CalendarUid
+                            calendarUid = e.CalendarUid,
+                            alarm = e.Alarm
                         };
 
                     var existing = await EventExists(dto.EventID);
@@ -162,7 +163,8 @@ namespace MyCalendar.Repository
                                 tagID = e.TagID,
                                 isFullDay = e.IsFullDay,
                                 eventUid = e.EventUid,
-                                calendarUid = e.CalendarUid
+                                calendarUid = e.CalendarUid,
+                                alarm = e.Alarm
                             };
 
                         await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(e));
