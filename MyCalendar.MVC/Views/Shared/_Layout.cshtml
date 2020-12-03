@@ -32,7 +32,9 @@
             <input type="checkbox" id="tm">
             <ul class="main-menu clearfix">
                 <li class="home-link">
-                    @Html.ActionLink(AppName, Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)
+                    <a href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
+                        <span class="fas fa-home"></span> Home
+                    </a>
                 </li>
                 @if (Model != null && Model.User != null)
                 {
@@ -89,17 +91,17 @@
                                             }
                                             <!-- submenu-->
                                             @*<li>
-                                                <a href="#">
-                                                    Item 2.2.2
-                                                    <span class="drop-icon"><span class="fas fa-angle-down"></span></span>
-                                                    <label title="Toggle Drop-down" class="drop-icon" for="sm3"><span class="fas fa-angle-down"></span></label>
-                                                </a>
-                                                <input type="checkbox" id="sm3">
-                                                <ul class="sub-menu">
-                                                    <li><a href="#">Item 3.2.1</a></li>
-                                                    <li><a href="#">Item 3.2.2</a></li>
-                                                </ul>
-                                            </li>*@
+                                        <a href="#">
+                                            Item 2.2.2
+                                            <span class="drop-icon"><span class="fas fa-angle-down"></span></span>
+                                            <label title="Toggle Drop-down" class="drop-icon" for="sm3"><span class="fas fa-angle-down"></span></label>
+                                        </a>
+                                        <input type="checkbox" id="sm3">
+                                        <ul class="sub-menu">
+                                            <li><a href="#">Item 3.2.1</a></li>
+                                            <li><a href="#">Item 3.2.2</a></li>
+                                        </ul>
+                                    </li>*@
                                             <!-- end submenu -->
                                         </ul>
                                     </li>

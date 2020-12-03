@@ -153,7 +153,7 @@ namespace MyCalendar.Service
             {
                 user.Authenticated = true;
 
-                if (!user.EnableCronofy || HttpContext.Current.Request.IsLocal)
+                if (!user.EnableCronofy)
                 {
                     user.CronofyReady = CronofyStatus.Disabled;
                 }
@@ -192,7 +192,7 @@ namespace MyCalendar.Service
             {
                 foreach (var tag in userTags)
                 {
-                    tag.UpdateDisabled = tag.UserID != user.UserID ? true : false;
+                    tag.UpdateDisabled = tag.UserID != user.UserID;
                 }
 
                 return userTags;

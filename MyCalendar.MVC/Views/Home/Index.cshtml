@@ -103,7 +103,7 @@ else
                         {
                             <div class="wrap-input100 m-b-23">
                                 <span class="label-input100">Set alarm in minutes seperated by commas</span>
-                                <input type="text" class="form input100" name="txtAlarm" />
+                                <input type="text" class="form input100" id="txtAlarm" />
                                 <span class="focus-input100" data-symbol="&#xf32d;"></span>
                             </div>
                         }
@@ -167,7 +167,8 @@ else
                                     tentative: v.Tentative,
                                     duration: v.Duration,
                                     userId: v.UserId,
-                                    alarm: v.Alarm
+                                    eventUid: v.EventUid,
+                                    alarm: v.Alarm != null
                                 });
                             })
                             $.each(data.currentActivity, function (i, v) {
@@ -241,7 +242,7 @@ else
                                 $description.append($('<p/>').html('<b>Tentative:</b> Yes'));
                             }
                             if (calEvent.alarm) {
-                                $description.append($('<p/>').html('<b>Alarm:</b> ' + calEvent.alarm));
+                                $description.append($('<p/>').html('<b>Reminder:</b> ' + calEvent.alarm));
                             }
 
                             $('#myModal #pDetails').empty().html($description);
@@ -252,6 +253,7 @@ else
                         select: function (start, end) {
                             selectedEvent = {
                                 eventID: 0,
+                                eventUid: '',
                                 title: '',
                                 description: '',
                                 start: start,
@@ -260,7 +262,7 @@ else
                                 tentative: false,
                                 color: '',
                                 userId: '',
-                                alarm: '30, 60'
+                                alarm: ''
                             };
                             openAddEditForm();
                             $('#calendar').fullCalendar('unselect');
@@ -275,7 +277,8 @@ else
                                 Description: event.description,
                                 IsFullDay: event.allDay,
                                 Tentative: event.tentative,
-                                Alarm: event.alarm
+                                Alarm: event.alarm,
+                                EventUid: event.eventUid
                             };
                             SaveEvent(data);
                         }
@@ -288,6 +291,11 @@ else
                 })
                 $('#btnDelete').click(function () {
                     if (!canEdit()) {
+                        return;
+                    }
+
+                    if (selectedEvent.eventUid) {
+                        alert('To delete this event it must be first deleted from third party calendar provider where it was created from.');
                         return;
                     }
 
@@ -397,7 +405,7 @@ else
                         $('#txtDescription').val(selectedEvent.description);
                         $('#ddTagID').val(selectedEvent.tagID);
                         $('#splitDates').val('');
-                        $('#txtAlarm').val(selectedEvent.alarm);
+                        $('#txtAlarm').val(selectedEvent.alarm != null && selectedEvent.alarm != "" ? selectedEvent.alarm : "30, 60");
                         hideSplitDates(moment(selectedEvent.start), moment(selectedEvent.end))
                     }
                     $('#myModal').modal('hide');

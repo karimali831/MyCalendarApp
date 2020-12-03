@@ -1,6 +1,7 @@
 ﻿@model MyCalendar.Website.ViewModels.SchedulerVM
 @using MyCalendar.Website.ViewModels
 @using MyCalendar.Helpers
+@using MyCalendar.Enums
 @{
     var BaseViewModel = ViewData[nameof(BaseVM)] as BaseVM;
 }
@@ -96,6 +97,14 @@
                         <input type="datetime-local" id="end@(i)" name="EndDate[]" class="form input100" step="300" value="@(Model.EndDate != null && Model.EndDate[i] != null ? Model.EndDate[i].Value.ToString("yyy-MM-ddTHH:mm") : Utils.DateTime().AddDays(i).AddHours(3).ToString("yyy-MM-ddTHH:00"))" required />
                         <span class="focus-input100" data-symbol="&#xf337;"></span>
                     </div>
+                    @if (BaseViewModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                    {
+                        <div class="wrap-input100 m-b-23">
+                            <span class="label-input100">Set alarm in minutes seperated by commas</span>
+                            <input type="text" class="form input100" name="Alarm[]" value="@(Model.Alarm != null && Model.Alarm[i] != null ? Model.Alarm[i] : "30, 60")" />
+                            <span class="focus-input100" data-symbol="&#xf32d;"></span>
+                        </div>
+                    }
                 </div>
 
             }

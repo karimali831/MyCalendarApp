@@ -19,7 +19,7 @@ namespace MyCalendar.Service
         IEnumerable<Event> ReadEventsForCalendar(string calendarId);
         IEnumerable<Event> ReadEvents();
         bool LoadUser(Model.User user);
-        void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, Location location = null);
+        void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, int[] reminders = null, Location location = null);
         void DeleteEvent(string calendarId, string eventId);
     }
 
@@ -29,6 +29,7 @@ namespace MyCalendar.Service
         private static string _accessToken;
         private static string _refreshToken;
         private readonly IUserRepository userRepo;
+
         private static CronofyOAuthClient _oauthClient;
 
         public CronofyService(IUserRepository userRepo)
@@ -264,17 +265,15 @@ namespace MyCalendar.Service
             return events;
         }
 
-        public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, Location location = null)
+        public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, int[] reminders = null, Location location = null)
         {
-            int[] reminders = new int[] { 50, 120 };
-
             var buildingEvent = new UpsertEventRequestBuilder()
                 .EventId(eventId)
                 .Summary(summary)
                 .Description(description)
                 .Start(start)
                 .End(end)
-                .Reminders(reminders)
+                .Reminders(reminders ?? new int[] { })
                 .Color(color)
                 .StartTimeZoneId("Europe/London")
                 .EndTimeZoneId("Europe/London")

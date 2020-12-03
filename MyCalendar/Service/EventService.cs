@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data.Entity.Core.Metadata.Edm;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MyCalendar.Service
 {
@@ -24,6 +25,7 @@ namespace MyCalendar.Service
         Task<bool> EventExistsInCalendar(int calendarId);
         Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId);
         Task<IEnumerable<Types>> GetUserCalendars(Guid userId);
+        Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId);
     }
 
     public class EventService : IEventService
@@ -103,16 +105,17 @@ namespace MyCalendar.Service
                     {
                         foreach (var e in cronofyEvents)
                         {
-                            if (!await EventUExists(e.EventUid, e.CalendarId))
+                            var extCalendar = user.ExtCalendarRights.FirstOrDefault(x => x.SyncFromCalendarId == e.CalendarId);
+
+                            if (extCalendar != null && e.Start.HasTime && !await EventUExists(e.EventUid, e.CalendarId))
                             {
-                                var findTag = (await userService.GetUserTags(user.UserID))
-                                    .FirstOrDefault(t => Utils.Contains(t.Name, e.Summary, StringComparison.OrdinalIgnoreCase));
-
-                                string calendarName = cronofyService.GetCalendars().FirstOrDefault(x => x.CalendarId == e.CalendarId)?.Profile.ProviderName ?? "Unknown";
-                                var extCalendar = user.ExtCalendarRights.FirstOrDefault(x => x.SyncFromCalendarId == e.CalendarId);
-
-                                if (e.Start.HasTime && extCalendar != null)
+                                if (!await EventExistsAtStartTime(e.Start.DateTimeOffset.UtcDateTime, extCalendar.SyncToCalendarId))
                                 {
+                                    var findTag = (await userService.GetUserTags(user.UserID))
+                                        .FirstOrDefault(t => Utils.Contains(t.Name, e.Summary ?? "(No title)", StringComparison.OrdinalIgnoreCase));
+
+                                    string calendarName = cronofyService.GetCalendars().FirstOrDefault(x => x.CalendarId == e.CalendarId)?.Profile.ProviderName ?? "Unknown";
+
                                     unsycnedEvents.Add(new Model.EventDTO
                                     {
                                         EventID = Guid.NewGuid(),
@@ -124,7 +127,7 @@ namespace MyCalendar.Service
                                         EventUid = e.EventUid,
                                         CalendarId = extCalendar.SyncToCalendarId,
                                         CalendarUid = e.CalendarId
-                                    });
+                                    });    
                                 }
                             }
                         }
@@ -170,12 +173,13 @@ namespace MyCalendar.Service
                 }
 
                 DateTime endDate = dto.EndDate ?? dto.StartDate.AddDays(1);
+                int[] reminders = dto.Alarm?.Split(',').Select(x => int.Parse(x)).ToArray();
 
                 foreach (var extCal in user.ExtCalendarRights)
                 {
                     if (extCal.Save)
                     {
-                        cronofyService.UpsertEvent(dto.EventID.ToString(), extCal.SyncFromCalendarId, subject, dto.Description, dto.StartDate, endDate, color);
+                        cronofyService.UpsertEvent(dto.EventID.ToString(), extCal.SyncFromCalendarId, subject, dto.Description, dto.StartDate, endDate, color, reminders);
                     }
                 }
             }
@@ -210,7 +214,8 @@ namespace MyCalendar.Service
                         IsFullDay = dto.IsFullDay,
                         TagID = dto.TagID,
                         Tentative = dto.Tentative,
-                        UserID = dto.UserID
+                        UserID = dto.UserID,
+                        Alarm = dto.Alarm
                     });
                 }
 
@@ -331,6 +336,11 @@ namespace MyCalendar.Service
         public async Task<bool> EventUExists(string eventUId, string calendarUid)
         {
             return await eventRepository.EventUExists(eventUId, calendarUid);
+        }
+
+        public async Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId)
+        {
+            return await eventRepository.EventExistsAtStartTime(startDate, calendarId);
         }
 
         public async Task<bool> EventExistsInCalendar(int calendarId)

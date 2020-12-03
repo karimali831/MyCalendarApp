@@ -105,6 +105,7 @@ namespace MyCalendar.Controllers
                 viewModel.TagId = scheduler.TagId ?? null;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
+                viewModel.Alarm = scheduler.Alarm;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
             }
 
@@ -127,7 +128,8 @@ namespace MyCalendar.Controllers
                 events.Add(z, new Model.EventDTO { 
                     TagID = item,
                     StartDate = model.StartDate[z],
-                    EndDate = model.EndDate[z]
+                    EndDate = model.EndDate[z],
+                    Alarm = model.Alarm[z]
                 });
                 z++;
             }
@@ -138,7 +140,8 @@ namespace MyCalendar.Controllers
                 UserID = user.UserID,
                 TagID = x.TagID ?? null,
                 StartDate = x.StartDate,
-                EndDate = x.EndDate
+                EndDate = x.EndDate,
+                Alarm = x.Alarm
             })
             .Where(x => x.StartDate != null && x.EndDate != null);
 

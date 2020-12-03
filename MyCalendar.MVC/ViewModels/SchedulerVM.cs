@@ -15,5 +15,6 @@ namespace MyCalendar.Website.ViewModels
         public Guid[] TagId { get; set; }
         public DateTime[] StartDate { get; set; }
         public DateTime?[] EndDate { get; set; }
+        public string[] Alarm { get; set; }
     }
 }

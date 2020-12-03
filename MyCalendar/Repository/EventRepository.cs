@@ -25,6 +25,7 @@ namespace MyCalendar.Repository
         Task DeleteExtAsync(string eventUid, string calendarUid);
         Task<bool> EventsByTagExist(Guid tagID);
         Task<bool> EventExistsInCalendar(int calendarId);
+        Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId);
     }
 
     public class EventRepository : IEventRepository
@@ -79,6 +80,17 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE EventUid = @eventUId AND CalendarUid = @calendarUid", new { eventUId, calendarUid });
+            }
+        }
+
+        public async Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+
+                string sqlText = $"SELECT count(1) FROM {TABLE} WHERE StartDate = '{startDate}' AND CalendarId = {calendarId}";
+
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE StartDate = @startDate AND CalendarId = @calendarId", new { startDate, calendarId });
             }
         }
 
