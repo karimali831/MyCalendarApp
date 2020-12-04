@@ -26,6 +26,7 @@ namespace MyCalendar.Repository
         Task<bool> EventsByTagExist(Guid tagID);
         Task<bool> EventExistsInCalendar(int calendarId);
         Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId);
+        Task<Event> GetUEvent(string eventUId, string calendarUid);
     }
 
     public class EventRepository : IEventRepository
@@ -48,12 +49,20 @@ namespace MyCalendar.Repository
             }
         }
 
+        public async Task<Event> GetUEvent(string eventUId, string calendarUid)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Event>($"SELECT Modified, Created, EventId FROM {TABLE} WHERE EventUid = @eventUId AND CalendarUid = @calendarUid", new { eventUId, calendarUid })).FirstOrDefault();
+            }
+        }
+
         public async Task<IEnumerable<Event>> GetAllAsync(int[] calendarIds, DateFilter filter = null)
         {
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.EventID,e.CalendarId,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm
+                    SELECT e.EventID,e.CalendarId,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm, e.Provider, e.Created, e.Modified
                     FROM Events e
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id
@@ -79,18 +88,20 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
+                string sqlTxt = $"SELECT count(1) FROM {TABLE} WHERE EventUid = {eventUId} AND CalendarUid = {calendarUid}";
                 return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE EventUid = @eventUId AND CalendarUid = @calendarUid", new { eventUId, calendarUid });
             }
         }
+
 
         public async Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId)
         {
             using (var sql = dbConnectionFactory())
             {
-
                 string sqlText = $"SELECT count(1) FROM {TABLE} WHERE StartDate = '{startDate}' AND CalendarId = {calendarId}";
 
-                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE StartDate = @startDate AND CalendarId = @calendarId", new { startDate, calendarId });
+                string sqlTxt = $"SELECT count(1) FROM {TABLE} WHERE StartDate = '{startDate:yyyy-MM-dd HH:mm:00:000}' AND CalendarId = {calendarId}";
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE StartDate = @StartDate AND CalendarId = @calendarId", new { StartDate = startDate, calendarId });
             }
         }
 
@@ -126,11 +137,13 @@ namespace MyCalendar.Repository
                             startDate = e.StartDate,
                             endDate = e.EndDate ?? null,
                             tentative = e.Tentative,
-                            tagID = e.TagID,
+                            tagID = e.TagID ?? Guid.Empty,
                             isFullDay = e.IsFullDay,
                             eventUid = e.EventUid,
                             calendarUid = e.CalendarUid,
-                            alarm = e.Alarm
+                            alarm = e.Alarm,
+                            provider = e.Provider,
+                            modified = Utils.FromTimeZoneToUtc(Utils.DateTime())
                         };
 
                     var existing = await EventExists(dto.EventID);
@@ -176,7 +189,9 @@ namespace MyCalendar.Repository
                                 isFullDay = e.IsFullDay,
                                 eventUid = e.EventUid,
                                 calendarUid = e.CalendarUid,
-                                alarm = e.Alarm
+                                alarm = e.Alarm,
+                                provider = e.Provider,
+                                modified = Utils.FromTimeZoneToUtc(Utils.DateTime())
                             };
 
                         await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(e));

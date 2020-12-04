@@ -4,6 +4,7 @@ using MyCalendar.Repository;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace MyCalendar.Service
@@ -267,6 +268,8 @@ namespace MyCalendar.Service
 
         public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, int[] reminders = null, Location location = null)
         {
+            color = Regex.Replace(color, "#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])", "#$1$1$2$2$3$3");
+
             var buildingEvent = new UpsertEventRequestBuilder()
                 .EventId(eventId)
                 .Summary(summary)
@@ -299,7 +302,7 @@ namespace MyCalendar.Service
 
                 LogHelper.Log(successLog);
             }
-            catch (CronofyException)
+            catch (CronofyException ex)
             {
                 var failureLog = "UpsertEvent failure - eventId=`{eventId}` - calendarId=`{calendarId}` - summary=`{summary}` - description=`{description}` - start=`{start}` - end=`{end}`";
 

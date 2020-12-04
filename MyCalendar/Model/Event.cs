@@ -24,6 +24,9 @@ namespace MyCalendar.Model
         public string CalendarUid { get; set; }
         public string InviteeIds { get; set; }
         public string Alarm { get; set; }
+        public string Provider { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime? Modified { get; set; }
         [DbIgnore]
         public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
     }
@@ -42,6 +45,8 @@ namespace MyCalendar.Model
         public string EventUid { get; set; }
         public string CalendarUid { get; set; }
         public string Alarm { get; set; }
+        public string Provider { get; set; }
+        public DateTime Modified { get; set; }
     }
 
     public class EventMap : EntityTypeConfiguration<Event>

@@ -21,6 +21,7 @@ namespace MyCalendar.DTOs
         public string SplitDates { get; set; }
         public string EventUid { get; set; }
         public string Alarm { get; set; }
+        public string Provider { get; set; }
     }
 
     public class EventDTO
@@ -54,7 +55,8 @@ namespace MyCalendar.DTOs
                 ThemeColor = e.ThemeColor,
                 Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value, e.StartDate) : string.Empty,
                 EventUid = e.EventUid,
-                Alarm = e.Alarm
+                Alarm = e.Alarm,
+                Provider = e.Provider
             };
         }
 

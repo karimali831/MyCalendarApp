@@ -80,7 +80,7 @@ namespace MyCalendar.Controllers
             var e = await eventService.GetAsync(eventID);
             var userId = (await GetUser()).UserID;
 
-            var status = e.UserID != userId ? false : await eventService.DeleteEvent(eventID);
+            var status = e.UserID != userId ? false : await eventService.DeleteEvent(eventID, e.EventUid);
 
             return new JsonResult { Data = new { status } };
         }

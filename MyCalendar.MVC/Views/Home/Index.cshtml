@@ -168,7 +168,8 @@ else
                                     duration: v.Duration,
                                     userId: v.UserId,
                                     eventUid: v.EventUid,
-                                    alarm: v.Alarm != null
+                                    alarm: v.Alarm,
+                                    provider: v.Provider
                                 });
                             })
                             $.each(data.currentActivity, function (i, v) {
@@ -262,14 +263,22 @@ else
                                 tentative: false,
                                 color: '',
                                 userId: '',
-                                alarm: ''
+                                alarm: '',
+                                provider: ''
                             };
                             openAddEditForm();
                             $('#calendar').fullCalendar('unselect');
                         },
                         editable: true,
+                        droppable: canEdit(),
                         eventDrop: function (event) {
+                            if (event.eventUid) {
+                                alert('Cannot drag event because this event was created in ' + event.provider + ' Calendar. To update on both calendars you must update it from there.');
+                                return;
+                            }
+
                             var data = {
+                                CalendarId: selectedCalendars[0],
                                 EventID: event.eventID,
                                 TagID: event.tagID,
                                 Start: event.start.format('YYYY-MM-DD[T]HH:mm'),
@@ -278,8 +287,10 @@ else
                                 IsFullDay: event.allDay,
                                 Tentative: event.tentative,
                                 Alarm: event.alarm,
-                                EventUid: event.eventUid
+                                EventUid: event.eventUid,
+                                Provider: event.provider
                             };
+
                             SaveEvent(data);
                         }
                     })
@@ -287,6 +298,10 @@ else
 
                 $('#btnEdit').click(function () {
                     //Open modal dialog for edit event
+                    if (selectedEvent.eventUid) {
+                        alert('Note: This event will not be updated on ' + selectedEvent.provider + ' Calendar. To update on both calendars you must update this event from where the event was created from on ' + selectedEvent.provider + ' Calendar.');
+                    }
+
                     openAddEditForm();
                 })
                 $('#btnDelete').click(function () {
@@ -295,8 +310,7 @@ else
                     }
 
                     if (selectedEvent.eventUid) {
-                        alert('To delete this event it must be first deleted from third party calendar provider where it was created from.');
-                        return;
+                        alert('Note: This event will not be deleted on ' + selectedEvent.provider + ' Calendar. To delete on both calendars you must delete this event from where the event was created from on ' + selectedEvent.provider + ' Calendar.');
                     }
 
                     if (selectedEvent != null && confirm('Are you sure?')) {
@@ -405,7 +419,7 @@ else
                         $('#txtDescription').val(selectedEvent.description);
                         $('#ddTagID').val(selectedEvent.tagID);
                         $('#splitDates').val('');
-                        $('#txtAlarm').val(selectedEvent.alarm != null && selectedEvent.alarm != "" ? selectedEvent.alarm : "30, 60");
+                        $('#txtAlarm').val(selectedEvent.alarm != null && selectedEvent.alarm == "" ? selectedEvent.alarm : "30, 60");
                         hideSplitDates(moment(selectedEvent.start), moment(selectedEvent.end))
                     }
                     $('#myModal').modal('hide');

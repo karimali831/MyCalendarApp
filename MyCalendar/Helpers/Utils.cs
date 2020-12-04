@@ -211,6 +211,8 @@ namespace MyCalendar.Helpers
             return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
         }
 
+        public static DateTime UtcDateTime() => FromTimeZoneToUtc(DateTime()); 
+
         public static IList<KeyValuePair<string, string>> TimePresets()
         {
             return new List<KeyValuePair<string, string>>() {
