@@ -107,17 +107,6 @@ namespace MyCalendar.Controllers
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            var appCookie = SessionPersister.Email;
-
-            if (!string.IsNullOrEmpty(appCookie))
-            {
-                if (!userService.LoadUser(appCookie))
-                {
-                    SessionPersister.Email = string.Empty;
-                    HttpContext.Response.Redirect(Url.MvcRoute(Section.Home).RouteUrl);
-                }
-            }
-
             base.OnActionExecuting(filterContext);
         }
 

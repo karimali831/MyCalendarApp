@@ -141,7 +141,6 @@
             var syncReady = '@(BaseViewModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)';
 
             if (syncRead) {
-
                 $.ajax({
                     type: "GET",
                     data: { 'tagId': $(this).val() },
@@ -173,16 +172,20 @@
                     $('#end' + n).val(date);
                 });
 
-                $('#tag' + n).change(function () {
-                    $.ajax({
-                        type: "GET",
-                        data: { 'tagId': $(this).val() },
-                        url: "/Event/LastStoredAlarm/",
-                        success: function (data) {
-                            $('#alarm' + n).val(data);
-                        }
-                    })
-                });
+                var syncReady = '@(BaseViewModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)';
+
+                if (syncReady) {
+                    $('#tag' + n).change(function () {
+                        $.ajax({
+                            type: "GET",
+                            data: { 'tagId': $(this).val() },
+                            url: "/Event/LastStoredAlarm/",
+                            success: function (data) {
+                                $('#alarm' + n).val(data);
+                            }
+                        })
+                    });
+                }
             }
         )
 

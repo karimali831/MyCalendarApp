@@ -17,7 +17,6 @@ namespace MyCalendar.Service
     {
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetUser(string email = null, string password = null);
-        bool LoadUser(string email);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
@@ -97,18 +96,6 @@ namespace MyCalendar.Service
             return await userRepository.GetByUserIDAsync(userID);
         }
 
-        public bool LoadUser(string email)
-        {
-            var user = userRepository.Get(email);
-
-            if (user == null)
-            {
-                return false;
-            }
-
-            return cronofyService.LoadUser(user);
-        }
-
         public async Task<Tag> GetUserTagAysnc(Guid tagID)
         {
             return await tagService.GetAsync(tagID);
@@ -163,6 +150,8 @@ namespace MyCalendar.Service
                 }
                 else
                 {
+                    cronofyService.LoadUser(user);
+
                     var getCalendarNames = cronofyService.GetProfiles().Select(x => Utils.UppercaseFirst(x.ProviderName));
                     user.CronofyReadyCalendarName = string.Format("{0} Calendar{1}", string.Join(", ", getCalendarNames), getCalendarNames.Count() > 1 ? "s" : "");
 
