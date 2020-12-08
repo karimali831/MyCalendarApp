@@ -138,19 +138,23 @@
 
         $('#defaultTag').change(function () {
             var txtVal = $(this).val();
+            var syncReady = '@(BaseViewModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)';
 
-            $.ajax({
-                type: "GET",
-                data: { 'tagId': $(this).val() },
-                url: "/Event/LastStoredAlarm/",
-                success: function (data) {
-                    $.each(new Array(@Model.Dates),
-                        function (n) {
-                           $('#alarm' + n).val(data);
-                        }
-                    );
-                }
-            })
+            if (syncRead) {
+
+                $.ajax({
+                    type: "GET",
+                    data: { 'tagId': $(this).val() },
+                    url: "/Event/LastStoredAlarm/",
+                    success: function (data) {
+                        $.each(new Array(@Model.Dates),
+                            function (n) {
+                                $('#alarm' + n).val(data);
+                            }
+                        );
+                    }
+                })
+            }
 
             $.each(new Array(@Model.Dates),
                 function (n) {

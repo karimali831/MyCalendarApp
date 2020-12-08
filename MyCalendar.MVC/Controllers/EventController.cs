@@ -112,8 +112,12 @@ namespace MyCalendar.Controllers
                 viewModel.TagId = scheduler.TagId ?? null;
                 viewModel.StartDate = scheduler.StartDate;
                 viewModel.EndDate = scheduler.EndDate;
-                viewModel.Alarm = scheduler.Alarm;
                 viewModel.UpdateStatus = (scheduler.UpdateStatus.UpdateResponse, scheduler.UpdateStatus.UpdateMsg);
+
+                if (baseVM.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                {
+                    viewModel.Alarm = scheduler.Alarm;
+                }
             }
 
             return View("MultiAdd", viewModel);
@@ -125,8 +129,7 @@ namespace MyCalendar.Controllers
         {
             var user = await GetUser();
             var events = new Dictionary<int, Model.EventDTO>();
-            var userId = (await GetUser()).UserID;
-
+   
             (Status? UpdateResponse, string UpdateMsg) status = (null, null);
 
             int z = 0;
@@ -136,7 +139,7 @@ namespace MyCalendar.Controllers
                     TagID = item,
                     StartDate = model.StartDate[z],
                     EndDate = model.EndDate[z],
-                    Alarm = model.Alarm[z]
+                    Alarm = user.CronofyReady == CronofyStatus.AuthenticatedRightsSet ? model.Alarm[z] : null
                 });
                 z++;
             }
@@ -148,7 +151,7 @@ namespace MyCalendar.Controllers
                 TagID = x.TagID ?? null,
                 StartDate = x.StartDate,
                 EndDate = x.EndDate,
-                Alarm = x.Alarm
+                Alarm = user.CronofyReady == CronofyStatus.AuthenticatedRightsSet ? x.Alarm : null
             })
             .Where(x => x.StartDate != null && x.EndDate != null);
 
