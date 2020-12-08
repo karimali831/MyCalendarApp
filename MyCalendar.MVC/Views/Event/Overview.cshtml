@@ -37,8 +37,6 @@
                     @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { id = "toDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
                 </div>
             </div>
-
-            <button class="btn btn-primary" id="btnFilter" style="display: inline">Show Me</button>
         </div>
     </div>
     <hr />
@@ -63,8 +61,16 @@
 </div>
 
  @section Scripts{
-    <script>
+     <script>
         $(document).ready(function () {
+            $("#interval").change(function () {
+                getEventsActivity();
+            });
+
+            $("#toDate").change(function () {
+                getEventsActivity();
+            });
+
             $("#frequency").change(function () {
                 if ($(this).val().indexOf('Last') >= 0) {
                     $('#showInterval').show(500);
@@ -78,9 +84,13 @@
                     $('#showDateRanges').hide(500);
                     $('#showInterval').hide(500);
                 }
+
+                if ($(this).val() != '@DateFrequency.DateRange') {
+                    getEventsActivity();
+                }
             });
 
-            $("#btnFilter").click(function () {
+            function getEventsActivity() {
                 var interval = $('#interval').val() == "" ? '@Model.Filter.Interval' : $('#interval').val();
                 var fromDate = $('#fromDate').val() == "" ? '@Model.Filter.FromDateRange' : $('#fromDate').val();
                 var toDate = $('#toDate').val() == "" ? '@Model.Filter.ToDateRange' : $('#toDate').val();
@@ -115,7 +125,7 @@
                         alert("Error: " + result.status);
                     }
                 })
-            });
+            }
         })
-    </script>
+     </script>
 }
