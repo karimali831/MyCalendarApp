@@ -140,6 +140,17 @@ else
                     FetchEventAndRenderCalendar();
                 });
 
+                $('#ddTagID').change(function () {
+                    $.ajax({
+                        type: "GET",
+                        data: { 'tagId': $(this).val() },
+                        url: "/Event/LastStoredAlarm/",
+                        success: function (data) {
+                            $('#txtAlarm').val(data);
+                        }
+                    })
+                });
+
                 var events = [];
                 var activity = [];
                 var selectedEvent = null;
@@ -419,7 +430,7 @@ else
                         $('#txtDescription').val(selectedEvent.description);
                         $('#ddTagID').val(selectedEvent.tagID);
                         $('#splitDates').val('');
-                        $('#txtAlarm').val(selectedEvent.alarm != null && selectedEvent.alarm == "" ? selectedEvent.alarm : "30, 60");
+                        $('#txtAlarm').val(selectedEvent.alarm);
                         hideSplitDates(moment(selectedEvent.start), moment(selectedEvent.end))
                     }
                     $('#myModal').modal('hide');

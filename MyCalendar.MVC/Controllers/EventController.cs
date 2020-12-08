@@ -36,6 +36,13 @@ namespace MyCalendar.Controllers
             return new JsonResult { Data = new { events = dto, currentActivity }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
 
+        public async Task<JsonResult> LastStoredAlarm(Guid tagId)
+        {
+            var alarm = await eventService.GetLastStoredAlarm(tagId);
+            return new JsonResult { Data = alarm ?? "", JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+
+        }
+
         [HttpPost]
         public async Task<JsonResult> Save(DTOs.EventVM e)
         {
@@ -163,7 +170,7 @@ namespace MyCalendar.Controllers
             else
             {
                 status = await eventService.SaveEvents(model.Events.ToList())
-                    ? (Status.Success, "Scheduled events has been added to your calendar")
+                    ? (Status.Success, "Events successfully added to your calendar")
                     : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
 
                 if (status.UpdateResponse == Status.Success)

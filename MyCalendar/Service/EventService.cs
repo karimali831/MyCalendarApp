@@ -25,6 +25,7 @@ namespace MyCalendar.Service
         Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId);
         Task<IEnumerable<Types>> GetUserCalendars(Guid userId);
         Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId);
+        Task<string> GetLastStoredAlarm(Guid tagId);
     }
 
     public class EventService : IEventService
@@ -68,6 +69,11 @@ namespace MyCalendar.Service
             return (await typeService.GetAllByUserIdAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
         }
 
+        public async Task<string> GetLastStoredAlarm(Guid tagId)
+        {
+            return await eventRepository.GetLastStoredAlarm(tagId);
+        }
+
         public async Task<IEnumerable<Event>> GetAllAsync(User user, int[] calendarIds, DateFilter filter = null)
         {
             var accessibleCalendars = (await GetAccessibleCalendars(user.UserID)).Select(x => x.Id);
@@ -78,7 +84,7 @@ namespace MyCalendar.Service
             }
 
             var events = await eventRepository.GetAllAsync(calendarIds, filter);
-         
+
             if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
                 var unsycnedEvents = new List<Model.EventDTO>();
@@ -212,8 +218,14 @@ namespace MyCalendar.Service
                 }
 
                 DateTime endDate = dto.EndDate ?? dto.StartDate.AddDays(1);
-                int[] reminders = dto.Alarm?.Split(',').Select(x => int.Parse(x)).ToArray();
 
+                int[] reminders = null;
+                if (!string.IsNullOrEmpty(dto.Alarm))
+                {
+                    reminders = dto.Alarm.Split(',').Select(x => int.Parse(x)).ToArray();
+                }
+
+ 
                 foreach (var extCal in user.ExtCalendarRights)
                 {
                     if (extCal.Save)
@@ -233,12 +245,17 @@ namespace MyCalendar.Service
             bool status;
             if (string.IsNullOrEmpty(e.SplitDates) || daysBetweenDays == 0 || e.IsFullDay)
             {
-                dto.EventID = dto.EventID != Guid.Empty ? dto.EventID : Guid.NewGuid();
-
-                var getEvent = await GetAsync(e.EventID);
-                dto.CalendarUid = getEvent.CalendarUid;
-                dto.EventUid = getEvent.EventUid;
-                dto.Provider = getEvent.Provider;
+                if (dto.EventID != Guid.Empty)
+                {
+                    var getEvent = await GetAsync(e.EventID);
+                    dto.CalendarUid = getEvent.CalendarUid;
+                    dto.EventUid = getEvent.EventUid;
+                    dto.Provider = getEvent.Provider;
+                }
+                else
+                {
+                    dto.EventID = Guid.NewGuid();
+                }
 
                 status = await eventRepository.InsertOrUpdateAsync(dto);
 

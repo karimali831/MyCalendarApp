@@ -27,6 +27,7 @@ namespace MyCalendar.Repository
         Task<bool> EventExistsInCalendar(int calendarId);
         Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId);
         Task<Event> GetUEvent(string eventUId, string calendarUid);
+        Task<string> GetLastStoredAlarm(Guid tagId);
     }
 
     public class EventRepository : IEventRepository
@@ -73,6 +74,20 @@ namespace MyCalendar.Repository
                     ORDER BY StartDate DESC";
 
                 return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
+            }
+        }
+
+        public async Task<string> GetLastStoredAlarm(Guid tagId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                string sqlTxt = $@"
+                    SELECT Alarm FROM Events
+                    WHERE TagId = @tagId AND Alarm IS NOT NULL
+                    GROUP BY TagId, Alarm
+                    ORDER BY MAX(Created) DESC";
+
+                return (await sql.QueryAsync<string>(sqlTxt, new { tagId })).FirstOrDefault();
             }
         }
 

@@ -101,7 +101,7 @@
                     {
                         <div class="wrap-input100 m-b-23">
                             <span class="label-input100">Set alarm in minutes seperated by commas</span>
-                            <input type="text" class="form input100" name="Alarm[]" value="@(Model.Alarm != null && Model.Alarm[i] != null ? Model.Alarm[i] : "30, 60")" />
+                            <input type="text" class="form input100" name="Alarm[]" id="alarm@(i)" value="@(Model.Alarm != null && Model.Alarm[i] != null ? Model.Alarm[i] : null)" />
                             <span class="focus-input100" data-symbol="&#xf32d;"></span>
                         </div>
                     }
@@ -138,6 +138,20 @@
 
         $('#defaultTag').change(function () {
             var txtVal = $(this).val();
+
+            $.ajax({
+                type: "GET",
+                data: { 'tagId': $(this).val() },
+                url: "/Event/LastStoredAlarm/",
+                success: function (data) {
+                    $.each(new Array(@Model.Dates),
+                        function (n) {
+                           $('#alarm' + n).val(data);
+                        }
+                    );
+                }
+            })
+
             $.each(new Array(@Model.Dates),
                 function (n) {
                     var tag = $('#tag' + n).val();
@@ -153,6 +167,17 @@
                     var end = $('#end' + n).val();
                     var date = start.substring(0, 10) + end.substring(10, 16);
                     $('#end' + n).val(date);
+                });
+
+                $('#tag' + n).change(function () {
+                    $.ajax({
+                        type: "GET",
+                        data: { 'tagId': $(this).val() },
+                        url: "/Event/LastStoredAlarm/",
+                        success: function (data) {
+                            $('#alarm' + n).val(data);
+                        }
+                    })
                 });
             }
         )

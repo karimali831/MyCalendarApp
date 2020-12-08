@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { api } from 'src/Api/Api';
-import { Load } from 'src/components/base/Loader';
 import { SelectionRefinement } from 'src/components/SelectionRefinement/SelectionRefinement';
 import { ToggleSwitch } from 'src/components/utils/ToggleSwitch';
-import { ICustomer } from 'src/models/ICustomer';
+import { customerSearchTxt } from 'src/components/utils/Utils';
+import { ICustomer, ICustomerSearch } from 'src/models/ICustomer';
+import { IGoogleAutoCompleteSearch } from 'src/models/IGoogleAutoComplete';
 import CustomerRegistration from './CustomerRegistration';
+import PickupLocation from './PickupLocation';
 
 export interface IOwnProps {
 
@@ -12,9 +14,10 @@ export interface IOwnProps {
 
 export interface IOwnState {
     filter: string,
-    customers: ICustomer[],
+    customers: ICustomerSearch[],
     registrationOn: boolean,
-    selectedCustomer: ICustomer | null
+    selectedCustomer?: ICustomerSearch
+    pickupLocation: string,
     loading: boolean
 }
 
@@ -26,7 +29,8 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
             filter: "",
             customers: [],
             registrationOn: false,
-            selectedCustomer: null,
+            selectedCustomer: undefined,
+            pickupLocation: "",
             loading: false
         };
     }
@@ -43,10 +47,18 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
             <div>
                 <div className="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
                     <span className="login100-form-title p-b-49">
-                        New Customer/Order
+                        Customer Search
                     </span>
-                    <SelectionRefinement filter={this.state.filter} onChange={(f) => this.keywordsChanged(f)} onLoading={(l) => this.onLoadingChanged(l)} />
-                    <div>
+                    <SelectionRefinement<ICustomerSearch>
+                        label="Customer Search" 
+                        placeholder="Search by customer info..." 
+                        filter={this.state.filter} 
+                        onChange={(f) => this.keywordsChanged(f)} 
+                        loading={this.state.loading}
+                        setFilterToItemName={true}
+                        itemSelected={(i) => this.selectedCustomer(i)}
+                        filteredResults={this.state.customers} />
+                    {/* <div>
                         {
                             !this.state.loading ?
                                 this.state.customers.length > 0 ?
@@ -70,7 +82,7 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
                                     : null)
                             : <Load />
                         }
-                    </div>
+                    </div> */}
                     <ToggleSwitch id="custReg" name='New Customer' onChange={c => this.registrationOn(c)} checked={this.state.registrationOn} />
                     <hr />
                     {
@@ -80,15 +92,29 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
                                 this.state.selectedCustomer != null ?
                                 <>
                                     <div>
-                                        {this.customerLabel(this.state.selectedCustomer)}
+                                        <span className="badge badge-primary">
+                                            {this.state.selectedCustomer.name}
+                                        </span>
                                         <span className="login100-form-title p-b-49">Customer Order</span>
                                     </div>
-        
-                                    <div className="wrap-input100 validate-input m-b-23">
-                                        <span className="label-input100">Start Date</span>
-                                        <input type="text" name="" defaultValue="" className="form input100" />
-                                        <span className="focus-input100" data-symbol="&#xf1c3;" />
-                                    </div>
+                                    <PickupLocation onStoreChange={this.storePickupChange} />
+                                    {
+                                        this.state.pickupLocation ? 
+                                            <>
+                                                <div>
+                                                    {this.state.pickupLocation}
+                                                    <iframe
+                                                        width="600"
+                                                        height="450"
+                                                        frameBorder="0" style={{"border": "0"}}
+                                                        src={`https://www.google.com/maps/embed/v1/place?key=${api.googleApiKey2}&q=${this.state.pickupLocation}`} allowFullScreen={true} />
+                                                    
+                                                    <span>Directions</span>
+                                                </div>
+                                            </>
+                                
+                                        : null
+                                    }
                                 </>
                                 : null
                             }
@@ -99,13 +125,7 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
         );
     }    
 
-    private customerLabel = (c: ICustomer) => 
-        <span className="badge badge-primary">
-            {c.firstName} {c.lastName} @ {c.address1} {c.postcode}
-        </span>
-    
-
-    private selectedCustomer = (customer: ICustomer) => {
+    private selectedCustomer = (customer: ICustomerSearch) => {
         this.setState({ 
             selectedCustomer: customer, 
             customers: [], 
@@ -117,30 +137,36 @@ export default class NewOrder extends React.Component<IOwnProps, IOwnState> {
     private registrationOn = (checked: boolean) => {
         this.setState({ 
             registrationOn: checked,
-            selectedCustomer: null,
+            selectedCustomer: undefined,
             filter: "",
             customers: []
         })
     }
 
-    private registrationChange = (customer: ICustomer) => {
+    private registrationChange = (customer: ICustomerSearch) => {
         this.selectedCustomer(customer)
     }
 
-    private keywordsChanged = (filter: string) => {
-        this.setState({ filter: filter })
+    private storePickupChange = (store: IGoogleAutoCompleteSearch) => {
+        this.setState({ pickupLocation: store.name })
     }
 
-    private onLoadingChanged = (loading: boolean) => {
-        this.setState({ loading: loading })
+    private keywordsChanged = (filter: string) => {
+        this.setState({ 
+            loading: true, 
+            filter: filter 
+        })
     }
 
     private customersSuccess = (customers: ICustomer[]) => {
         this.setState({ ...this.state,
             ...{ 
                 loading: false,
-                customers: customers
+                customers: customers.map(person =>({ 
+                    id: person.custId, 
+                    name: customerSearchTxt(person)
+                } as ICustomerSearch))
             }
         }) 
-      }
+    }
 }

@@ -1,12 +1,10 @@
 import * as React from 'react'
 import { debounce } from "lodash";
 
-
 interface IOwnProps {
     placeholder: string
-    filter?: string | null,
-    onChange: (filter: string) => void,
-    onLoading: (loading: boolean) => void
+    filter?: string,
+    onChange: (filter: string) => void
 }
 
 interface IOwnState {
@@ -28,7 +26,7 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
 
         this.inputRef = React.createRef<HTMLInputElement>();
         this.state = {
-            filter: ""
+            filter: this.props.filter !== undefined ? this.props.filter : "",
         };
     }
     
@@ -38,7 +36,7 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
             className="form input100"
             type="text"
             ref={this.inputRef}
-            defaultValue={(this.props.filter != null ? this.props.filter : this.state.filter)}
+            defaultValue={this.state.filter}
             placeholder={this.props.placeholder}
             onKeyDown={this.handleKeyPress}
             onChange={this.handleCriteriaChange}
@@ -53,14 +51,12 @@ export class RefinementInput extends React.Component<IOwnProps, IOwnState> {
 
     private handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && this.state.filter !== "" && this.state.filter !== this.props.filter) {
-            this.props.onLoading(true);
             this.props.onChange(this.state.filter);
         }
     }
 
     private handleCriteriaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.value.length > 2) {
-            this.props.onLoading(true);
 
             this.setState({ filter: e.target.value }, () => {
                 this.raiseDoSearchWhenUserStoppedTyping();

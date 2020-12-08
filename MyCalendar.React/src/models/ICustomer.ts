@@ -1,3 +1,5 @@
+import IBaseModel from 'src/components/SelectionRefinement/IBaseModel';
+
 export interface ICustomer {
     custId: string,
     firstName: string,
@@ -11,4 +13,8 @@ export interface ICustomer {
     postcode: string,
     contactNo1: string,
     contactNo2: string
+}
+
+export interface ICustomerSearch extends IBaseModel {
+    customers?: ICustomer[]
 }

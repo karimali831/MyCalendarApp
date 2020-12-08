@@ -268,7 +268,7 @@ namespace MyCalendar.Service
 
         public void UpsertEvent(string eventId, string calendarId, string summary, string description, DateTime start, DateTime end, string color, int[] reminders = null, Location location = null)
         {
-            color = Regex.Replace(color, "#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])", "#$1$1$2$2$3$3");
+            color = color.Length == 4 ? Regex.Replace(color, "#([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])", "#$1$1$2$2$3$3") : color;
 
             var buildingEvent = new UpsertEventRequestBuilder()
                 .EventId(eventId)
