@@ -53,6 +53,10 @@ body {
 .fc-icon.fa {
     font: normal normal normal 14px/1 FontAwesome !important;
  }
+
+ .fc-scrollgrid-section-header {
+    overflow-y: hidden !important;
+ }
  
  @media only screen and (max-width: 600px) {
     .calendar-margin {
