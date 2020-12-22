@@ -260,3 +260,8 @@ paket-files/
 __pycache__/
 *.pyc
 /MyCalendar.MVC/Logs/info.txt
+/MyCalendar.MVC/Logs/info.txt
+/MyCalendar.MVC/Scripts/dist/errandrunner/bundle.js
+/MyCalendar.MVC/Scripts/dist/errandrunner/bundle.js.map
+/MyCalendar.MVC/Scripts/dist/fullcalendar/bundle.js
+/MyCalendar.MVC/Scripts/dist/fullcalendar/bundle.js.map
