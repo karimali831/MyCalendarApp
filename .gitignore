@@ -265,3 +265,5 @@ __pycache__/
 /MyCalendar.MVC/Scripts/dist/errandrunner/bundle.js.map
 /MyCalendar.MVC/Scripts/dist/fullcalendar/bundle.js
 /MyCalendar.MVC/Scripts/dist/fullcalendar/bundle.js.map
+/MyCalendar.MVC/Logs/info.txt
+/MyCalendar.React/FullCalendar/package-lock.json

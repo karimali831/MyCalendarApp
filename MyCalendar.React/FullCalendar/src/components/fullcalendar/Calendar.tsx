@@ -1,9 +1,9 @@
 import * as React from 'react';
-import FullCalendar, { EventClickArg } from '@fullcalendar/react'
+import FullCalendar, { DateSelectArg, EventClickArg } from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
-import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction"; // needed for dayClick
+import interactionPlugin from "@fullcalendar/interaction"; // needed for dayClick
 import { api, IEventResponse } from 'src/Api/Api';
 import { IEvent } from 'src/models/IEvent';
 import { Load } from '@appology/react-components';
@@ -11,6 +11,7 @@ import bootstrapPlugin from '@fullcalendar/bootstrap';
 import './Calendar.css'
 import { IUserCalendar } from 'src/models/IUserCalendar';
 import { SidebarMenu } from '../menu/SidebarMenu';
+import Alert from 'react-bootstrap/Alert';
 
 export interface IOwnProps {
 
@@ -20,6 +21,7 @@ export interface IOwnState {
     loading: boolean,
     loadingCalendars: boolean,
     pinSidebar: boolean,
+    showCurrentActivity: boolean,
     showViewsMenu: boolean,
     events: IEvent[],
     userCalendars: IUserCalendar[],
@@ -38,6 +40,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             loading: false,
             loadingCalendars: false,
             pinSidebar: false,
+            showCurrentActivity: true,
             showViewsMenu: false,
             currentActivity: [],
             events: [],
@@ -65,6 +68,13 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                 {this.state.loading ? 
                     <Load withBackground={true} /> :
                     <>
+                        {
+                            this.state.showCurrentActivity && this.state.currentActivity.length > 0 ?
+                                <Alert key="current-activity" variant="info" onClose={this.showCurrentActivity} dismissible="dismissible">
+                                    {this.state.currentActivity.map(ca => ca)}
+                                </Alert>
+                            : null 
+                        }
                         <SidebarMenu 
                             expanded={true} 
                             pinSidebar={this.state.pinSidebar} 
@@ -78,26 +88,29 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                             <FullCalendar
                                 plugins={[ dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
                                 initialView="dayGridMonth"
-                                displayEventTime={true}
-                                eventDisplay="block"
                                 customButtons={{
                                     toggle: {
                                         icon: "fa fa fa-bars",
                                         click: this.toggleMenu
-                                        
+                                    },
+                                    activity: {
+                                        icon: `fa fa fa-user${this.state.showCurrentActivity ? "-minus" : "-clock"}`,
+                                        click: this.showCurrentActivity
                                     }
                                 }}
                                 headerToolbar={{
                                     left: "toggle,prev,next",
                                     center: "title",
-                                    right: "today"
+                                    right: "today,activity"
                                 }}
+                                eventBackgroundColor="#eee"
+                                select={this.handleDateSelect}
                                 selectable={true}
                                 loading={() => this.state.loading}
                                 editable={true}
                                 events={this.state.events}
                                 height={600}
-                                dateClick={this.handleDateClick}
+                                // dateClick={this.handleDateClick}
                                 eventClick={this.handleEventClick}
                                 ref={this.calendarRef} />
                        </div>
@@ -105,6 +118,15 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                 }
             </div>
         )
+    }
+
+    private showCurrentActivity = () => {
+        this.setState({ showCurrentActivity: !this.state.showCurrentActivity })
+    }
+
+    private handleDateSelect = (date: DateSelectArg) => {
+
+        alert("tt")
     }
 
     private toggleMenu = () => {
@@ -155,11 +177,11 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
         })
     }
 
-    private handleDateClick = (arg: DateClickArg) => { // bind with an arrow function
-        alert(arg.dateStr)
-    }
+    // private handleDateClick = (arg: DateClickArg) => { 
+    //     alert(arg.dateStr)
+    // }
 
-    private handleEventClick = (arg: EventClickArg) => { // bind with an arrow function
+    private handleEventClick = (arg: EventClickArg) => { 
         alert(JSON.stringify(arg.event))
     }
 }
