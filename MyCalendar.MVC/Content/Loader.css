@@ -49,14 +49,25 @@
 }
 
 /* spinner without background */
+
 .loader {
-    border: 16px solid #f3f3f3;
     border-radius: 50%;
-    border-top: 16px solid #09c;
-    width: 20px;
-    height: 20px;
-    -webkit-animation: spin 2s linear infinite; /* Safari */
+    -webkit-animation: spin 2s linear infinite;
     animation: spin 2s linear infinite;
+}
+
+.loader-small {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #09c;
+    width: 18px;
+    height: 18px;
+}
+
+.loader-big {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #09c;
+    width: 26px;
+    height: 26px;
 }
 
 /* Safari */
