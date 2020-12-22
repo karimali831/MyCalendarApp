@@ -1,0 +1,63 @@
+body {
+    font-family: Georgia, 'Times New Roman', Times, serif
+}
+
+.fc-col-header {
+    border: 1px solid #a3a3a3;
+    color: #eee;
+    font-weight: bold;
+}
+
+.fc-col-header a {
+    color: #eee;
+    text-decoration: none;
+}
+
+.fc-event {
+    border-radius: 5px;
+    margin: 5px;
+    padding: 5px;
+    min-height: 30px;
+    border: none;
+    box-shadow: 0 3px 3px rgba(0,0,0,0.2);
+}
+
+.fc-col-header-cell {
+    font-size: 12px;
+    color: #fff;
+    line-height: 1.4;
+    background-color: #2C3E50;
+}
+
+.fc-col-header tbody th {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.fc-scrollgrid-section-body a {
+    color: #222;
+    text-decoration: none;
+}
+
+.fc-scrollgrid-section {
+    border: 1px solid #ccc;
+    background: #f9f9f9 url('https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/black-tie/images/ui-bg_highlight-hard_100_f9f9f9_1x100.png') 50% top repeat-x;
+    color: #222;
+}
+
+.fc-list-day-cushion {
+    background-color: #2C3E50 !important;
+    color: #fff;
+}
+
+.fc-icon.fa {
+    font: normal normal normal 14px/1 FontAwesome !important;
+ }
+ 
+ @media only screen and (max-width: 600px) {
+    .calendar-margin {
+        margin-left: 60px;
+        opacity: 1;
+        transform: scale(1);
+    }
+}

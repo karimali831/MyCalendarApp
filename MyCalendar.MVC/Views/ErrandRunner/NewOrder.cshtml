@@ -1,13 +1,4 @@
-﻿@using System.Configuration
-@using MyCalendar.Enums
-@{
-    var version = ConfigurationManager.AppSettings["AppVersion"];
-}
-
+﻿<br />
 <br />
 <br />
-<br />
-<div id="er-neworder" data-subsiteroot="/" data-contentroot="http://localhost:53822/errandrunner/neworder"></div>
-@*<div id="root" data-subsiteroot="/" data-contentroot=""></div>*@
-@Scripts.Render($"~/Scripts/dist/bundle.js?v={version}")
-
+@Html.Partial("_ReactApp", "errandrunner")

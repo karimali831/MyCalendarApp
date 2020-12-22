@@ -1,0 +1,8 @@
+﻿@using System.Configuration
+@model string
+@{
+    var version = ConfigurationManager.AppSettings["AppVersion"];
+}
+
+<div id="root"></div>
+@Scripts.Render($"~/Scripts/dist/{Model}/bundle.js?v={version}")
