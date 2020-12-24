@@ -48,8 +48,15 @@
     animation: spin .8s linear infinite;
 }
 
-/* spinner without background */
+/* events loader */
+#event-load {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1000;
+}
 
+/* spinner without background */
 .loader {
     border-radius: 50%;
     -webkit-animation: spin 2s linear infinite;
@@ -63,11 +70,18 @@
     height: 18px;
 }
 
-.loader-big {
-    border: 16px solid #f3f3f3;
-    border-top: 16px solid #09c;
-    width: 26px;
-    height: 26px;
+.loader-medium {
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #09c;
+    width: 32px;
+    height: 32px;
+}
+
+.loader-large {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #09c;
+    width: 64px;
+    height: 64px;
 }
 
 /* Safari */

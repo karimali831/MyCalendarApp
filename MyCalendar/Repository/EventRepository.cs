@@ -15,7 +15,7 @@ namespace MyCalendar.Repository
     public interface IEventRepository
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(int[] calendarIds, DateFilter filter = null);
+        Task<IEnumerable<Event>> GetAllAsync(RequestEventDTO request);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> EventUExists(string eventUid, string calendarUid);
@@ -58,7 +58,7 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(int[] calendarIds, DateFilter filter = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(RequestEventDTO request)
         {
             using (var sql = dbConnectionFactory())
             {
@@ -69,8 +69,9 @@ namespace MyCalendar.Repository
                     ON e.TagID = t.Id
                     LEFT JOIN Types ty
                     ON t.TypeID = ty.Id
-                    WHERE CalendarId IN ({string.Join(",", calendarIds)})
-                    {(filter != null && filter.Frequency.HasValue ? " AND " + Utils.FilterDateSql(filter) : null)}
+                    WHERE CalendarId IN ({string.Join(",", request.CalendarIds)})
+                    {(request.DateFilter != null && request.DateFilter.Frequency.HasValue ? $" AND {Utils.FilterDateSql(request.DateFilter)}" : null)}
+                    {(request.Month != null && request.Year != null ? $" AND MONTH(StartDate) IN ({string.Join(",", request.Month)}) AND  YEAR(StartDate) IN ({string.Join(",", request.Year)})" : null)}
                     ORDER BY StartDate DESC";
 
                 return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();

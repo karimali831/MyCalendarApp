@@ -39,20 +39,26 @@ namespace MyCalendar.Controllers
         {
             var user = await userService.GetUser();
             var buddys = await userService.GetBuddys(user.UserID);
-            var userTags = await userService.GetUserTags(user.UserID);
-            var userCalendars = await userService.UserCalendars(user.UserID);
 
             return new BaseVM
             {
                 User = user,
                 Buddys = buddys,
-                UserCalendars = userCalendars,
                 AccessibleGroups = await AccessibleGroups(user.RoleIdsList),
                 AccessibleFeatures = await AccessibleFeatures(user.RoleIdsList),
-                UserTags = new TagsDTO { Tags = userTags },
                 UpdateStatus = (updateResponse, updateMsg),
                 MenuItem = menuItem
             };
+        }
+
+        public async Task<IEnumerable<Types>> UserCalendars(Guid userId)
+        {
+            return await userService.UserCalendars(userId);
+        }
+
+        public async Task<IEnumerable<Tag>> UserTags(Guid userId)
+        {
+            return await userService.GetUserTags(userId);
         }
 
         public async Task<User> Login(string email, string password)

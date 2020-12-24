@@ -25,3 +25,27 @@ export interface IEvent {
     alarm: string,
     provider: string
 }
+
+export interface IEventDTO {
+    // standard props
+    id: string,
+    title: string,
+    startStr: string,
+    endStr: string,
+    allDay: boolean,
+    // non standard props
+    calendarId: string,
+    tagId: string,
+    description: string,
+    tentative: boolean,
+    eventUid: string,
+    alarm: string,
+}
+
+export interface IEventDateSet {
+    start: Date,
+    end: Date,
+    startStr: string,
+    endStr: string,
+    timeZone: string
+}

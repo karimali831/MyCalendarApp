@@ -64,7 +64,7 @@
                 @Html.Partial("_Tags",
                     new MyCalendar.DTOs.TagsDTO
                          {
-                        Tags = BaseViewModel.UserTags.Tags,
+                        Tags = Model.UserTags,
                         TagTypes = Model.UserTypes.Where(x => x.GroupId == TypeGroup.TagGroups),
                         UserID = Model.User.UserID
                     })

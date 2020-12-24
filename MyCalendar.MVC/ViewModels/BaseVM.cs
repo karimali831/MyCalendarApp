@@ -10,8 +10,6 @@ namespace MyCalendar.Website.ViewModels
     public class BaseVM
     {
         public User User { get; set; }
-        public TagsDTO UserTags { get; set; }
-        public IEnumerable<Types> UserCalendars { get; set; }
         public IEnumerable<Group> AccessibleGroups { get; set; }
         public IEnumerable<Feature> AccessibleFeatures { get; set; }
         public IList<User> Buddys { get; set; }

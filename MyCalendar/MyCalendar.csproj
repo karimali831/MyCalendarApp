@@ -153,6 +153,7 @@
     <Compile Include="DTOs\DateFilter.cs" />
     <Compile Include="DTOs\Document.cs" />
     <Compile Include="DTOs\Event.cs" />
+    <Compile Include="DTOs\EventRequest.cs" />
     <Compile Include="DTOs\Types.cs" />
     <Compile Include="Enums\CronofyStatus.cs" />
     <Compile Include="Enums\DateFrequency.cs" />

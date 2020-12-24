@@ -27,7 +27,7 @@ namespace MyCalendar.Controllers
             await BaseViewModel(new MenuItem { Home = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var events = await eventService.GetAllAsync(baseVM.User, calendarId);
+            var events = await eventService.GetAllAsync(baseVM.User, new RequestEventDTO { CalendarIds = calendarId });
             var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
@@ -100,7 +100,8 @@ namespace MyCalendar.Controllers
             var viewModel = new SchedulerVM 
             { 
                 Dates = dates, 
-                Calendars =  await eventService.GetUserCalendars(baseVM.User.UserID)
+                Calendars =  await eventService.GetUserCalendars(baseVM.User.UserID),
+                UserTags = await UserTags(baseVM.User.UserID)
             };
 
             var scheduler = (SchedulerVM)TempData["scheduler"];

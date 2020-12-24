@@ -15,7 +15,7 @@ namespace MyCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
-        Task<IEnumerable<Event>> GetAllAsync(User user, int[] calendarIds, DateFilter filter = null);
+        Task<IEnumerable<Event>> GetAllAsync(User user, RequestEventDTO request);
         Task<bool> SaveEvent(EventVM e);
         Task<bool> SaveEvents(IList<Model.EventDTO> dto);
         Task<bool> DeleteEvent(Guid eventId, string eventUid = null);
@@ -74,16 +74,16 @@ namespace MyCalendar.Service
             return await eventRepository.GetLastStoredAlarm(tagId);
         }
 
-        public async Task<IEnumerable<Event>> GetAllAsync(User user, int[] calendarIds, DateFilter filter = null)
+        public async Task<IEnumerable<Event>> GetAllAsync(User user, RequestEventDTO request)
         {
             var accessibleCalendars = (await GetAccessibleCalendars(user.UserID)).Select(x => x.Id);
 
-            if (!accessibleCalendars.Any(x => calendarIds.Any(y => x == y)))
+            if (!accessibleCalendars.Any(x => request.CalendarIds.Any(y => x == y)))
             {
                 throw new ApplicationException("No permission to view calendar events");
             }
 
-            var events = await eventRepository.GetAllAsync(calendarIds, filter);
+            var events = await eventRepository.GetAllAsync(request);
 
             if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
@@ -310,7 +310,13 @@ namespace MyCalendar.Service
         {
             var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
 
-            var events = (await GetAllAsync(user, userCalendarIds, filter: dateFilter))
+            var eventRequest = new RequestEventDTO
+            {
+                CalendarIds = userCalendarIds,
+                DateFilter = dateFilter
+            };
+
+            var events = (await GetAllAsync(user, eventRequest))
                 .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID))
                 .GroupBy(x => x.TagID);
 

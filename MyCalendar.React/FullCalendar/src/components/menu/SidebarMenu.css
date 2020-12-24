@@ -6,5 +6,21 @@
 
 .sidenav---sidenav---_2tBP {
     margin-top: 57px;
+    background-image: url("../../assets/bg1.jpg");
+    height: 100%;
 }
 
+.sidenav---sidenav-subnav---1EN61 {
+    background-image: url("../../assets/bg1.jpg");
+    color: #fff;
+}
+
+.sidenav---navtext---1AE_f {
+    color: #fff;
+}
+
+
+.sidenav---sidenav-subnav---1EN61 > .sidenav---sidenav-subnavitem---1cD47 > .sidenav---navitem---9uL5T:hover {
+    background-color: #000;
+    color: #fff;
+}

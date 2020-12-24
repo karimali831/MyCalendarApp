@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNet.Identity;
 using MyCalendar.DTOs;
+using MyCalendar.Enums;
 using MyCalendar.ER.Model;
 using MyCalendar.ER.Service;
 using MyCalendar.Helpers;
@@ -20,7 +21,7 @@ namespace MyCalendar.Website.Controllers.API
     [RoutePrefix("api/calendar")]
     [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
-    public class EventController :  ApiController
+    public class EventController : ApiController
     {
         private readonly IEventService eventService;
         private readonly IUserService userService;
@@ -31,22 +32,38 @@ namespace MyCalendar.Website.Controllers.API
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
+        [Route("usertags")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> UserTags()
+        {
+            var user = await userService.GetUser("karimali831@googlemail.com");
+            var userTags = await userService.GetUserTags(user.UserID);
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                userTags,
+                cronofyReady =
+                    (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+
+            });
+        }
+
         [Route("events")]
         [HttpPost]
-        public async Task<HttpResponseMessage> Get(int[] calendarIds)
+        public async Task<HttpResponseMessage> Get(RequestEventDTO request)
         {
             var user = await userService.GetUser("karimali831@googlemail.com");
             var userCalendars = await userService.UserCalendars(user.UserID);
 
-            if (calendarIds.Length == 0)
+            if (request.CalendarIds.Length == 0)
             {
-                calendarIds = userCalendars
+                request.CalendarIds = userCalendars
                     .Where(x => x.UserCreatedId == user.UserID && x.Defaulted)
                     .Select(x => x.Id)
                     .ToArray();
             }
 
-            var events = await eventService.GetAllAsync(user, calendarIds);
+            var events = await eventService.GetAllAsync(user, request);
             var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
@@ -86,7 +103,7 @@ namespace MyCalendar.Website.Controllers.API
                     name = x.Name,
                     userCreatedId = x.UserCreatedId,
                     invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
-                    selected = calendarIds.Contains(x.Id)
+                    selected = request.CalendarIds.Contains(x.Id)
                 }),
                 UserId = user.UserID,
                 currentActivity,

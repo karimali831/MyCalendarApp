@@ -80,9 +80,10 @@ textarea {
 }
 
 .card-header {
-
     height: 55px;
 }
+
+
 
 .treeview {
     /*border-top-left-radius: 10px;
@@ -127,9 +128,9 @@ textarea {
 
 
 .menu .sub-menu {
-  background-color: #343a40;
-  border-width: 1px 1px 0;
-  margin: 0 1em;
+    background-image: url("img/bg1.jpg");
+    border-width: 1px 1px 0;
+    margin: 0 1em;
 }
 
 .menu .sub-menu li:last-child {
@@ -147,7 +148,8 @@ textarea {
 
 .menu,
 .toggle-menu {
-    background-color: #343a40;
+    background-image: url("img/bg1.jpg");
+    background-size: cover;
 }
 
 .toggle-menu, 

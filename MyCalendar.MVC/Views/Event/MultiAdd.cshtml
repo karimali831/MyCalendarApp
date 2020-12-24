@@ -48,7 +48,7 @@
 
                     <select id="defaultTag" name="defaulTagId" class="form input100">
                         <option value="">-- select tag --</option>
-                        @foreach (var tag in BaseViewModel.UserTags.Tags)
+                        @foreach (var tag in Model.UserTags)
                         {
                             <option value="@tag.Id">@tag.Name</option>
                         }
@@ -80,7 +80,7 @@
 
                         <select id="tag@(i)" name="TagId[]" class="form input100" required>
                             <option value="">-- select tag --</option>
-                            @foreach (var tag in BaseViewModel.UserTags.Tags)
+                            @foreach (var tag in Model.UserTags)
                             {
                                 <option value="@tag.Id" selected="@(Model.TagId != null && Model.TagId.Contains(tag.Id) ? true : false)">@tag.Name</option>
                             }
@@ -140,7 +140,7 @@
             var txtVal = $(this).val();
             var syncReady = '@(BaseViewModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)';
 
-            if (syncRead) {
+            if (syncReady) {
                 $.ajax({
                     type: "GET",
                     data: { 'tagId': $(this).val() },

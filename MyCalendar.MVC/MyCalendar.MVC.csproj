@@ -374,6 +374,7 @@
     <Content Include="Content\froala\third_party\image_tui.min.css" />
     <Content Include="Content\froala\third_party\spell_checker.css" />
     <Content Include="Content\froala\third_party\spell_checker.min.css" />
+    <Content Include="Content\img\bg1.jpg" />
     <Content Include="Content\Login.css" />
     <Content Include="Content\Loader.css" />
     <Content Include="favicon.ico" />
@@ -650,7 +651,7 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Account\Index.cshtml" />
-    <Content Include="Views\Home\Index.cshtml" />
+    <Content Include="Views\Home\v3.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
     <Content Include="Views\Settings\_Tags.cshtml" />
     <Content Include="Views\Event\MultiAdd.cshtml" />
@@ -675,7 +676,7 @@
     <Content Include="Views\Settings\_AddEditType.cshtml" />
     <Content Include="Views\ErrandRunner\NewOrder.cshtml" />
     <Content Include="Views\Shared\_FolderSelection.cshtml" />
-    <Content Include="Views\Home\v5.cshtml" />
+    <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\_ReactApp.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>

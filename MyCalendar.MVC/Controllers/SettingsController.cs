@@ -43,6 +43,7 @@ namespace MyCalendar.Website.Controllers
             var viewModel = new SettingsVM
             {
                 User = baseVM.User,
+                UserTags = await UserTags(baseVM.User.UserID),
                 Buddys = baseVM.Buddys,
                 UserTypes = await typeService.GetAllByUserIdAsync(baseVM.User.UserID),
                 AccessibleGroups = baseVM.AccessibleGroups,
