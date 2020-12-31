@@ -186,15 +186,15 @@ textarea {
   line-height: 1;
 }
 
-.menu .home-link {
-    font-size: 17px;
-}
 
 .menu li.menu-right {
     float: right;
 }
 
 @media (max-width: 991.98px) {
+    .menu .home-link {
+        display: none;
+    }
     .toggle-menu {
         margin: 0px;
     }
@@ -289,4 +289,20 @@ textarea {
 /*caledar overrides*/
 .fc-more {
     font-size: x-small !important;
+}
+
+/*avatar */
+[default-avatar]:before {
+    content: attr(default-avatar);
+    display: inline-block;
+    font-size: 1em;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    text-align: center;
+    border-radius: 50%;
+    background: #09c;
+    /*vertical-align: middle;*/
+    margin-right: 2px;
+    color: white;
 }
