@@ -22,6 +22,11 @@ namespace MyCalendar.Model
         public bool EnableCronofy { get; set; } 
         public string RoleIds { get; set; }
         public string BuddyIds { get; set; }
+        public string SelectedCalendars { get; set; }
+        public string Avatar { get; set; }
+        [DbIgnore]
+        public IEnumerable<int> SelectedCalendarsList => (SelectedCalendars != null && SelectedCalendars.Any() ? SelectedCalendars.Split(',').Select(x => int.Parse(x)) : Enumerable.Empty<int>());
+
         [DbIgnore]
         public IEnumerable<Guid> RoleIdsList => (RoleIds != null && RoleIds.Any() ? RoleIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
         [DbIgnore]

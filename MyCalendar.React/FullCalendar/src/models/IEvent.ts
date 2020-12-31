@@ -13,17 +13,18 @@ export interface IEvent {
     // backgroundColor: string, -- the dot
     eventBackgroundColor: string,
     textColor: string,
-    display: string,
     // non standard props
-    calendarId: string,
+    calendarId: number,
     userId: string,
     tagId: string,
     description: string,
     tentative: boolean,
     duration: string,
-    eventUid: string,
+    eventUid?: string | null,
     alarm: string,
-    provider: string
+    provider: string,
+    reminder: boolean,
+    avatar: string
 }
 
 export interface IEventDTO {
@@ -34,12 +35,23 @@ export interface IEventDTO {
     endStr: string,
     allDay: boolean,
     // non standard props
-    calendarId: string,
+    calendarId: number,
+    reminder: boolean,
     tagId: string,
     description: string,
     tentative: boolean,
-    eventUid: string,
+    eventUid?: string | null,
     alarm: string,
+    // no transfer props
+    duration?: string,
+    userId?: string
+}
+
+export interface IEventSelect {
+    dateStart?: Date,
+    dateEnd?: Date,
+    event?: IEventDTO,
+    eventEdit?: IEventDTO
 }
 
 export interface IEventDateSet {

@@ -1,6 +1,7 @@
 ﻿using MyCalendar.DTOs;
 using MyCalendar.Enums;
 using MyCalendar.Helpers;
+using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
@@ -21,75 +22,11 @@ namespace MyCalendar.Controllers
    
         }
          
-        [HttpPost]
-        public async Task<JsonResult> Get(int[] calendarId)
-        {
-            await BaseViewModel(new MenuItem { Home = true });
-            var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
-
-            var events = await eventService.GetAllAsync(baseVM.User, new RequestEventDTO { CalendarIds = calendarId });
-            var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
-
-            var activeEvents = await eventService.GetCurrentActivityAsync();
-            var currentActivity = await CurrentUserActivity(activeEvents, baseVM.User.UserID);
-
-            return new JsonResult { Data = new { events = dto, currentActivity }, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
-        }
-
         public async Task<JsonResult> LastStoredAlarm(Guid tagId)
         {
             var alarm = await eventService.GetLastStoredAlarm(tagId);
             return new JsonResult { Data = alarm ?? "", JsonRequestBehavior = JsonRequestBehavior.AllowGet };
 
-        }
-
-        [HttpPost]
-        public async Task<JsonResult> Save(DTOs.EventVM e)
-        {
-            var status = false;
-            var user = await GetUser();
-
-            if (user == null)
-            {
-                return new JsonResult { Data = new { status, responseText = "You are no longer logged in because the session expired" } };
-            }
-
-            if (e.EventID != Guid.Empty)
-            {
-                var eventCreatedUserId = (await eventService.GetAsync(e.EventID)).UserID;
-                if (user.UserID != eventCreatedUserId)
-                {
-                    return new JsonResult { Data = new { status, responseText = "You're attempting to update an event that you did not create" } };
-                }
-            }
-
-            if (e.TagID == Guid.Empty && string.IsNullOrEmpty(e.Description))
-            {
-                return new JsonResult { Data = new { status, responseText = "Either tag or description must be entered" } };
-            }
-
-            e.UserID = (await GetUser()).UserID;
-            
-            status = await eventService.SaveEvent(e);
-            return new JsonResult { Data = new { status } };
-        }
-
-        [HttpPost]
-        public async Task<JsonResult> Delete(Guid eventID)
-        {
-            var user = await GetUser();
-            if (user == null)
-            {
-                return new JsonResult { Data = new { status = false, responseText = "You are not logged-in" } };
-            }
-
-            // check the event was created by the user
-            var e = await eventService.GetAsync(eventID);
-            var userId = (await GetUser()).UserID;
-
-            var status = e.UserID != userId ? false : await eventService.DeleteEvent(eventID, e.EventUid);
-
-            return new JsonResult { Data = new { status } };
         }
 
         public async Task<ActionResult> MultiAdd(int dates = 0)
@@ -100,7 +37,7 @@ namespace MyCalendar.Controllers
             var viewModel = new SchedulerVM 
             { 
                 Dates = dates, 
-                Calendars =  await eventService.GetUserCalendars(baseVM.User.UserID),
+                Calendars = await UserCalendars(baseVM.User.UserID),
                 UserTags = await UserTags(baseVM.User.UserID)
             };
 
@@ -129,14 +66,14 @@ namespace MyCalendar.Controllers
         public async Task<ActionResult> MultiAdd(SchedulerVM model)
         {
             var user = await GetUser();
-            var events = new Dictionary<int, Model.EventDTO>();
+            var events = new Dictionary<int, Event>();
    
             (Status? UpdateResponse, string UpdateMsg) status = (null, null);
 
             int z = 0;
             foreach (var item in model.TagId)
             {
-                events.Add(z, new Model.EventDTO { 
+                events.Add(z, new Event { 
                     TagID = item,
                     StartDate = model.StartDate[z],
                     EndDate = model.EndDate[z],
@@ -145,7 +82,7 @@ namespace MyCalendar.Controllers
                 z++;
             }
 
-            model.Events = events.Values.Select(x => new Model.EventDTO
+            model.Events = events.Values.Select(x => new Event
             {
                 CalendarId = model.CalendarId,
                 UserID = user.UserID,
@@ -173,7 +110,27 @@ namespace MyCalendar.Controllers
             }
             else
             {
-                status = await eventService.SaveEvents(model.Events.ToList())
+                var updateEvents = new List<bool>();
+
+                if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                {
+                    foreach (var e in model.Events)
+                    {
+                        updateEvents.Add(await eventService.SaveEvent(e));
+
+                        if (e.EventUid == null)
+                        {
+                            //e.EventID = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();
+                            //e.StartDate = Utils.FromTimeZoneToUtc(e.StartDate);
+                            //e.EndDate = e.EndDate.HasValue ? Utils.FromTimeZoneToUtc(e.EndDate.Value) : (DateTime?)null;
+                            //e.Reminder = false;
+
+                            await eventService.SaveCronofyEvent(e, user.ExtCalendarRights);
+                        }
+                    }
+                }
+
+                status = updateEvents.All(x => x)
                     ? (Status.Success, "Events successfully added to your calendar")
                     : (Status.Failed, "There was as an issue with adding some or all of your scheduled events to your calendar");
 
@@ -187,7 +144,6 @@ namespace MyCalendar.Controllers
                     return RedirectToRoute(Url.Scheduler());
                 }
             }
-            
         }
 
 

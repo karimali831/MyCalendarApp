@@ -4,76 +4,41 @@ using System;
 
 namespace MyCalendar.DTOs
 {
-    public class EventVM
-    {
-        public Guid EventID { get; set; }
-        public int CalendarId { get; set; }
-        public Guid UserID { get; set; }
-        public Guid? TagID { get; set; }
-        public string Description { get; set; }
-        public string Duration { get; set; }
-        public DateTime Start { get; set; }
-        public DateTime? End { get; set; }
-        public bool IsFullDay { get; set; }
-        public bool Tentative { get; set; }
-        public string ThemeColor { get; set; }
-        public string Subject { get; set; }
-        public string SplitDates { get; set; }
-        public string EventUid { get; set; }
-        public string Alarm { get; set; }
-        public string Provider { get; set; }
-    }
-
     public class EventDTO
     {
-        public Guid EventID { get; set; }
-        public int CalendarId { get; set; }
-        public Guid UserID { get; set; }
-        public Guid TagID { get; set; }
+        public Guid Id { get; set; }
+        public string Title { get; set; }
+        public string StartStr { get; set; }
+        public string EndStr { get; set; }
+        public bool AllDay { get; set; }
+        public bool Reminder { get; set; }
+        public string TagId { get; set; }
         public string Description { get; set; }
-        public DateTime Start { get; set; }
-        public DateTime? End { get; set; }
-        public bool IsFullDay { get; set; }
         public bool Tentative { get; set; }
         public string EventUid { get; set; }
         public string Alarm { get; set; }
+        // map props
+        public int CalendarId { get; set; }
+        public Guid UserID { get; set; }
+        public DateTime Start => Utils.FromTimeZoneToUtc(DateTime.Parse(StartStr));
+        public DateTime? End => !string.IsNullOrEmpty(EndStr) ? Utils.FromTimeZoneToUtc(DateTime.Parse(EndStr)) : (DateTime?)null;
 
-        public static EventVM MapFrom(Event e)
+
+        public static Event MapFrom(EventDTO e)
         {
-            return new EventVM
+            return new Event
             {
-                EventID = e.EventID,
+                EventID = e.Id,
                 CalendarId = e.CalendarId,
                 UserID = e.UserID,
-                TagID = e.TagID,
-                Description = e.Description,
-                Start = Utils.FromUtcToLocalTime(e.StartDate),
-                End = e.EndDate.HasValue ? Utils.FromUtcToLocalTime(e.EndDate.Value) : (DateTime?)null,
-                IsFullDay = e.IsFullDay,
+                TagID = !string.IsNullOrEmpty(e.TagId) ? Guid.Parse(e.TagId) : null,
+                Description = e.Reminder ? e.Title : e.Description,
+                StartDate = e.Start,
+                EndDate =  e.End.HasValue && !e.Reminder ? e.End : null,
+                IsFullDay = e.AllDay,
                 Tentative = e.Tentative,
-                Subject = e.Subject,
-                ThemeColor = e.ThemeColor,
-                Duration = e.EndDate.HasValue ? Utils.Duration(e.EndDate.Value, e.StartDate) : string.Empty,
-                EventUid = e.EventUid,
                 Alarm = e.Alarm,
-                Provider = e.Provider
-            };
-        }
-
-        public static Model.EventDTO MapFrom(EventVM e)
-        {
-            return new Model.EventDTO
-            {
-                EventID = e.EventID,
-                CalendarId = e.CalendarId,
-                UserID = e.UserID,
-                TagID = e.TagID,
-                Description = e.Description,
-                StartDate = Utils.FromTimeZoneToUtc(e.Start),
-                EndDate =  e.End.HasValue ? Utils.FromTimeZoneToUtc(e.End.Value) : (DateTime?)null,
-                IsFullDay = e.IsFullDay,
-                Tentative = e.Tentative,
-                Alarm = e.Alarm
+                Reminder = e.Reminder
             };
         }
     }

@@ -5,3 +5,5 @@ export interface IUserCalendar {
     invitee: string,
     selected: boolean
 }
+
+export interface ISelect {label: string, value: number}

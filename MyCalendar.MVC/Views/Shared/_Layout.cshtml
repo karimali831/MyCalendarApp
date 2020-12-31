@@ -28,15 +28,18 @@
 
     <nav class="menu fixed-top">
         <div class="container">
-            <label for="tm" class="toggle-menu">@AppName <span class="drop-icon"><span class="fas fa-angle-down"></span></span></label>
+            <label for="tm" class="toggle-menu">
+                <img src="~/Content/img/logo-medium.png"  title="title" alt="additional title" /> 
+                <span class="drop-icon"><span class="fas fa-angle-down"></span></span>
+            </label>
             <input type="checkbox" id="tm">
             <ul class="main-menu clearfix">
                 <li class="home-link">
                     <a href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
-                        <span class="fas fa-home"></span> Home
+                        <img src="~/Content/img/logo-medium.png"  title="title" alt="additional title" />
                     </a>
                 </li>
-                
+
                 @if (Model != null && Model.User != null)
                 {
                     if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))

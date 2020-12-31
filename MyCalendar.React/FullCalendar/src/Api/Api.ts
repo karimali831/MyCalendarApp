@@ -1,7 +1,8 @@
 import { rootUrl } from 'src/components/utils/Utils';
 import { IUserCalendar } from 'src/models/IUserCalendar';
-import { IEvent } from 'src/models/IEvent';
+import { IEvent, IEventDTO } from 'src/models/IEvent';
 import { ITag } from 'src/models/ITag';
+import { IActivity } from 'src/models/IActivity';
 
 export class Api {
     public rootUrl: string = `${rootUrl}/api/calendar`;
@@ -44,21 +45,122 @@ export class Api {
         })
         .then(data => data as IUserTagResponse);
     }
+
+    public retainSelection = async (calendarIds: number[] | null): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/retainselection`, {
+            method: "POST",
+            body: JSON.stringify(calendarIds),
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
+    }
+
+    public saveEvent = async (event: IEventDTO): Promise<IEvent> => {
+        return fetch(`${this.rootUrl}/save`, {
+            method: "POST",
+            body: JSON.stringify(event),
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as IEvent);
+    }
+
+    public alarmInfo = async (tagId: string): Promise<string> => {
+        return fetch(`${this.rootUrl}/alarminfo/${tagId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as string);
+    }
+
+    public deleteEvent = async (eventId: string): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/delete/${eventId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
+    }
+
+    public activity = async (): Promise<IActivityResponse> => {
+        return fetch(`${this.rootUrl}/activity`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as IActivityResponse);
+    }
 }
 
 export const api = new Api();
 
+export interface IActivityResponse {
+    activity: IActivity[]
+}
+
 export interface IEventRequest {
     calendarIds: number[],
     year: number[],
-    month: number[],
+    month: number[]
 }
 
 export interface IEventResponse {
     userId: string,
     events: IEvent[],
     userCalendars: IUserCalendar[],
-    currentActivity: string[]
+    retainSelection: boolean
 }
 
 export interface IUserTagResponse {

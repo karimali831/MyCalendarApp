@@ -19,8 +19,7 @@ namespace MyCalendar.Repository
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
         Task<bool> EventExists(Guid eventId);
         Task<bool> EventUExists(string eventUid, string calendarUid);
-        Task<bool> InsertOrUpdateAsync(Model.EventDTO dto);
-        Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto);
+        Task<(bool Status, Event e)> InsertOrUpdateAsync(Event e, bool multiInsert = false);
         Task<bool> DeleteAsync(Guid eventId);
         Task DeleteExtAsync(string eventUid, string calendarUid);
         Task<bool> EventsByTagExist(Guid tagID);
@@ -35,7 +34,6 @@ namespace MyCalendar.Repository
         private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = "Events";
         private static readonly string[] FIELDS = typeof(Event).DapperFields();
-        private static readonly string[] DTOFIELDS = typeof(Model.EventDTO).DapperFields();
 
         public EventRepository(Func<IDbConnection> dbConnectionFactory)
         {
@@ -46,7 +44,16 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)} WHERE EventID = @eventId", new { eventId })).FirstOrDefault();
+                string sqlTxt = $@"
+                    SELECT e.EventID, e.CalendarId, e.Reminder, u.Name, u.Avatar, e.Description, t.Name AS Subject, e.StartDate, e.EndDate, e.IsFullDay, t.ThemeColor, e.UserId, e.TagID, e.Tentative, e.EventUid, e.CalendarUid, e.Alarm, e.Provider
+                    FROM Events e
+                    LEFT JOIN Users u
+                    ON e.UserID = u.UserID
+                    LEFT JOIN Tags t
+                    ON e.TagID = t.Id
+                    WHERE EventId = @eventId";
+
+                return (await sql.QueryAsync<Event>(sqlTxt, new { eventId })).FirstOrDefault();
             }
         }
 
@@ -63,8 +70,10 @@ namespace MyCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.EventID,e.CalendarId,e.UserID,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm, e.Provider, e.Created, e.Modified
+                    SELECT e.EventID,e.CalendarId,e.UserID,u.Name,u.Avatar,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm, e.Provider, e.Created, e.Modified, e.Reminder
                     FROM Events e
+                    LEFT JOIN Users u
+                    ON e.UserID = u.UserID
                     LEFT JOIN Tags t
                     ON e.TagID = t.Id
                     LEFT JOIN Types ty
@@ -96,7 +105,7 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, DTOFIELDS)}")).ToArray();
+                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
             }
         }
 
@@ -114,9 +123,6 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                string sqlText = $"SELECT count(1) FROM {TABLE} WHERE StartDate = '{startDate}' AND CalendarId = {calendarId}";
-
-                string sqlTxt = $"SELECT count(1) FROM {TABLE} WHERE StartDate = '{startDate:yyyy-MM-dd HH:mm:00:000}' AND CalendarId = {calendarId}";
                 return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE StartDate = @StartDate AND CalendarId = @calendarId", new { StartDate = startDate, calendarId });
             }
         }
@@ -137,16 +143,18 @@ namespace MyCalendar.Repository
             }
         }
 
-        public async Task<bool> InsertOrUpdateAsync(Model.EventDTO dto)
+        public async Task<(bool Status, Event e)> InsertOrUpdateAsync(Event e, bool multiInsert = false)
         {
             using (var sql = dbConnectionFactory())
             {
                 try
                 {
-                    Func<Model.EventDTO, object> saveEvent = (Model.EventDTO e) =>
+                    Guid eventId = eventId = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();
+
+                    Func<Event, object> saveEvent = (Event e) =>
                         new
                         {
-                            eventId = e.EventID,
+                            eventId,
                             calendarId = e.CalendarId,
                             userId = e.UserID,
                             description = e.Description,
@@ -159,66 +167,32 @@ namespace MyCalendar.Repository
                             calendarUid = e.CalendarUid,
                             alarm = e.Alarm,
                             provider = e.Provider,
+                            reminder = e.Reminder,
                             modified = Utils.FromTimeZoneToUtc(Utils.DateTime())
                         };
 
-                    var existing = await EventExists(dto.EventID);
-
-                    if (existing == false)
+                    if (multiInsert)
                     {
-                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(dto));
+                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveEvent(e));
                     }
                     else
                     {
-                        await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, DTOFIELDS, "")} WHERE EventID = @eventId", saveEvent(dto));
+                        if (!await EventExists(e.EventID))
+                        {
+                            await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveEvent(e));
+                        }
+                        else
+                        {
+                            await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE EventID = @eventId", saveEvent(e));
+                        }
                     }
 
-                    return true;
+                    return (true, await GetAsync(eventId));
                 }
                 catch (Exception exp)
                 {
                     string.IsNullOrEmpty(exp.Message);
-                    return false;
-                }
-            }
-        }
-
-        public async Task<bool> MultiInsertAsync(IEnumerable<Model.EventDTO> dto)
-        {
-            using (var sql = dbConnectionFactory())
-            {
-                try
-                {
-                    foreach (var e in dto)
-                    {
-                        Func<Model.EventDTO, object> saveEvent = (Model.EventDTO e) =>
-                            new
-                            {
-                                eventId = e.EventID,
-                                calendarId = e.CalendarId,
-                                userId = e.UserID,
-                                description = e.Description,
-                                startDate = Utils.FromTimeZoneToUtc(e.StartDate),
-                                endDate = e.EndDate.HasValue ? Utils.FromTimeZoneToUtc(e.EndDate.Value) : (DateTime?)null,
-                                tentative = e.Tentative,
-                                tagID = e.TagID,
-                                isFullDay = e.IsFullDay,
-                                eventUid = e.EventUid,
-                                calendarUid = e.CalendarUid,
-                                alarm = e.Alarm,
-                                provider = e.Provider,
-                                modified = Utils.FromTimeZoneToUtc(Utils.DateTime())
-                            };
-
-                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", saveEvent(e));
-
-                    }
-                    return true;
-                }
-                catch (Exception exp)
-                {
-                    string.IsNullOrEmpty(exp.Message);
-                    return false;
+                    return (false, null);
                 }
             }
         }

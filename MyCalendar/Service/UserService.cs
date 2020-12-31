@@ -21,12 +21,13 @@ namespace MyCalendar.Service
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
-        Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
+        Task<List<(string Avatar, string Text)>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
         Task<IList<User>> GetBuddys(Guid userId);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
         Task<IEnumerable<Types>> UserCalendars(Guid userId);
+        Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId);
     }
-    ;
+    
     public class UserService : IUserService
     {
         private readonly IUserRepository userRepository;
@@ -190,16 +191,21 @@ namespace MyCalendar.Service
             return Enumerable.Empty<Tag>();
         }
 
-        public async Task<List<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
+        public async Task<List<(string Avatar, string Text)>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
         {
-            var currentActivity = new List<string>();
+            var currentActivity = new List<(string Avatar, string Text)>();
 
             if (events != null && events.Any())
             {
                 foreach (var activity in events)
                 {
-                    var tag = await GetUserTagAysnc(activity.TagID);
-                    string userName = (await GetByUserIDAsync(activity.UserID)).Name;
+                    Tag tag = null;
+                    if (activity.TagID.HasValue)
+                    {
+                        tag = await GetUserTagAysnc(activity.TagID.Value);
+                    }
+
+                    var user = await GetByUserIDAsync(activity.UserID);
                     string getName = "";
 
                     if (activity.InviteeIdsList.Any())
@@ -215,27 +221,37 @@ namespace MyCalendar.Service
                     }
                     else
                     {
-                        getName = (userId == activity.UserID ? "You" : userName);
+                        getName = (userId == activity.UserID ? "You" : user.Name);
                     }
 
                     string label = tag?.Name ?? activity.Description;
                     string finishing = (activity.EndDate.HasValue ? "finishing " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
                     string starting = Utils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
+                    string avatar = Utils.AvatarContent(user.UserID, user.Avatar, user.Name);
 
                     if (Utils.DateTime() >= Utils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && Utils.DateTime() < Utils.FromUtcToTimeZone(activity.StartDate))
                     {
                         string pronoun = getName.StartsWith("You") ? "have" : "has";
-                        currentActivity.Add(string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun));
+
+                        currentActivity.Add((avatar, string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun))
+                        ); ;
                     }
                     else
                     {
                         string pronoun = getName.StartsWith("You") ? "are" : "is";
-                        currentActivity.Add(string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun));
+
+                        currentActivity.Add((avatar, string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun))
+                        );
                     }
                 }
             }
 
             return currentActivity;
+        }
+
+        public async Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId)
+        {
+            return await userRepository.RetainCalendarSelection(calendarIds, userId);
         }
     }
 }

@@ -6,7 +6,7 @@ using MyCalendar.ER.Service;
 using MyCalendar.Helpers;
 using MyCalendar.Service;
 using MyCalendar.Website.Controllers.Api;
-
+using System.Collections.Generic;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Cors;
+using MyCalendar.Model;
 
 namespace MyCalendar.Website.Controllers.API
 {
@@ -25,6 +26,7 @@ namespace MyCalendar.Website.Controllers.API
     {
         private readonly IEventService eventService;
         private readonly IUserService userService;
+        private readonly bool isLocalHost = false;
 
         public EventController(IEventService eventService, IUserService userService)
         {
@@ -32,11 +34,16 @@ namespace MyCalendar.Website.Controllers.API
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
+        private async Task<User> GetUser()
+        {
+            return await userService.GetUser(isLocalHost ? "karimali831@googlemail.com" : null);
+        }
+
         [Route("usertags")]
         [HttpGet]
         public async Task<HttpResponseMessage> UserTags()
         {
-            var user = await userService.GetUser("karimali831@googlemail.com");
+            var user = await GetUser();
             var userTags = await userService.GetUserTags(user.UserID);
 
             return Request.CreateResponse(HttpStatusCode.OK, new
@@ -48,55 +55,190 @@ namespace MyCalendar.Website.Controllers.API
             });
         }
 
-        [Route("events")]
-        [HttpPost]
-        public async Task<HttpResponseMessage> Get(RequestEventDTO request)
+        [Route("alarminfo/{Id}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetAlarmInfo(string Id)
         {
-            var user = await userService.GetUser("karimali831@googlemail.com");
-            var userCalendars = await userService.UserCalendars(user.UserID);
-
-            if (request.CalendarIds.Length == 0)
+            if (Guid.TryParse(Id, out Guid tagId))
             {
-                request.CalendarIds = userCalendars
-                    .Where(x => x.UserCreatedId == user.UserID && x.Defaulted)
-                    .Select(x => x.Id)
-                    .ToArray();
+                var alarm = await eventService.GetLastStoredAlarm(tagId);
+                return Request.CreateResponse(HttpStatusCode.OK, alarm ?? "");
             }
 
-            var events = await eventService.GetAllAsync(user, request);
-            var dto = events.Select(b => EventDTO.MapFrom(b)).ToList();
+            return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+        }
+
+        [Route("delete/{Id}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> DeleteEvent(string Id)
+        {
+            if (Guid.TryParse(Id, out Guid eventId))
+            {
+                var user = await GetUser();
+                var e = await eventService.GetAsync(eventId);
+
+                if (user.UserID != e.UserID || user == null || e == null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+                }
+
+                // delete from Cronofy if event was created from Appology Calendar 
+                if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet && e.EventUid == null)
+                {
+                    foreach (var extCal in user.ExtCalendarRights)
+                    {
+                        if (extCal.Delete)
+                        {
+                            eventService.DeleteCronofyEvent(extCal.SyncFromCalendarId, eventId);
+                        }
+                    }
+                }
+
+                var status = await eventService.DeleteEvent(eventId, e.EventUid);
+                return Request.CreateResponse(HttpStatusCode.OK, status);
+
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+            }
+        }
+
+        [Route("save")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> SaveEvent(EventDTO dto)
+        {
+            var e = EventDTO.MapFrom(dto);
+            var user = await GetUser();
+
+            if (user == null || dto.CalendarId == 0)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+            }
+   
+            if (dto.Id != null && dto.Id != Guid.Empty && user.UserID != dto.UserID)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+            }
+
+            if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+            {
+                // do not amend Cronofy events created in third party calendar
+                if (dto.EventUid == null)
+                {
+                    await eventService.SaveCronofyEvent(e, user.ExtCalendarRights);
+                }
+            }
+
+            e.UserID = user.UserID;
+            var save = await eventService.SaveGetEvent(e);
+
+            if (save != null)
+            {
+                var getEvent = MapDTO(new List<Event> { save }, user.UserID).FirstOrDefault();
+                return Request.CreateResponse(HttpStatusCode.OK, getEvent);
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+            }
+        }
+
+        [Route("retainselection")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetainCalendarSelection(int[] calendarIds)
+        {
+            var user = await GetUser();
+            var status = await userService.RetainCalendarSelection(calendarIds, user.UserID);
+            return Request.CreateResponse(HttpStatusCode.OK, status);
+        }
+
+        private IEnumerable<object> MapDTO(IEnumerable<Event> events, Guid userId)
+        {
+            return events.Select(x => new
+            {
+                // standard props
+                id = x.EventID,
+                title = x.Reminder ? x.Description : x.Subject ?? x.Description,
+                start = x.StartDate,
+                end = x.EndDate,
+                startStr = x.StartDate.ToString("s", CultureInfo.InvariantCulture),
+                endStr = x.EndDate.HasValue ? x.EndDate.Value.ToString("s", CultureInfo.InvariantCulture) : null,
+                allDay = x.IsFullDay,
+                url = "",
+                classNames = "",
+                editable = false, // x.UserID == userId draggable or resizeable api not implemented
+                backgroundColor = x.ThemeColor ?? "lightslategrey",
+                //display = x.UserID != userId ? "list-item" : "block",
+                //textColor = !string.IsNullOrEmpty(x.ThemeColor) ? Utils.ContrastColor(x.ThemeColor) : null,
+                // non standard props
+                calendarId = x.CalendarId,
+                userId = x.UserID,
+                tagId = x.TagID,
+                description = x.Description,
+                tentative = x.Tentative,
+                duration = x.EndDate.HasValue ? Utils.Duration(x.EndDate.Value, x.StartDate) : string.Empty,
+                eventUid = x.EventUid,
+                alarm = x.Alarm,
+                provider = x.Provider,
+                reminder = x.Reminder,
+                avatar = Utils.AvatarContent(x.UserID, x.Avatar, x.Name)
+            });
+        }
+
+        [Route("activity")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> CurrentActivity()
+        {
+            var user = await GetUser();
 
             var activeEvents = await eventService.GetCurrentActivityAsync();
             var currentActivity = await userService.CurrentUserActivity(activeEvents, user.UserID);
 
-            return Request.CreateResponse(HttpStatusCode.OK, new { 
-                Events = dto.Select(x => new
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                activity = currentActivity.Select(x => new 
                 {
-                    // standard props
-                    id = x.EventID,
-                    title = string.IsNullOrEmpty(x.Subject) ? x.Description : x.Subject,
-                    start = x.Start,
-                    end = x.End,
-                    startStr = x.Start.ToString("s", CultureInfo.InvariantCulture),
-                    endStr = x.End.HasValue ? x.End.Value.ToString("s", CultureInfo.InvariantCulture) : null,
-                    allDay = x.IsFullDay,
-                    url = "",
-                    classNames = "",
-                    editable = true,
-                    backgroundColor = x.ThemeColor,
-                    display = x.UserID != user.UserID ? "list-item" : "block",
-                    //textColor = !string.IsNullOrEmpty(x.ThemeColor) ? Utils.ContrastColor(x.ThemeColor) : null,
-                    // non standard props
-                    calendarId = x.CalendarId,
-                    userId = x.UserID,
-                    tagId = x.TagID,
-                    description = x.Description,
-                    tentative = x.Tentative,
-                    duration = x.Duration,
-                    eventUid = x.EventUid,
-                    alarm = x.Alarm,
-                    provider = x.Provider
-                }), 
+                    avatar = x.Avatar,
+                    text = x.Text
+                })
+            });
+        }
+
+        [Route("events")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> Get(RequestEventDTO request)
+        {
+            var user = await GetUser();
+            var userCalendars = await userService.UserCalendars(user.UserID);
+
+            // retain selection checked
+            if (user.SelectedCalendarsList != null && user.SelectedCalendarsList.Any())
+            {
+                request.CalendarIds = request.CalendarIds.Length > 0 ? request.CalendarIds : userCalendars
+                    .Where(x => user.SelectedCalendarsList.Contains(x.Id))
+                    .Select(x => x.Id)
+                    .ToArray();
+
+                if (!Enumerable.SequenceEqual(user.SelectedCalendarsList, request.CalendarIds))
+                {
+                    await userService.RetainCalendarSelection(request.CalendarIds, user.UserID);
+                }
+            }
+            // retain selection unchecked
+            else
+            {
+                request.CalendarIds = request.CalendarIds.Length > 0 ? request.CalendarIds : new int[] { userCalendars
+                    .Where(x => user.UserID == x.UserCreatedId)
+                    .Select(x => x.Id)
+                    .FirstOrDefault()
+                };
+            }
+            
+            var events = await eventService.GetAllAsync(user, request);
+ 
+            return Request.CreateResponse(HttpStatusCode.OK, new { 
+                Events = MapDTO(events, user.UserID), 
                 UserCalendars = userCalendars.Select(x => new
                 {
                     id = x.Id,
@@ -105,10 +247,9 @@ namespace MyCalendar.Website.Controllers.API
                     invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
                     selected = request.CalendarIds.Contains(x.Id)
                 }),
-                UserId = user.UserID,
-                currentActivity,
+                retainSelection = user.SelectedCalendarsList != null && user.SelectedCalendarsList.Any(),
+                UserId = user.UserID
             });
         }
-
     }
 }

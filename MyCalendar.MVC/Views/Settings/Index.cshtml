@@ -40,12 +40,33 @@
                         @Html.CheckBoxFor(s => s.User.EnableCronofy)
                         <span>Enable Appology Calendar sync</span>
                     </div>
+                    <div class="form-group">
+                        @Html.LabelFor(s => s.User.Avatar)
+                        @if (string.IsNullOrEmpty(BaseViewModel.User.Avatar))
+                        {
+                            <p default-avatar="@BaseViewModel.User.Name.ToUpper().Substring(0, 2)"></p>
+                        }
+                        else
+                        {
+                            <div>
+                                <img src="~/Content/img/avatar/user/@BaseViewModel.User.UserID/@Path.GetFileName(BaseViewModel.User.Avatar)" width="40" height="40" type="image/svg+xml" />
+                            </div>
+                        }
+                        <span>Or select a new avatar</span>
+                        <div style="overflow-y: scroll; height:150px;">
+                            @foreach (var avatar in Model.Avatars)
+                            {
+                                <img src="~/Content/img/avatar/pk1/@Path.GetFileName(avatar)" width="40" height="40" type="image/svg+xml" />
+                            }
+                        </div>
+                    </div>
                     @Html.HiddenFor(x => x.User.UserID)
                     @Html.HiddenFor(x => x.User.CronofyUid)
                     @Html.HiddenFor(x => x.User.AccessToken)
                     @Html.HiddenFor(x => x.User.RefreshToken)
                     @Html.HiddenFor(x => x.User.ExtCalendars)
                     @Html.HiddenFor(x => x.User.RoleIds)
+                    @Html.HiddenFor(x => x.User.Avatar)
                     @Html.HiddenFor(x => x.User.BuddyIds)
                     <button type="submit" class="btn btn-primary">Update</button>
 

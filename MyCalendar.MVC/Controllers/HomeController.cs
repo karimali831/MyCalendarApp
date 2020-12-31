@@ -24,7 +24,8 @@ namespace MyCalendar.Controllers
         public async Task<ActionResult> Index(Status? updateResponse = null, string updateMsg = null)
         {
             await BaseViewModel(new MenuItem { Home = true }, updateResponse, updateMsg);
-            return View();
+            var baseVM = ViewData["BaseVM"] as BaseVM;
+            return View(new CalendarVM { UserCalendars = await UserCalendars(baseVM.User.UserID) });
         }
 
         public async Task<ActionResult> ChangeLog()

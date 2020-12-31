@@ -16,7 +16,6 @@ namespace MyCalendar.Model
         public Guid UserCreatedId { get; set; }
         public string InviteeIds { get; set; }
         public int? SuperTypeId { get; set; }
-        public bool Defaulted { get; set; }
         [DbIgnore]
         public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
         [DbIgnore]

@@ -17,8 +17,10 @@ interface IOwnProps {
     expanded?: boolean,
     userCalendars: IUserCalendar[],
     userId: string,
-    loading: boolean
+    loading: boolean,
+    retainSelection: boolean
     calendarSelected: (option: IUserCalendar) => void,
+    retainSelected: (e: React.ChangeEvent<HTMLInputElement>) => void
     viewSelected: (view: string) => void
 }
 
@@ -91,6 +93,12 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                                         </NavText>
                                     </NavItem>
                                 )}
+                                <NavItem>
+                                    <NavText>
+                                        <div className="sidenav-divider" />
+                                        <label><input disabled={this.props.loading} type="checkbox" onChange={(e) => this.props.retainSelected(e)} checked={this.props.retainSelection} /> Retain Selection</label>
+                                    </NavText>
+                                </NavItem>
                             </NavItem>
                         </SideNav.Nav>
                     </SideNav>

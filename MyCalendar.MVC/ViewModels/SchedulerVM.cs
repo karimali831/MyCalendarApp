@@ -11,7 +11,7 @@ namespace MyCalendar.Website.ViewModels
         public int CalendarId { get; set; }
         public IEnumerable<Tag> UserTags { get; set; }
         public IEnumerable<Types> Calendars { get; set; }
-        public IEnumerable<Model.EventDTO> Events { get; set; }
+        public IEnumerable<Event> Events { get; set; }
         public IEnumerable<Tag> Tags { get; set; }
         public Guid[] TagId { get; set; }
         public DateTime[] StartDate { get; set; }

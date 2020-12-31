@@ -88,9 +88,6 @@
     <Reference Include="NodaTime, Version=3.0.0.0, Culture=neutral, PublicKeyToken=4226afe0d9b296d1, processorArchitecture=MSIL">
       <HintPath>..\packages\NodaTime.3.0.0\lib\netstandard2.0\NodaTime.dll</HintPath>
     </Reference>
-    <Reference Include="RestSharp, Version=106.8.10.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
-      <HintPath>..\packages\RestSharp.106.11.5\lib\net452\RestSharp.dll</HintPath>
-    </Reference>
     <Reference Include="SharpRaven, Version=2.4.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpRaven.2.4.0\lib\net471\SharpRaven.dll</HintPath>
     </Reference>
@@ -374,7 +371,80 @@
     <Content Include="Content\froala\third_party\image_tui.min.css" />
     <Content Include="Content\froala\third_party\spell_checker.css" />
     <Content Include="Content\froala\third_party\spell_checker.min.css" />
+    <Content Include="Content\img\avatar\pk1\001-man.svg" />
+    <Content Include="Content\img\avatar\pk1\002-girl.svg" />
+    <Content Include="Content\img\avatar\pk1\003-boy.svg" />
+    <Content Include="Content\img\avatar\pk1\004-woman.svg" />
+    <Content Include="Content\img\avatar\pk1\005-man-1.svg" />
+    <Content Include="Content\img\avatar\pk1\006-woman-1.svg" />
+    <Content Include="Content\img\avatar\pk1\007-boy-1.svg" />
+    <Content Include="Content\img\avatar\pk1\008-clown.svg" />
+    <Content Include="Content\img\avatar\pk1\009-firefighter.svg" />
+    <Content Include="Content\img\avatar\pk1\010-girl-1.svg" />
+    <Content Include="Content\img\avatar\pk1\011-man-2.svg" />
+    <Content Include="Content\img\avatar\pk1\012-woman-2.svg" />
+    <Content Include="Content\img\avatar\pk1\013-woman-3.svg" />
+    <Content Include="Content\img\avatar\pk1\014-man-3.svg" />
+    <Content Include="Content\img\avatar\pk1\015-woman-4.svg" />
+    <Content Include="Content\img\avatar\pk1\016-boy-2.svg" />
+    <Content Include="Content\img\avatar\pk1\017-girl-2.svg" />
+    <Content Include="Content\img\avatar\pk1\018-boy-3.svg" />
+    <Content Include="Content\img\avatar\pk1\019-woman-5.svg" />
+    <Content Include="Content\img\avatar\pk1\020-man-4.svg" />
+    <Content Include="Content\img\avatar\pk1\021-girl-3.svg" />
+    <Content Include="Content\img\avatar\pk1\022-man-5.svg" />
+    <Content Include="Content\img\avatar\pk1\023-man-6.svg" />
+    <Content Include="Content\img\avatar\pk1\024-woman-6.svg" />
+    <Content Include="Content\img\avatar\pk1\025-boy-4.svg" />
+    <Content Include="Content\img\avatar\pk1\026-girl-4.svg" />
+    <Content Include="Content\img\avatar\pk1\027-man-7.svg" />
+    <Content Include="Content\img\avatar\pk1\028-woman-7.svg" />
+    <Content Include="Content\img\avatar\pk1\029-man-8.svg" />
+    <Content Include="Content\img\avatar\pk1\030-policewoman.svg" />
+    <Content Include="Content\img\avatar\pk1\031-policeman.svg" />
+    <Content Include="Content\img\avatar\pk1\032-girl-5.svg" />
+    <Content Include="Content\img\avatar\pk1\033-superhero.svg" />
+    <Content Include="Content\img\avatar\pk1\034-woman-8.svg" />
+    <Content Include="Content\img\avatar\pk1\035-woman-9.svg" />
+    <Content Include="Content\img\avatar\pk1\036-man-9.svg" />
+    <Content Include="Content\img\avatar\pk1\037-arab-woman.svg" />
+    <Content Include="Content\img\avatar\pk1\038-man-10.svg" />
+    <Content Include="Content\img\avatar\pk1\039-woman-10.svg" />
+    <Content Include="Content\img\avatar\pk1\040-man-11.svg" />
+    <Content Include="Content\img\avatar\pk1\041-woman-11.svg" />
+    <Content Include="Content\img\avatar\pk1\042-vampire.svg" />
+    <Content Include="Content\img\avatar\pk1\043-chef.svg" />
+    <Content Include="Content\img\avatar\pk1\044-farmer.svg" />
+    <Content Include="Content\img\avatar\pk1\045-man-12.svg" />
+    <Content Include="Content\img\avatar\pk1\046-woman-12.svg" />
+    <Content Include="Content\img\avatar\pk1\047-man-13.svg" />
+    <Content Include="Content\img\avatar\pk1\048-boy-5.svg" />
+    <Content Include="Content\img\avatar\pk1\049-thief.svg" />
+    <Content Include="Content\img\avatar\pk1\050-catwoman.svg" />
+    <Content Include="Content\img\avatar\pk1\051-american-football-player.svg" />
+    <Content Include="Content\img\avatar\pk1\052-witch.svg" />
+    <Content Include="Content\img\avatar\pk1\053-concierge.svg" />
+    <Content Include="Content\img\avatar\pk1\054-woman-13.svg" />
+    <Content Include="Content\img\avatar\pk1\055-bodybuilder.svg" />
+    <Content Include="Content\img\avatar\pk1\056-girl-6.svg" />
+    <Content Include="Content\img\avatar\pk1\057-woman-14.svg" />
+    <Content Include="Content\img\avatar\pk1\058-death.svg" />
+    <Content Include="Content\img\avatar\pk1\059-doctor.svg" />
+    <Content Include="Content\img\avatar\pk1\060-doctor-1.svg" />
+    <Content Include="Content\img\avatar\pk1\061-nun.svg" />
+    <Content Include="Content\img\avatar\pk1\062-builder.svg" />
+    <Content Include="Content\img\avatar\pk1\063-girl-7.svg" />
+    <Content Include="Content\img\avatar\pk1\064-punk.svg" />
+    <Content Include="Content\img\avatar\pk1\065-pinup.svg" />
+    <Content Include="Content\img\avatar\pk1\066-boy-6.svg" />
+    <Content Include="Content\img\avatar\pk1\067-man-14.svg" />
+    <Content Include="Content\img\avatar\pk1\068-girl-8.svg" />
+    <Content Include="Content\img\avatar\pk1\069-woman-15.svg" />
+    <Content Include="Content\img\avatar\pk1\070-man-15.svg" />
+    <Content Include="Content\img\avatar\user\e252d5b5-63a5-4432-9a5e-d6ac16a8a45b\face_co.svg" />
     <Content Include="Content\img\bg1.jpg" />
+    <Content Include="Content\img\logo-medium.png" />
+    <Content Include="Content\img\logo.png" />
     <Content Include="Content\Login.css" />
     <Content Include="Content\Loader.css" />
     <Content Include="favicon.ico" />
@@ -651,7 +721,6 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Account\Index.cshtml" />
-    <Content Include="Views\Home\v3.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
     <Content Include="Views\Settings\_Tags.cshtml" />
     <Content Include="Views\Event\MultiAdd.cshtml" />

@@ -1,52 +1,54 @@
-import { FormElement, FormElementType } from '@appology/react-components';
+import { FormElement, FormElementType, ToggleSwitch, intIsNullOrEmpty, objIsNullOrEmpty } from '@appology/react-components';
 import * as React from 'react'
 import { Modal } from 'react-bootstrap';
 import Button from 'react-bootstrap/Alert';
-import { FaCalendarCheck } from 'react-icons/fa';
 import Select from 'react-select';
 import { api } from 'src/Api/Api';
-import { IEvent, IEventDTO } from 'src/models/IEvent';
+import { IEvent, IEventDTO, IEventSelect } from 'src/models/IEvent';
 import { ITag } from 'src/models/ITag';
-import { IUserCalendar } from 'src/models/IUserCalendar';
+import { ISelect, IUserCalendar } from 'src/models/IUserCalendar';
+import * as moment from 'moment';
 
 interface IOwnState {
     show: boolean,
     loadingTags: boolean,
     userTags: ITag[],
     cronofyReady: boolean,
-    event: IEventDTO,
-    selectedCalendarIds: number[]
+    event: IEventDTO
 }
 
 interface IOwnProps {
-    saveEventChange: (show: boolean) => void,
     userId: string,
-    event?: IEvent,
-    userCalendars: IUserCalendar[]
+    eventSelect?: IEventSelect,
+    userCalendars: IUserCalendar[],
+    onSaveChange: (loading: boolean, event?: IEvent) => void,
+    onCancelChange: () => void
 }
 
 export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
 
     constructor(props: IOwnProps) {
         super(props);
+        const startTime = Number(`${moment().add(1, 'h').hours()}`);
+        const endTime = Number(`${moment().add(3, 'h').hours()}`);
 
         this.state = {
             show: true,
             loadingTags: false,
             userTags: [],
-            selectedCalendarIds: [],
             cronofyReady: false,
-            event: {
+            event: this.props.eventSelect?.event !== undefined ? this.props.eventSelect.event :  {
                 id: "",
+                calendarId: this.props.userCalendars.filter(uc => uc.selected).map(o => o.id)[0],
+                reminder: false,
                 title: "",
-                startStr: "",
-                endStr: "",
+                startStr: moment(this.props.eventSelect?.dateStart?.setHours(startTime)).format('YYYY-MM-DD[T]HH:00'),
+                endStr: moment(this.props.eventSelect?.dateEnd?.setHours(endTime)).subtract(1, "days").format('YYYY-MM-DD[T]HH:00'),
                 allDay: false,
-                calendarId: "",
                 tagId: "",
                 description: "",
                 tentative: false,
-                eventUid: "",
+                eventUid: null,
                 alarm: ""
             }
         };
@@ -60,72 +62,106 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
         return (
             <Modal show={this.state.show} onHide={this.handleClose}>
                 <div className="modal-bg">
-                    <Modal.Header closeButton={true}>
-                        <Modal.Title>
-                            <FaCalendarCheck /> Save Event 
-                            {/* In calendar{this.props.selectedUserCalendars.length > 1 ? "s" : ""}
-                            {
-                                this.props.selectedUserCalendars.map((uc, idx) => (
-                                    <div key={idx} className="badge badge-info text-small">{uc.name}</div>
-                                ))
-                            } */}
-                        </Modal.Title>
-                    </Modal.Header>
+                    <Modal.Header closeButton={true}>Save Event</Modal.Header>
+                
                     <Modal.Body style={{marginLeft: 10}}>
-                        <span className="label-input100">Calendars</span>
-                        <Select 
-                            options={this.props.userCalendars.map(o => ({value: o.id,label: o.name}))}
-                            placeholder="Calendars"
-                            isMulti={true}
-                            defaultValue={this.props.userCalendars.filter(uc => uc.selected).map(o => ({value: o.id,label: o.name}))}
-                            onChange={(selected: any)  => this.handleCalendarsChange(selected.value)} />
-
+                        <div className="m-b-23">
+                            <span className="label-input100">Calendar</span>
+                            <Select 
+                                options={this.props.userCalendars.map(o => ({value: o.id,label: o.name}))}
+                                placeholder="Select Calendar"
+                                isMulti={false}
+                                defaultValue={this.props.userCalendars.filter(uc => uc.id === this.state.event.calendarId).map(o => ({value: o.id,label: o.name}))[0]}
+                                onChange={(value: ISelect) => this.handleCalendarsChange(value)} />
+                        </div>
+                        <div className="m-b-23">
+                            <ToggleSwitch inline={true} id="reminder" name="Reminder" checked={this.state.event.reminder} onChange={(value: boolean) => this.handleReminderChange(value)} />
+                            {
+                                !this.state.event.reminder ?
+                                    <>
+                                        <ToggleSwitch inline={true} id="allday" name="All day" checked={this.state.event.allDay} onChange={(v: boolean) => this.handleFullDayChange(v)} />
+                                        <ToggleSwitch inline={true} id="tentative" name="Tentative" checked={this.state.event.tentative} onChange={(v: boolean) => this.handleTentativeChange(v)} />
+                                    </>
+                                : null
+                            }
+                        </div>
                         <input type="hidden" id="hdEventID" value="0" />
 
-                        <FormElement 
-                            label="Tag"
-                            icon="&#xf188;"
-                            elementType={FormElementType.Select} 
-                            selectorOptions={this.state.userTags}
-                            onSelectChange={this.handleTagChange} 
-                            loading={this.state.loadingTags}
-                            required={true} 
-                            disabled={this.state.loadingTags} />
+                        {
+                            !this.state.event.reminder ? 
+                                <>
+                                    <FormElement 
+                                        label="Tag"
+                                        id="tagId"
+                                        icon="&#xf188;"
+                                        elementType={FormElementType.Select} 
+                                        selected={this.props.eventSelect?.event?.tagId}
+                                        selectorOptions={this.state.userTags}
+                                        onSelectChange={this.handleTagChange} 
+                                        loading={this.state.loadingTags}
+                                        required={true} 
+                                        disabled={this.state.loadingTags} 
+                                    />
+                                    <FormElement 
+                                        label="Start Date"
+                                        id="startStr"
+                                        defaultValue={this.state.event.startStr}
+                                        icon="&#xf337;"
+                                        elementType={FormElementType.Date} 
+                                        onInputChange={this.handleChange} 
+                                        required={true}  
+                                    />
 
-                        <FormElement 
-                            label="Start Date"
-                            icon="&#xf337;"
-                            elementType={FormElementType.Date} 
-                            onInputChange={this.handleChange} 
-                            required={true}  
-                        />
-                        <div className="form-group">
-                            <div className="checkbox checkbox-inline" style={{display: "inline", marginRight: 10}}>
-                                <label><input type="checkbox" id="chkIsFullDay" defaultChecked={false} onChange={this.handleChange} />  Full Day</label>
-                            </div>
-                            <div className="checkbox checkbox-inline" style={{display: "inline"}}>
-                                <label><input type="checkbox" id="chkTentative" defaultChecked={false} onChange={this.handleChange} />  Tentative</label>
-                            </div>
-                        </div>
-                        <FormElement 
-                            label="End Date"
-                            icon="&#xf337;"
-                            elementType={FormElementType.Date} 
-                            onInputChange={this.handleChange} 
-                            required={true} 
-                            styles={{display: "none"}} 
-                        />
-                        <FormElement 
-                            label="Event Details"
-                            icon="&#xf1f7;"
-                            elementType={FormElementType.Textarea} 
-                            onTextAreaChange={this.handleDetailsChange} 
-                            textAreaRows={4}
-                        />
+                                    {
+                                        !this.state.event.allDay ?
+                                            <FormElement 
+                                                label="End Date"
+                                                defaultValue={this.state.event.endStr}
+                                                id="endStr"
+                                                icon="&#xf337;"
+                                                elementType={FormElementType.Date} 
+                                                onInputChange={this.handleChange} 
+                                                required={true}  
+                                            />
+                                        : null
+                                    }
+            
+                                    <FormElement 
+                                        label="Event Details"
+                                        value={this.state.event.description}
+                                        id="description"
+                                        icon="&#xf1f7;"
+                                        elementType={FormElementType.Textarea} 
+                                        onTextAreaChange={this.handleDetailsChange} 
+                                        textAreaRows={4}
+                                    />
+                                </> : 
+                                <>
+                                    <FormElement 
+                                        label="Title"
+                                        id="title"
+                                        defaultValue={this.state.event.title}
+                                        icon="&#xf1f7;"
+                                        elementType={FormElementType.Text} 
+                                        onInputChange={this.handleChange} 
+                                    />
+                                    <FormElement 
+                                        label="Date & Time"
+                                        defaultValue={this.state.event.startStr}
+                                        id="startStr"
+                                        icon="&#xf337;"
+                                        elementType={FormElementType.Date} 
+                                        onInputChange={this.handleChange} 
+                                        required={true}  
+                                    />
+                                </>
+                        }
                         {
                             this.state.cronofyReady ?
                                 <FormElement 
                                     label="Set alarm in minutes seperated by commas"
+                                    id="alarm"
+                                    value={this.state.event.alarm}
                                     icon="&#xf32d;"
                                     elementType={FormElementType.Text} 
                                     onInputChange={this.handleChange} 
@@ -144,32 +180,52 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
         );
     }
 
-    private handleCalendarsChange = (calendarId: number) => {
-        let selectedCalendars = [...this.state.selectedCalendarIds, calendarId];
-
-        if (this.state.selectedCalendarIds.includes(calendarId)) {
-            selectedCalendars = selectedCalendars.filter(uc => uc !== calendarId);
-        } 
-
-        if (selectedCalendars.length !== 0) {
-            this.setState({
-                selectedCalendarIds: selectedCalendars
-            })
-        }
-    }
-
-    private handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    private handleReminderChange = (value: boolean) => {
         this.setState({
             event: { ...this.state.event,    
-                [event.target.name]: event.target.value    
+                reminder: value    
+            }
+         })
+    }
+
+    private handleFullDayChange = (value: boolean) => {
+        this.setState({
+            event: { ...this.state.event,    
+                allDay: value    
             }
         })
     }
 
-    private handleDetailsChange(description: React.ChangeEvent<HTMLTextAreaElement>): void {
+    private handleTentativeChange = (value: boolean) => {
         this.setState({
             event: { ...this.state.event,    
-                description: description.target.value   
+                tentative: value    
+            }
+        })
+    }
+
+    private handleCalendarsChange = (selectedCalendar: ISelect) => {
+        this.setState({
+            event: { ...this.state.event,    
+                calendarId: selectedCalendar.value
+            }
+        })
+        
+    }
+
+    private handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+        this.setState({
+            event: { ...this.state.event,    
+                [e.target.name]: e.target.value    
+            }
+        })
+    }
+
+    private handleDetailsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        this.setState({
+            event: { ...this.state.event,    
+                description: e.target.value   
             }
         })
     }
@@ -178,6 +234,19 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
         this.setState({
             event: { ...this.state.event,    
                 tagId: tag.target.value
+            }
+        })
+
+        if (this.state.cronofyReady) {
+            api.alarmInfo(tag.target.value)
+                .then(a => this.alarmInfoSuccess(a));
+        }
+    }
+
+    private alarmInfoSuccess = (alarmInfo: string) => {
+        this.setState({
+            event: { ...this.state.event,    
+                alarm: alarmInfo
             }
         })
     }
@@ -199,13 +268,73 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
     }
 
     private handleClose = () => {
+        this.props.onCancelChange();
         this.setState({ show: false })
-        this.props.saveEventChange(false);
     }
 
     private handleSave = () => {
-        alert(JSON.stringify(this.state.event))
+        // validation
+        const startDate = moment(this.state.event.startStr);
+        let errorMsg = "";
+        
+        if (!startDate.isValid())
+        {
+            errorMsg = "Start date is not a valid input";
+        }
+
+        if (!this.state.event.allDay && !this.state.event.reminder)
+        {
+            const endDate = moment(this.state.event.endStr);
+
+            if (!endDate.isValid())
+            {
+                errorMsg = "End date is not a valid input";
+            }
+
+            if (startDate > endDate)
+            {
+                errorMsg = "End date must be ahead of start date";
+            }
+        }
+
+        if (this.state.event.reminder) {
+            if (this.state.event.title === "") {
+                errorMsg = "Reminder title cannot be empty";
+            }
+
+            if (moment() > startDate) {
+                errorMsg = "Reminder date cannot be in the past";
+            }
+        }
+        else{
+            if (this.state.event.description === "" && this.state.event.tagId === "") {
+                errorMsg = "Tag and description cannot both be empty" 
+            }
+        }
+
+        if (intIsNullOrEmpty(this.state.event.calendarId)) {
+            errorMsg = "You must select a calendar";
+        }
+
+        if (errorMsg !== "") {
+            alert (errorMsg);
+        }
+        else{
+
+            this.setState({ show: false })
+            this.props.onSaveChange(true);
+
+            api.saveEvent(this.state.event)
+                .then(s => this.eventSaveSuccess(s));
+        }
     }
 
-
+    private eventSaveSuccess = (event: IEvent) => {
+        if (objIsNullOrEmpty(event)) {
+            alert("There was an issue saving the event, please try again");
+        }
+        else{
+            this.props.onSaveChange(false, event);
+        }
+    }
 }

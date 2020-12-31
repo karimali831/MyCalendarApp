@@ -66,11 +66,6 @@ namespace MyCalendar.Controllers
             return await userService.GetUser(email, password);
         }
 
-        public async Task<IList<string>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
-        {
-            return await userService.CurrentUserActivity(events, userId);
-        }
-
         public async Task<User> GetUser()
         {
             return await userService.GetUser();

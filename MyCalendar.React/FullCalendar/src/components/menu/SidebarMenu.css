@@ -8,6 +8,7 @@
     margin-top: 57px;
     background-image: url("../../assets/bg1.jpg");
     height: 100%;
+    position: fixed;
 }
 
 .sidenav---sidenav-subnav---1EN61 {
@@ -23,4 +24,12 @@
 .sidenav---sidenav-subnav---1EN61 > .sidenav---sidenav-subnavitem---1cD47 > .sidenav---navitem---9uL5T:hover {
     background-color: #000;
     color: #fff;
+}
+
+.sidenav-divider {
+    margin-top: 5px;
+    line-height: 48px;
+    border-bottom: 1px #ccc solid;
+    font-size: 14px;
+    font-weight: normal;
 }

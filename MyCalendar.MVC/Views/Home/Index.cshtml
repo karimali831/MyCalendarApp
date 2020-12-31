@@ -1,1 +1,21 @@
-﻿@Html.Partial("_ReactApp", "fullcalendar")
+﻿@using MyCalendar.Helpers
+@using MyCalendar.Enums
+@model MyCalendar.Website.ViewModels.CalendarVM
+@using MyCalendar.Website.ViewModels
+@{
+    var baseModel = ViewData[nameof(BaseVM)] as BaseVM;
+}
+
+@Html.Partial("_Status", baseModel)
+
+@if (Model.UserCalendars == null || !Model.UserCalendars.Any())
+{
+    <div class="alert alert-info alert-dismissible fade show">
+        <h4 class="alert-heading"><i class="fa fa-info-circle"></i> No calendars added</h4>
+        <p>Add at least one Calendar in <a href="/settings/">Settings</a> under Groups.</p>
+    </div>
+}
+else
+{
+    @Html.Partial("_ReactApp", "fullcalendar")
+}

@@ -21,6 +21,7 @@ namespace MyCalendar.Repository
         Task<User> GetByUserIDAsync(Guid userID);
         User Get(string email);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
+        Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId);
     }
 
     public class UserRepository : IUserRepository
@@ -53,8 +54,10 @@ namespace MyCalendar.Repository
                              EnableCronofy = x.EnableCronofy,
                              BuddyIds = x.BuddyIds,
                              RoleIds = x.RoleIds,
+                             Avatar = x.Avatar,
+                             SelectedCalendars = x.SelectedCalendars,
                              ExtCalendars = x.ExtCalendars,
-                             ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null
+                             ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null,
                          })
                         .FirstOrDefault();
             }
@@ -154,6 +157,27 @@ namespace MyCalendar.Repository
                     string.IsNullOrEmpty(exp.Message);
                     return false;
                 }
+            }
+        }
+
+        public async Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId)
+        {
+            using var sql = dbConnectionFactory();
+            try
+            {
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET SelectedCalendars = @SelectedCalendars WHERE UserID = @UserId",
+                    new
+                    {
+                        SelectedCalendars = calendarIds != null && calendarIds.Any() ? string.Join(",", calendarIds) : null,
+                        UserId = userId
+                    });
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                string.IsNullOrEmpty(exp.Message);
+                return false;
             }
         }
     }

@@ -7,6 +7,7 @@ using MyCalendar.Service;
 using MyCalendar.Website.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
@@ -39,6 +40,7 @@ namespace MyCalendar.Website.Controllers
             await BaseViewModel(menuItem, updateResponse, updateMsg);
 
             var baseVM = ViewData["BaseVM"] as BaseVM;
+            var avatars = Directory.EnumerateFiles(Server.MapPath("~/Content/img/avatar/pk1"));
 
             var viewModel = new SettingsVM
             {
@@ -47,6 +49,7 @@ namespace MyCalendar.Website.Controllers
                 Buddys = baseVM.Buddys,
                 UserTypes = await typeService.GetAllByUserIdAsync(baseVM.User.UserID),
                 AccessibleGroups = baseVM.AccessibleGroups,
+                Avatars = avatars,
                 CronofyCalendarAuthUrl = cronofyService.GetAuthUrl()
             };
 

@@ -19,6 +19,13 @@ namespace MyCalendar.Helpers
 {
     public static class Utils
     {
+        public static string AvatarContent(Guid userId, string avatar, string name)
+        {
+            return string.IsNullOrEmpty(avatar)
+                ? name.ToUpper().Substring(0, 2)
+                : $"/Content/img/avatar/user/{userId.ToString().ToLower()}/{avatar}";
+        }
+
         public static string RemoveSpecialCharacters(this string str)
         {
             StringBuilder sb = new StringBuilder();
