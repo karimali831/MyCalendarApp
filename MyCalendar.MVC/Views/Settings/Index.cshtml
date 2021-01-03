@@ -45,20 +45,12 @@
                         @Html.LabelFor(s => Model.User.Avatar)
                         @if (string.IsNullOrEmpty(Model.User.Avatar))
                         {
-                            <p default-avatar="@Model.User.Name.ToUpper().Substring(0, 2)"></p>
+                            <p default-avatar="@Utils.AvatarSrc(Model.User.UserID, Model.User.Avatar, Model.User.Name)"></p>
                         }
                         else
                         {
                     <div>
-                        @if (Model.User.Avatar.StartsWith("0"))
-                        {
-                            <img src="~/Content/img/avatar/pk1/@Path.GetFileName(Model.User.Avatar)" width="40" height="40" type="image/svg+xml" />
-                        }
-                        else
-                        {
-                            <img src="~/Content/img/avatar/user/@Model.User.UserID/@Path.GetFileName(Model.User.Avatar)" width="40" height="40" type="image/svg+xml" />
-                        }
-
+                        <img src="@Utils.AvatarSrc(Model.User.UserID, Model.User.Avatar, Model.User.Name)" width="40" height="40" type="image/svg+xml" />
                     </div>
                         }
                         <span>Select an avatar</span>

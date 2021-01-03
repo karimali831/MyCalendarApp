@@ -17,140 +17,116 @@
     <link href="~/Content/Site.css?v=@version" rel="stylesheet" type="text/css" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/Loader.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/menu/navik.min.css" rel="stylesheet" type="text/css">
     <!-- forms -->
     <link rel="stylesheet" type="text/css" href="~/Content/form/css/util.css">
     <link rel="stylesheet" type="text/css" href="~/Content/form/css/main.css">
     <link rel="stylesheet" type="text/css" href="~/Content/form/fonts/iconic/css/material-design-iconic-font.min.css">
     <script src="https://kit.fontawesome.com/b963a5daf8.js" crossorigin="anonymous"></script>
     <script src="~/Scripts/modernizr-2.8.3.js"></script>
+
 </head>
 <body>
-
-    <nav class="menu fixed-top">
+    <div class="navik-header header-shadow header-dark">
         <div class="container">
-            <label for="tm" class="toggle-menu">
-                <img src="~/Content/img/logo-medium.png"  title="title" alt="additional title" /> 
-                <span class="drop-icon"><span class="fas fa-angle-down"></span></span>
-            </label>
-            <input type="checkbox" id="tm">
-            <ul class="main-menu clearfix">
-                <li class="home-link">
+            <div class="navik-header-container">
+                <div class="logo" data-mobile-logo="@Url.Content("~/Content/img/logo.png")" data-sticky-logo="@Url.Content("~/Content/img/logo.png")">
                     <a href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
-                        <img src="~/Content/img/logo-medium.png"  title="title" alt="additional title" />
+                        <img style="width:230px; height: 30px" src="~/Content/img/logo.png" alt="logo" />
                     </a>
-                </li>
+                </div>
+                <div class="burger-menu">
+                    <div class="line-menu line-half first-line"></div>
+                    <div class="line-menu"></div>
+                    <div class="line-menu line-half last-line"></div>
+                </div>
+                <nav class="navik-menu separate-line submenu-top-border submenu-scale">
+                    <ul>
+                        @if (Model != null && Model.User != null)
+                        {
+                            if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))
+                            {
+                                <li class="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.Overview || Model.MenuItem.Cronofy ? "current-menu" : "")">
+                                    <a href="#">Calendar</a>
+                                    <ul>
+                                        <li>
+                                            <a style="@(Model.MenuItem.Home ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)">
+                                                <i class="fas fa-calendar">
+                                                </i> Calendar
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a style="@(Model.MenuItem.MultiAdd ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
+                                                <i class="fas fa-calendar-check"></i> Scheduler
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a style="@(Model.MenuItem.Overview ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
+                                                <i class="fas fa-chart-bar"></i> Activity Hub
+                                            </a>
+                                        </li>
+                                        @if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
+                                        {
+                                            <li>
+                                                <a style="@(Model.MenuItem.Cronofy ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
+                                                    <i class="fas fa-link"></i> Calendar Sync
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </li>
+                            }
+                            if (Model.AccessibleFeatures.Any(x => x.Id == Features.Write))
+                            {
+                                <li class="@(Model.MenuItem.Documents ? "current-menu" : "")">
+                                    <a href="@Url.Action(Url.MvcRoute(Section.Document).ActionName, Url.MvcRoute(Section.Document).ControllerName)">
+                                        Write
+                                    </a>
+                                </li>
+                            }
+                            if (Model.AccessibleFeatures.Any(x => x.Id == Features.ErrandRunner))
+                            {
+                                <li class="@(Model.MenuItem.ERNewOrder ? "current-menu" : "")">
+                                    <a href="#">Errand Runner</a>
+                                    <ul>
+                                        <li>
+                                            <a style="@(Model.MenuItem.ERNewOrder ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.ErrandRunnerNewOrder).ActionName, Url.MvcRoute(Section.ErrandRunnerNewOrder).ControllerName)">
+                                                <i class="fas fa-user-edit"></i> New Customer/Order
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
 
-                @if (Model != null && Model.User != null)
-                {
-                    if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))
-                    {
-                        <li>
-                            <a href="#" style="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.Overview || Model.MenuItem.Cronofy ? "color:#09c" : "")">
-                                <span class="fas fa-calendar-alt"></span> Calendar
-                                <span class="drop-icon">
-                                    <span class="fas fa-angle-down"></span>
-                                </span>
-                                <label title="Toggle Drop-down" class="drop-icon" for="sm1">
-                                    <span class="fas fa-angle-down"></span>
-                                </label>
-                            </a>
-                            <input type="checkbox" id="sm1">
-                            <ul class="sub-menu">
-                                <li>
-                                    <a href="@Url.Action(Url.MvcRoute(Section.Home).ActionName, Url.MvcRoute(Section.Home).ControllerName)" style="@(Model.MenuItem.Home ? "color:#09c" : "")">
-                                        <span class="fas fa-calendar"></span> Calendar
-                                    </a>
-                                </li>
-                                <li>
-                                    <a style="@(Model.MenuItem.MultiAdd ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.Scheduler).ActionName, Url.MvcRoute(Section.Scheduler).ControllerName)">
-                                        <span class="fas fa-calendar-check"></span> Scheduler
-                                    </a>
-                                </li>
-                                <li>
-                                    <a style="@(Model.MenuItem.Overview ? "color:#09c": "")" href="@Url.Action(Url.MvcRoute(Section.Overview).ActionName, Url.MvcRoute(Section.Overview).ControllerName)">
-                                        <span class="fas fa-chart-bar"></span> Activity Hub
-                                    </a>
-                                </li>
-                                @if (Model.User.CronofyReady != MyCalendar.Enums.CronofyStatus.Disabled)
-                                {
+                            <li class="submenu-right @(Model.MenuItem.Settings ? "current-menu" : "")">
+                                <a href="#">@Model.User.Name</a>
+                                <ul>
                                     <li>
-                                        <a style="@(Model.MenuItem.Cronofy ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.CronofyProfiles).ActionName, Url.MvcRoute(Section.CronofyProfiles).ControllerName)">
-                                            <span class="fas fa-link"></span> Calendar Sync
+                                        <a style="@(Model.MenuItem.Settings ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.Profile).ActionName, Url.MvcRoute(Section.Profile).ControllerName)">
+                                            <i class="fas fa-user-edit"></i> Settings
                                         </a>
                                     </li>
-                                }
-                            </ul>
-                        </li>
-                    }
-
-                    if (Model.AccessibleFeatures.Any(x => x.Id == Features.Write))
-                    {
-                        <li>
-                            <a style="@(Model.MenuItem.Documents ? "color:#09c" : "")" href="@Url.Action(Url.MvcRoute(Section.Document).ActionName, Url.MvcRoute(Section.Document).ControllerName)">
-                                <span class="fas fa-pencil-alt"></span> Write
-                            </a>
-                        </li>
-                    }
-
-                    if (Model.AccessibleFeatures.Any(x => x.Id == Features.ErrandRunner))
-                    {
-                        <li>
-                            <a href="#" style="@(Model.MenuItem.ERNewOrder ? "color:#09c" : "")">
-                                <span class="fas fa-running"></span> Errand Runner
-                                <span class="drop-icon">
-                                    <span class="fas fa-angle-down"></span>
-                                </span>
-                                <label title="Toggle Drop-down" class="drop-icon" for="sm2">
-                                    <span class="fas fa-angle-down"></span>
-                                </label>
-                            </a>
-                            <input type="checkbox" id="sm2">
-                            <ul class="sub-menu">
-                                <li>
-                                    <a style="@(Model.MenuItem.ERNewOrder ? "color:#09c": "")" href="@Url.Action(Url.MvcRoute(Section.ErrandRunnerNewOrder).ActionName, Url.MvcRoute(Section.ErrandRunnerNewOrder).ControllerName)">
-                                        <span class="fas fa-user-edit"></span> New Customer/Order
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    }
-
-                    <li class="menu-right">
-                        <a href="#" style="@(Model.MenuItem.Settings ? "color:#09c" : "")">
-                            <span class="fas fa-user"></span> @Model.User.Name
-                            <span class="drop-icon">
-                                <span class="fas fa-angle-down"></span>
-                            </span>
-                            <label title="Toggle Drop-down" class="drop-icon" for="sm4"><span class="fas fa-angle-down"></span></label>
-                        </a>
-                        <input type="checkbox" id="sm4">
-                        <ul class="sub-menu">
-                            <li>
-                                <a style="@(Model.MenuItem.Settings ? "color:#09c": "")" href="@Url.Action(Url.MvcRoute(Section.Profile).ActionName, Url.MvcRoute(Section.Profile).ControllerName)">
-                                    <span class="fas fa-user-edit"></span> Settings
+                                    <li>
+                                        <a href="@Url.Action(Url.MvcRoute(Section.Logout).ActionName, Url.MvcRoute(Section.Logout).ControllerName)">
+                                            <i class="fas fa-sign-out-alt"></i> Logout
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="submenu-right">
+                                <a href="@Url.Action(Url.MvcRoute(Section.Login).ActionName, Url.MvcRoute(Section.Login).ControllerName)">
+                                    <span class="fas fa-sign-in-alt"></span>  Login / Register
                                 </a>
                             </li>
-                            <li>
-                                <a href="@Url.Action(Url.MvcRoute(Section.Logout).ActionName, Url.MvcRoute(Section.Logout).ControllerName)">
-                                    <span class="fas fa-sign-out-alt"></span> Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                }
-                else
-                {
-                    <li class="menu-right">
-                        <a href="@Url.Action(Url.MvcRoute(Section.Login).ActionName, Url.MvcRoute(Section.Login).ControllerName)">
-                            <span class="fas fa-sign-in-alt"></span> Login/Register
-                        </a>
-                    </li>
-                }
-
-            </ul>
+                        }
+                    </ul>
+                </nav>
+            </div>
         </div>
-    </nav>
+    </div>
     <div class="container body-content">
         <br />
         @RenderBody()
@@ -162,6 +138,7 @@
 
     <script src="~/Scripts/jquery-3.3.1.min.js"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/navik.menu.js"></script> 
     @RenderSection("Scripts", false)
 </body>
 </html>

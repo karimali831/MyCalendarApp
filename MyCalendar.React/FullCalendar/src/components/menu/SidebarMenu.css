@@ -5,14 +5,13 @@
 }
 
 .sidenav---sidenav---_2tBP {
-    margin-top: 57px;
-    background-image: url("../../assets/bg1.jpg");
-    height: 100%;
-    position: fixed;
+    margin-top: 90px;
+    background: #111;
+    height: 768px;
 }
 
 .sidenav---sidenav-subnav---1EN61 {
-    background-image: url("../../assets/bg1.jpg");
+    background: #111;
     color: #fff;
 }
 

@@ -443,11 +443,14 @@
     <Content Include="Content\img\avatar\pk1\069-woman-15.svg" />
     <Content Include="Content\img\avatar\pk1\070-man-15.svg" />
     <Content Include="Content\img\avatar\user\e252d5b5-63a5-4432-9a5e-d6ac16a8a45b\face_co.svg" />
+    <Content Include="Content\img\bg.jpg" />
     <Content Include="Content\img\bg1.jpg" />
     <Content Include="Content\img\logo-medium.png" />
     <Content Include="Content\img\logo.png" />
     <Content Include="Content\Login.css" />
     <Content Include="Content\Loader.css" />
+    <Content Include="Content\menu\navik.css" />
+    <Content Include="Content\menu\navik.min.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
@@ -639,6 +642,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\navik.menu.js" />
     <Content Include="Scripts\popper-utils.js" />
     <Content Include="Scripts\popper-utils.min.js" />
     <Content Include="Scripts\popper.js" />

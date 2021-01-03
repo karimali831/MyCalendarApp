@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
@@ -24,11 +25,25 @@ namespace MyCalendar.Helpers
             string host = HttpContext.Current.Request.Url.Host.ToLower();
             return (host == "localhost");
         }
-        public static string AvatarContent(Guid userId, string avatar, string name)
+
+
+        public static string AvatarSrc(Guid userId, string avatar, string name)
         {
-            return string.IsNullOrEmpty(avatar)
-                ? name.ToUpper().Substring(0, 2)
-                : $"/Content/img/avatar/user/{userId.ToString().ToLower()}/{avatar}";
+            if (!string.IsNullOrEmpty(avatar))
+            {
+                if (avatar.StartsWith("0"))
+                {
+                    return $"/Content/img/avatar/pk1/{Path.GetFileName(avatar)}";
+                }
+                else
+                {
+                    return $"/Content/img/avatar/user/{userId.ToString().ToLower()}/{avatar}";
+                }
+            }
+            else
+            {
+                return name.ToUpper().Substring(0, 2);
+            }
         }
 
         public static string RemoveSpecialCharacters(this string str)

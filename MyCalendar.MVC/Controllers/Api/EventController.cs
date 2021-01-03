@@ -193,7 +193,7 @@ namespace MyCalendar.Website.Controllers.API
                 alarm = x.Alarm,
                 provider = x.Provider,
                 reminder = x.Reminder,
-                avatar = Utils.AvatarContent(x.UserID, x.Avatar, x.Name)
+                avatar = Utils.AvatarSrc(x.UserID, x.Avatar, x.Name)
             })
             .Where(x => !x.reminder || (x.reminder && userId == x.userId));
         }
@@ -212,7 +212,7 @@ namespace MyCalendar.Website.Controllers.API
             {
                 var doc = await documentService.GetAsync(user.LastViewedDocId.Value);
                 activity.Add((
-                    Utils.AvatarContent(user.UserID, user.Avatar, user.Name), 
+                    Utils.AvatarSrc(user.UserID, user.Avatar, user.Name), 
                     $"You recently viewed a document: {doc.Title}")
                 );
             }

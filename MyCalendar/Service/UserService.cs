@@ -244,7 +244,7 @@ namespace MyCalendar.Service
                     string label = tag?.Name ?? activity.Description;
                     string finishing = (activity.EndDate.HasValue ? "finishing " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
                     string starting = Utils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
-                    string avatar = Utils.AvatarContent(user.UserID, user.Avatar, user.Name);
+                    string avatar = Utils.AvatarSrc(user.UserID, user.Avatar, user.Name);
 
                     if (Utils.DateTime() >= Utils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && Utils.DateTime() < Utils.FromUtcToTimeZone(activity.StartDate))
                     {
