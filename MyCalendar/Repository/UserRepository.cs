@@ -22,6 +22,8 @@ namespace MyCalendar.Repository
         User Get(string email);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
         Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId);
+        Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
+        Task<bool> RetainCalendarView(string view, Guid userId);
     }
 
     public class UserRepository : IUserRepository
@@ -55,7 +57,9 @@ namespace MyCalendar.Repository
                              BuddyIds = x.BuddyIds,
                              RoleIds = x.RoleIds,
                              Avatar = x.Avatar,
+                             LastViewedDocId = x.LastViewedDocId,
                              SelectedCalendars = x.SelectedCalendars,
+                             SelectedCalendarView = x.SelectedCalendarView,
                              ExtCalendars = x.ExtCalendars,
                              ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null,
                          })
@@ -124,6 +128,11 @@ namespace MyCalendar.Repository
                         user.EnableCronofy,
                         user.RoleIds,
                         user.BuddyIds,
+                        user.Avatar,
+                        user.LastViewedDocId,
+                        user.SelectedCalendars,
+                        user.SelectedCalendarView,
+
                         ExtCalendars = user.ExtCalendarRights.Any() ? JsonConvert.SerializeObject(user.ExtCalendarRights) : user.ExtCalendars
                     });
 
@@ -178,6 +187,44 @@ namespace MyCalendar.Repository
             {
                 string.IsNullOrEmpty(exp.Message);
                 return false;
+            }
+        }
+
+        public async Task<bool> RetainCalendarView(string view, Guid userId)
+        {
+            using var sql = dbConnectionFactory();
+            try
+            {
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET SelectedCalendarView = @View WHERE UserID = @UserId",
+                    new
+                    {
+                        View = view,
+                        UserId = userId
+                    });
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                string.IsNullOrEmpty(exp.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET LastViewedDocId = @docId WHERE UserID = @userId", new { docId,userId });
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
             }
         }
     }

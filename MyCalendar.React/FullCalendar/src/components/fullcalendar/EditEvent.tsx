@@ -12,6 +12,7 @@ interface IOwnState {
 interface IOwnProps {
     event: IEventDTO,
     reminders?: string,
+    userId?: string,
     onCancelChange: () => void,
     onEditChange: () => void,
     onDeleteChange: (eventId: string) => void
@@ -31,33 +32,38 @@ export class EditEvent extends React.Component<IOwnProps, IOwnState> {
 
     public render() {
         const startDate = moment(this.props.event.startStr);
-        const endDate = moment(this.props.event.endStr)
+        const endDate = moment(this.props.event.endStr);
+        const isCreator = this.props.event.userId === this.props.userId;
 
         return (
             <Modal show={this.state.show} onHide={this.handleClose}>
                 <div className="modal-bg">
                     <Modal.Header closeButton={true}>
-                        <div className="edit-event-actions">
-                            {this.props.event.reminder ? "Edit Reminder" : "Edit Event"}
-                            <OverlayTrigger placement="bottom" overlay={ <Tooltip>Edit event</Tooltip>}>
-                                <FaEdit cursor="pointer" onClick={this.handleEditChange} className="event-action" />
-                            </OverlayTrigger>
-                            <OverlayTrigger placement="bottom" overlay={ <Tooltip>Delete event</Tooltip>}>
-                                <FaTrashAlt cursor="pointer" onClick={this.handleDeleteChange}  className="event-action" />
-                            </OverlayTrigger>
-                            <OverlayTrigger placement="bottom" overlay={ <Tooltip>Invite buddys</Tooltip>}>
-                                <FaEnvelope cursor="pointer" className="event-action"/>
-                            </OverlayTrigger>
-                            {
-                                this.props.event.tentative ?
-                                    <>
-                                        <OverlayTrigger placement="bottom" overlay={ <Tooltip>This event is tentative</Tooltip>}>
-                                            <FaExclamation className="event-action" /> 
-                                        </OverlayTrigger>
-                                    </>
-                                : null
-                            }
-                        </div>
+                        {
+                            isCreator ?
+                                <div className="edit-event-actions">
+                                    {this.props.event.reminder ? "Edit Reminder" : "Edit Event"}
+                                    <OverlayTrigger placement="bottom" overlay={ <Tooltip>Edit event</Tooltip>}>
+                                        <FaEdit cursor="pointer" onClick={this.handleEditChange} className="event-action" />
+                                    </OverlayTrigger>
+                                    <OverlayTrigger placement="bottom" overlay={ <Tooltip>Delete event</Tooltip>}>
+                                        <FaTrashAlt cursor="pointer" onClick={this.handleDeleteChange}  className="event-action" />
+                                    </OverlayTrigger>
+                                    <OverlayTrigger placement="bottom" overlay={ <Tooltip>Invite buddys</Tooltip>}>
+                                        <FaEnvelope cursor="pointer" className="event-action"/>
+                                    </OverlayTrigger>
+                                    {
+                                        this.props.event.tentative ?
+                                            <>
+                                                <OverlayTrigger placement="bottom" overlay={ <Tooltip>This event is tentative</Tooltip>}>
+                                                    <FaExclamation className="event-action" /> 
+                                                </OverlayTrigger>
+                                            </>
+                                        : null
+                                    }
+                                </div>
+                            : <div className="edit-event-actions">Event Info</div>
+                        }
                     </Modal.Header>
                     <Modal.Body style={{marginLeft: 10}}>
                         <FaTag /> <strong>{this.props.event.title}</strong> 
@@ -80,7 +86,7 @@ export class EditEvent extends React.Component<IOwnProps, IOwnState> {
                             null
                         }
                         {
-                            this.props.event.alarm !== null && this.props.event.alarm !== "" ?
+                            this.props.event.alarm !== null && this.props.event.alarm !== "" && isCreator ?
                                 <>
                                     <FaBell /> <strong>Reminders</strong>
                                     <div className="event-info">

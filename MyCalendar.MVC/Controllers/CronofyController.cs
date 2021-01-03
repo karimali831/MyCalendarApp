@@ -78,7 +78,7 @@ namespace MyCalendar.Website.Controllers
 
             return View("Profiles", 
                 new CronofyVM { 
-                    UserCalendars = await UserCalendars(baseVM.User.UserID),
+                    UserCalendars = await UserCalendars(baseVM.User.UserID, userCreated: true),
                     Profiles = profiles, 
                     CronofyCalendarAuthUrl = cronofyService.GetAuthUrl() 
                 } 

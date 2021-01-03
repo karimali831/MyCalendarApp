@@ -23,7 +23,9 @@ namespace MyCalendar.Model
         public string RoleIds { get; set; }
         public string BuddyIds { get; set; }
         public string SelectedCalendars { get; set; }
+        public string SelectedCalendarView { get; set; }
         public string Avatar { get; set; }
+        public Guid? LastViewedDocId { get; set; }
         [DbIgnore]
         public IEnumerable<int> SelectedCalendarsList => (SelectedCalendars != null && SelectedCalendars.Any() ? SelectedCalendars.Split(',').Select(x => int.Parse(x)) : Enumerable.Empty<int>());
 

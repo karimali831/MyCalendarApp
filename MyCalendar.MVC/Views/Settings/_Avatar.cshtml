@@ -1,0 +1,34 @@
+﻿@model MyCalendar.Website.ViewModels.AvatarVM
+@using MyCalendar.Enums
+@using MyCalendar.Helpers
+
+@using (Html.BeginForm(Url.MvcRoute(Section.UpdateAvatar).ActionName, Url.MvcRoute(Section.UpdateAvatar).ControllerName))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(s => Model.Avatar)
+        @if (string.IsNullOrEmpty(Model.Avatar))
+        {
+            <p default-avatar="@Model.Name.ToUpper().Substring(0, 2)"></p>
+        }
+        else
+        {
+            <div>
+                <img src="~/Content/img/avatar/user/@Model.UserId/@Path.GetFileName(Model.Avatar)" width="40" height="40" type="image/svg+xml" />
+            </div>
+        }
+        <span>Select a pre-avatar</span>
+        <div style="overflow-y: scroll; height:150px;">
+            @foreach (var avatar in Model.PreAvatars)
+            {
+                <img src="~/Content/img/avatar/pk1/@Path.GetFileName(avatar)" width="40" height="40" type="image/svg+xml" />
+            }
+        </div>
+        <span>Or create your own!</span>
+        <div>
+            <iframe src="https://avatares.info/#svga-start-overlay" width="100%" height="670" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+        </div>
+    </div>
+
+}

@@ -1,4 +1,4 @@
-import { FormElement, FormElementType, ToggleSwitch, intIsNullOrEmpty, objIsNullOrEmpty } from '@appology/react-components';
+import { InputElement, DateElement, TextAreaElement, SelectElement, ToggleSwitch, intIsNullOrEmpty, objIsNullOrEmpty } from '@appology/react-components';
 import * as React from 'react'
 import { Modal } from 'react-bootstrap';
 import Button from 'react-bootstrap/Alert';
@@ -90,11 +90,10 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
                         {
                             !this.state.event.reminder ? 
                                 <>
-                                    <FormElement 
+                                    <SelectElement 
                                         label="Tag"
                                         id="tagId"
                                         icon="&#xf188;"
-                                        elementType={FormElementType.Select} 
                                         selected={this.props.eventSelect?.event?.tagId}
                                         selectorOptions={this.state.userTags}
                                         onSelectChange={this.handleTagChange} 
@@ -102,55 +101,50 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
                                         required={true} 
                                         disabled={this.state.loadingTags} 
                                     />
-                                    <FormElement 
+                                    <DateElement
                                         label="Start Date"
                                         id="startStr"
                                         defaultValue={this.state.event.startStr}
                                         icon="&#xf337;"
-                                        elementType={FormElementType.Date} 
                                         onInputChange={this.handleChange} 
                                         required={true}  
                                     />
 
                                     {
                                         !this.state.event.allDay ?
-                                            <FormElement 
+                                            <DateElement
                                                 label="End Date"
                                                 defaultValue={this.state.event.endStr}
                                                 id="endStr"
                                                 icon="&#xf337;"
-                                                elementType={FormElementType.Date} 
                                                 onInputChange={this.handleChange} 
                                                 required={true}  
                                             />
                                         : null
                                     }
             
-                                    <FormElement 
+                                    <TextAreaElement
                                         label="Event Details"
                                         value={this.state.event.description}
                                         id="description"
                                         icon="&#xf1f7;"
-                                        elementType={FormElementType.Textarea} 
                                         onTextAreaChange={this.handleDetailsChange} 
                                         textAreaRows={4}
                                     />
                                 </> : 
                                 <>
-                                    <FormElement 
+                                    <InputElement
                                         label="Title"
                                         id="title"
                                         defaultValue={this.state.event.title}
                                         icon="&#xf1f7;"
-                                        elementType={FormElementType.Text} 
                                         onInputChange={this.handleChange} 
                                     />
-                                    <FormElement 
+                                    <DateElement
                                         label="Date & Time"
                                         defaultValue={this.state.event.startStr}
                                         id="startStr"
-                                        icon="&#xf337;"
-                                        elementType={FormElementType.Date} 
+                                        icon="&#xf337;" 
                                         onInputChange={this.handleChange} 
                                         required={true}  
                                     />
@@ -158,12 +152,11 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
                         }
                         {
                             this.state.cronofyReady ?
-                                <FormElement 
+                                <InputElement
                                     label="Set alarm in minutes seperated by commas"
                                     id="alarm"
                                     value={this.state.event.alarm}
-                                    icon="&#xf32d;"
-                                    elementType={FormElementType.Text} 
+                                    icon="&#xf32d;" 
                                     onInputChange={this.handleChange} 
                                 />
                             : null

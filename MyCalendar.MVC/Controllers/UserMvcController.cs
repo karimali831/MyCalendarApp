@@ -51,9 +51,9 @@ namespace MyCalendar.Controllers
             };
         }
 
-        public async Task<IEnumerable<Types>> UserCalendars(Guid userId)
+        public async Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated)
         {
-            return await userService.UserCalendars(userId);
+            return await userService.UserCalendars(userId, userCreated);
         }
 
         public async Task<IEnumerable<Tag>> UserTags(Guid userId)

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import SideNav, { NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
-import { FaCalendar, FaCalendarAlt, FaCalendarCheck, FaCalendarDay, FaCalendarWeek } from 'react-icons/fa'
+import { FaCalendar, FaCalendarAlt, FaCalendarCheck, FaCalendarDay, FaCalendarWeek, FaSyncAlt } from 'react-icons/fa'
 import ClickOutside from 'react-click-outside'
 import '@trendmicro/react-sidenav/dist/react-sidenav.css';
 import './SidebarMenu.css'
@@ -18,7 +18,9 @@ interface IOwnProps {
     userCalendars: IUserCalendar[],
     userId: string,
     loading: boolean,
-    retainSelection: boolean
+    retainSelection: boolean,
+    initialView: string,
+    initialState: () => void,
     calendarSelected: (option: IUserCalendar) => void,
     retainSelected: (e: React.ChangeEvent<HTMLInputElement>) => void
     viewSelected: (view: string) => void
@@ -32,7 +34,7 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
 
         this.state = {
             expanded: this.props.expanded !== undefined ? this.props.expanded : false,
-            selected: "dayGridMonth"
+            selected: this.props.initialView
         };
     }
 
@@ -47,6 +49,14 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                         expanded={this.state.expanded} >
                         <SideNav.Toggle />
                         <SideNav.Nav selected={this.state.selected}>
+                            <NavItem eventKey="reset" onSelect={() => this.props.initialState()}>
+                                <NavIcon>
+                                    <FaSyncAlt />
+                                </NavIcon>
+                                <NavText>
+                                    Refresh
+                                </NavText>
+                            </NavItem>
                             <NavItem eventKey="dayGridMonth" onSelect={() => this.calendarViewChange("dayGridMonth")}>
                                 <NavIcon>
                                     <FaCalendar />
@@ -55,7 +65,7 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                                     Month
                                 </NavText>
                             </NavItem>
-                            <NavItem eventKey="timeGridWeek" onSelect={() => this.calendarViewChange("timeGridWeek")}>
+                            <NavItem eventKey="dayGridWeek" onSelect={() => this.calendarViewChange("dayGridWeek")}>
                                 <NavIcon>
                                     <FaCalendarWeek />
                                 </NavIcon>

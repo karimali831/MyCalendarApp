@@ -20,6 +20,8 @@ import { EditEvent } from './EditEvent';
 import * as moment from 'moment';
 import { UserAvatar } from './UserAvatar';
 import { IActivity } from 'src/models/IActivity';
+import { isMobile } from 'react-device-detect';
+import { strIsNullOrEmpty } from '@appology/react-components';
 
 export interface IOwnProps {
 
@@ -41,7 +43,8 @@ export interface IOwnState {
     selectedCalendarIds: number[],
     userId: string,
     currentActivity: IActivity[],
-    showAvatars: boolean
+    showAvatars: boolean,
+    viewName: string
 }
 
 export default class Calendar extends React.Component<IOwnProps, IOwnState> {
@@ -88,7 +91,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             userCalendars: [],
             selectedCalendarIds: [],
             userId: "",
-            showAvatars: false
+            showAvatars: false,
+            viewName: "dayGridMonth"
         };
     }
 
@@ -138,6 +142,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                     </BootstrapAlert>
                 </Modal>
                 <SidebarMenu 
+                    initialState={this.initialState}
+                    initialView={this.state.viewName}
                     pinSidebar={this.state.pinSidebar} 
                     loading={this.state.loading} 
                     userId={this.state.userId} 
@@ -163,9 +169,10 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                             : null
                     }
                     {
-                        this.state.eventSelect?.event !== undefined && this.state.eventSelect.event.userId === this.state.userId ?
+                        this.state.eventSelect?.event !== undefined ?
                             <EditEvent
                                 event={this.state.eventSelect.event}
+                                userId={this.state.userId}
                                 onEditChange={this.handleEditDateSelect}
                                 onDeleteChange={(eventId: string) => this.handleEventDelete(eventId)}
                                 onCancelChange={() => this.resetSelect()} />
@@ -175,30 +182,28 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                     <EventLoader display={this.state.loading} />
                     <FullCalendar
                         plugins={[ dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
-                        initialView="dayGridMonth"
+                        initialView={this.state.viewName}
                         customButtons={{
                             toggle: {
                                 icon: "fa fa fa-bars",
                                 click: this.toggleMenu
                             },
                             avatars: {
-                                icon: `fa fa ${this.state.showAvatars ? "fa-user-slash" : "fa-user"}`,
+                                icon: `fa fa ${this.state.showAvatars ? "fa-user-clock" : "fa-user-check"}`,
                                 click: this.showAvatars
                             },
-                            refresh: {
-                                icon: "fa fa fa-sync-alt",
-                                click: this.getEvents
-                            }
                         }}
                         headerToolbar={{
                             left: "toggle,prev,next",
                             center: "title",
-                            right: "today,avatars,refresh"
+                            right: "avatars"
                         }}
                         views={{
-                            dayGridMonth: {
-                                titleFormat:  { year: 'numeric', month: 'short' }
-                            }
+                            dayGridWeek: {
+                                titleFormat:  { year: 'numeric', month: 'short' },
+                                dayMaxEventRows: 999
+                            },
+                            dayGrid: { dayMaxEventRows: 999}
                         }}
                         eventContent={(c: EventContentArg) => this.renderEventContent(c)}
                         select={(date: DateSelectArg) => this.handleDateSelect(date)}
@@ -223,12 +228,17 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
 
     private renderEventContent = (eventInfo: EventContentArg) => {
         const event = this.state.events.filter(e => e.id === eventInfo.event.id)[0];
-        const content = <><b>{eventInfo.timeText}</b> {eventInfo.event.title}</>
+        const minContent = <>{eventInfo.event.title}</>;
+        const maxContent = <><b>{eventInfo.timeText}</b> {eventInfo.event.title}</>
 
         if(this.state.showAvatars && event) {
-            return <UserAvatar avatar={event.avatar} content={content} />
+            if (isMobile) {
+                return <UserAvatar avatar={event.avatar} content={this.state.viewName === "dayGrid" ? maxContent : minContent} />
+            } else {
+                return <UserAvatar avatar={event.avatar} content={maxContent} />
+            }
         } else {
-            return content;
+            return maxContent;
         }
     }
 
@@ -276,6 +286,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
     private changeView = (viewName: string):void=> {
         if (this.calendarRef.current !== null)
         {
+            this.setState({ viewName: viewName })
+
             this.calendarRef.current
                 .getApi()
                 .changeView(viewName)
@@ -326,6 +338,17 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
         })
     }
 
+    private initialState = () => {
+        if (this.calendarRef.current !== null)
+        {
+            this.calendarRef.current
+                .getApi()
+                .gotoDate(moment().toISOString())
+                
+            this.getEvents();
+        }
+    }
+
     private getEvents = () => {
         this.setState({ 
             events: [],
@@ -351,7 +374,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             selectedCalendarIds: calendar.userCalendars.filter(o => o.selected).map(c=> c.id),
             userId: calendar.userId,
             retainSelection: calendar.retainSelection,
-            showAvatars: calendar.userCalendars.some(c => c.userCreatedId !== calendar.userId && c.selected)
+            showAvatars: calendar.userCalendars.some(c => c.userCreatedId !== calendar.userId && c.selected),
+            viewName: strIsNullOrEmpty(calendar.retainView) ? this.state.viewName : calendar.retainView
         })
 
         this.loadActivity();

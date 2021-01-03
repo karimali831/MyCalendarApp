@@ -24,8 +24,9 @@ namespace MyCalendar.Service
         Task<List<(string Avatar, string Text)>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
         Task<IList<User>> GetBuddys(Guid userId);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
-        Task<IEnumerable<Types>> UserCalendars(Guid userId);
+        Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false);
         Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId);
+        Task<bool> RetainCalendarView(string view, Guid userId);
     }
     
     public class UserService : IUserService
@@ -74,9 +75,11 @@ namespace MyCalendar.Service
             return buddyList;
         }
 
-        public async Task<IEnumerable<Types>> UserCalendars(Guid userId)
+        public async Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false)
         {
-            var userCalendars = (await typeService.GetUserTypesAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
+            var userCalendars = (
+                await typeService.GetUserTypesAsync(userId))
+                    .Where(x => x.GroupId == TypeGroup.Calendars && (userCreated && x.UserCreatedId == userId || !userCreated));
 
             foreach (var calendar in userCalendars)
             {
@@ -131,6 +134,11 @@ namespace MyCalendar.Service
                 await tagRepository.DeleteAllUserTagsAsync(userId);
                 return true;
             }
+        }
+
+        public async Task<bool> RetainCalendarView(string view, Guid userId)
+        {
+            return await userRepository.RetainCalendarView(view, userId);
         }
 
         public async Task<User> GetUser(string email = null, string password = null)
@@ -199,13 +207,22 @@ namespace MyCalendar.Service
             {
                 foreach (var activity in events)
                 {
+                    var user = await GetByUserIDAsync(activity.UserID);
+
+                    // write activity
+
+                    if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
+                    {
+
+                    }
+
+                    // calendar activity
                     Tag tag = null;
                     if (activity.TagID.HasValue)
                     {
                         tag = await GetUserTagAysnc(activity.TagID.Value);
                     }
 
-                    var user = await GetByUserIDAsync(activity.UserID);
                     string getName = "";
 
                     if (activity.InviteeIdsList.Any())

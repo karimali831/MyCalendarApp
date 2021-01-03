@@ -10,6 +10,7 @@ namespace MyCalendar.Website.ViewModels
     {
         public Guid UserId { get; set; }
         public IEnumerable<Document> Documents { get; set; }
+        public Document SelectedDocument { get; set; }
         public IEnumerable<Types> UserFolders { get; set; }
     }
 }

@@ -33,11 +33,12 @@ namespace MyCalendar.Controllers
         {
             await BaseViewModel(new MenuItem { MultiAdd = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
-
+            var userCalendars = await UserCalendars(baseVM.User.UserID, userCreated: true);
+                
             var viewModel = new SchedulerVM 
             { 
                 Dates = dates, 
-                Calendars = await UserCalendars(baseVM.User.UserID),
+                Calendars = userCalendars,
                 UserTags = await UserTags(baseVM.User.UserID)
             };
 
@@ -112,12 +113,12 @@ namespace MyCalendar.Controllers
             {
                 var updateEvents = new List<bool>();
 
-                if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                foreach (var e in model.Events)
                 {
-                    foreach (var e in model.Events)
-                    {
-                        updateEvents.Add(await eventService.SaveEvent(e));
+                    updateEvents.Add(await eventService.SaveEvent(e));
 
+                    if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                    {
                         if (e.EventUid == null)
                         {
                             //e.EventID = e.EventID != Guid.Empty ? e.EventID : Guid.NewGuid();

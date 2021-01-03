@@ -160,7 +160,8 @@ export interface IEventResponse {
     userId: string,
     events: IEvent[],
     userCalendars: IUserCalendar[],
-    retainSelection: boolean
+    retainSelection: boolean,
+    retainView: string
 }
 
 export interface IUserTagResponse {

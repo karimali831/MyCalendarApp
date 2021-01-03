@@ -26,17 +26,19 @@ namespace MyCalendar.Website.Controllers.API
     {
         private readonly IEventService eventService;
         private readonly IUserService userService;
-        private readonly bool isLocalHost = false;
+        private readonly IDocumentService documentService;
 
-        public EventController(IEventService eventService, IUserService userService)
+        public EventController(IEventService eventService, IUserService userService, IDocumentService documentService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         }
 
         private async Task<User> GetUser()
         {
-            return await userService.GetUser(isLocalHost ? "karimali831@googlemail.com" : null);
+            bool isLocal = false;
+            return await userService.GetUser(isLocal ? "karimali831@googlemail.com" : null);
         }
 
         [Route("usertags")]
@@ -153,6 +155,15 @@ namespace MyCalendar.Website.Controllers.API
             return Request.CreateResponse(HttpStatusCode.OK, status);
         }
 
+        [Route("retainview")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RetainCalendarView(string view)
+        {
+            var user = await GetUser();
+            var status = await userService.RetainCalendarView(view, user.UserID);
+            return Request.CreateResponse(HttpStatusCode.OK, status);
+        }
+
         private IEnumerable<object> MapDTO(IEnumerable<Event> events, Guid userId)
         {
             return events.Select(x => new
@@ -183,7 +194,8 @@ namespace MyCalendar.Website.Controllers.API
                 provider = x.Provider,
                 reminder = x.Reminder,
                 avatar = Utils.AvatarContent(x.UserID, x.Avatar, x.Name)
-            });
+            })
+            .Where(x => !x.reminder || (x.reminder && userId == x.userId));
         }
 
         [Route("activity")]
@@ -192,12 +204,22 @@ namespace MyCalendar.Website.Controllers.API
         {
             var user = await GetUser();
 
+            var activity = new List<(string Avatar, string Text)>();
             var activeEvents = await eventService.GetCurrentActivityAsync();
             var currentActivity = await userService.CurrentUserActivity(activeEvents, user.UserID);
 
+            if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
+            {
+                var doc = await documentService.GetAsync(user.LastViewedDocId.Value);
+                activity.Add((
+                    Utils.AvatarContent(user.UserID, user.Avatar, user.Name), 
+                    $"You recently viewed a document: {doc.Title}")
+                );
+            }
+
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
-                activity = currentActivity.Select(x => new 
+                activity = currentActivity.Concat(activity).Select(x => new 
                 {
                     avatar = x.Avatar,
                     text = x.Text
@@ -248,6 +270,7 @@ namespace MyCalendar.Website.Controllers.API
                     selected = request.CalendarIds.Contains(x.Id)
                 }),
                 retainSelection = user.SelectedCalendarsList != null && user.SelectedCalendarsList.Any(),
+                retainView = user.SelectedCalendarView,
                 UserId = user.UserID
             });
         }

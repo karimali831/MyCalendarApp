@@ -40,33 +40,50 @@
                         @Html.CheckBoxFor(s => s.User.EnableCronofy)
                         <span>Enable Appology Calendar sync</span>
                     </div>
+            
                     <div class="form-group">
-                        @Html.LabelFor(s => s.User.Avatar)
-                        @if (string.IsNullOrEmpty(BaseViewModel.User.Avatar))
+                        @Html.LabelFor(s => Model.User.Avatar)
+                        @if (string.IsNullOrEmpty(Model.User.Avatar))
                         {
-                            <p default-avatar="@BaseViewModel.User.Name.ToUpper().Substring(0, 2)"></p>
+                            <p default-avatar="@Model.User.Name.ToUpper().Substring(0, 2)"></p>
                         }
                         else
                         {
-                            <div>
-                                <img src="~/Content/img/avatar/user/@BaseViewModel.User.UserID/@Path.GetFileName(BaseViewModel.User.Avatar)" width="40" height="40" type="image/svg+xml" />
-                            </div>
+                    <div>
+                        @if (Model.User.Avatar.StartsWith("0"))
+                        {
+                            <img src="~/Content/img/avatar/pk1/@Path.GetFileName(Model.User.Avatar)" width="40" height="40" type="image/svg+xml" />
                         }
-                        <span>Or select a new avatar</span>
-                        <div style="overflow-y: scroll; height:150px;">
+                        else
+                        {
+                            <img src="~/Content/img/avatar/user/@Model.User.UserID/@Path.GetFileName(Model.User.Avatar)" width="40" height="40" type="image/svg+xml" />
+                        }
+
+                    </div>
+                        }
+                        <span>Select an avatar</span>
+                        <div class="avatars" style="overflow-y: scroll; height:150px;">
                             @foreach (var avatar in Model.Avatars)
                             {
-                                <img src="~/Content/img/avatar/pk1/@Path.GetFileName(avatar)" width="40" height="40" type="image/svg+xml" />
+                                <img id="@Path.GetFileName(avatar)" src="~/Content/img/avatar/pk1/@Path.GetFileName(avatar)" width="40" height="40" type="image/svg+xml" />
                             }
+                            <input class="form-control" id="User_Avatar" name="User.Avatar" type="hidden" value="@Model.User.Avatar">
                         </div>
+                        @*<span>Or create your own!</span>
+                        <div>
+                            <iframe src="https://avatares.info/#svga-start-overlay" width="100%" height="470" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+                        </div>*@
                     </div>
+
                     @Html.HiddenFor(x => x.User.UserID)
                     @Html.HiddenFor(x => x.User.CronofyUid)
                     @Html.HiddenFor(x => x.User.AccessToken)
                     @Html.HiddenFor(x => x.User.RefreshToken)
                     @Html.HiddenFor(x => x.User.ExtCalendars)
                     @Html.HiddenFor(x => x.User.RoleIds)
-                    @Html.HiddenFor(x => x.User.Avatar)
+                    @Html.HiddenFor(x => x.User.SelectedCalendars)
+                    @Html.HiddenFor(x => x.User.SelectedCalendarView)
+                    @Html.HiddenFor(x => x.User.LastViewedDocId)
                     @Html.HiddenFor(x => x.User.BuddyIds)
                     <button type="submit" class="btn btn-primary">Update</button>
 
@@ -74,6 +91,25 @@
             </div>
         </div>
     </div>
+    @*<div class="card">
+        <div class="card-header" id="headingFive">
+            <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                <h5 class="fas fa-user-circle"> Avatar</h5>
+            </button>
+        </div>
+        <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordion">
+            <div class="card-body">
+                @Html.Partial("_Avatar",
+                    new AvatarVM
+                    {
+                        UserId = Model.User.UserID,
+                        Name = Model.User.Name,
+                        Avatar = Model.User.Avatar,
+                        PreAvatars = Model.Avatars
+                    })
+            </div>
+        </div>
+    </div>*@
     <div class="card">
         <div class="card-header" id="headingTwo">
             <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
@@ -151,6 +187,24 @@
 
 @section Scripts{
     <script type="text/javascript">
+        $('.avatars img').each(function () {
+
+            //$(this).css('border', "none");
+            $(this).click(function (e) {
+                $(this).css('border', "solid 2px #09c");
+                var img = $(this).attr('id');
+                alert(img)
+                $('#User_Avatar').val(img);
+            });
+        });
+
+        function setAvatar(avatar) {
+
+            var image = document.getElementById(avatar);
+            $(image).css('border', "solid 2px #09c");  
+            $('#User_Avatar').val(image.src)
+        }
+
         function myFunction() {
             /* Get the text field */
             var copyText = document.getElementById("inviteeShareLink");

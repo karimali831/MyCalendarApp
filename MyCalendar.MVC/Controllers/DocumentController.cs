@@ -31,16 +31,20 @@ namespace MyCalendar.Website.Controllers
         // GET: Document
         public async Task<ActionResult> Index()
         {
+            //var docId = Guid.Parse(Id);
+
             await BaseViewModel(new MenuItem { Documents = true });
             var baseVM = ViewData["BaseVM"] as BaseVM;
 
             var documents = await documentService.GetAllByUserIdAsync(baseVM.User.UserID);
+            //var doc = docId != null && docId != Guid.Empty ? await documentService.GetAsync(docId) : null;
             var folders = await documentService.GetDocumentFoldersByUserIdAsync(baseVM.User.UserID);
 
             return View(new DocumentVM
             {
                 UserId = baseVM.User.UserID,
                 Documents = documents ?? Enumerable.Empty<Document>(),
+                //SelectedDocument = doc,
                 UserFolders = folders
             });
         }
@@ -94,6 +98,13 @@ namespace MyCalendar.Website.Controllers
             };
 
             return PartialView("_FolderSelection", model);
+        }
+
+        public async Task UpdateLastViewedDoc(Guid docId)
+        {
+            await BaseViewModel(new MenuItem { Documents = true });
+            var baseVM = ViewData["BaseVM"] as BaseVM;
+            await documentService.UpdateLastViewedDoc(baseVM.User.UserID, docId);
         }
 
         public async Task<JsonResult> Get(int typeId)

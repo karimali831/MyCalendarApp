@@ -214,6 +214,12 @@
             });
         }
 
+        var docId = '@(Model.SelectedDocument != null ? Model.SelectedDocument.Id : (Guid?)null)'
+
+        if (docId) {
+            loadDocument(docId);
+        }
+
         function loadDocument(id) {
 
             $('#viewer').show(500);
@@ -232,6 +238,16 @@
             }
 
             $('#viewer').html($('.document-content-' + id).html());
+
+            $.ajax({
+                url: '@Url.Action("UpdateLastViewedDoc")',
+                type: 'GET',
+                data: { docId: id },
+                success: function (response) {},
+                error: function (result) {
+                    alert("Error: " + result.status);
+                }
+            });
         }
 
         function LoadFolders(id, title) {
@@ -252,7 +268,6 @@
         }
 
         function editDocument(id, typeId, title) {
-
             this.LoadFolders(id, title);         
 
             $('#Id').val(id);

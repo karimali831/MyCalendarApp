@@ -72,6 +72,10 @@
         opacity: 1;
         transform: scale(1);
     }
+
+    .fc .fc-toolbar-title {
+        font-size: 1.25em;
+    }
 }
 
 .fc .fc-button-primary {

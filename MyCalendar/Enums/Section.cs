@@ -18,6 +18,7 @@ namespace MyCalendar.Enums
         Document,
         Profile,
         UpdateTags,
+        UpdateAvatar,
         AddType,
         UpdateType,
         RemoveType,

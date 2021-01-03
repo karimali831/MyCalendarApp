@@ -19,6 +19,11 @@ namespace MyCalendar.Helpers
 {
     public static class Utils
     {
+        public static bool IsLocal()
+        {
+            string host = HttpContext.Current.Request.Url.Host.ToLower();
+            return (host == "localhost");
+        }
         public static string AvatarContent(Guid userId, string avatar, string name)
         {
             return string.IsNullOrEmpty(avatar)

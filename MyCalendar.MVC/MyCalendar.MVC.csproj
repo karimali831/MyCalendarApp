@@ -254,6 +254,7 @@
     <Compile Include="GlobalExceptionHandler.cs" />
     <Compile Include="MVCModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\AvatarVM.cs" />
     <Compile Include="ViewModels\CalendarVM.cs" />
     <Compile Include="ViewModels\DocumentMoveVM.cs" />
     <Compile Include="ViewModels\DocumentVM.cs" />
@@ -747,6 +748,7 @@
     <Content Include="Views\Shared\_FolderSelection.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Shared\_ReactApp.cshtml" />
+    <Content Include="Views\Settings\_Avatar.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

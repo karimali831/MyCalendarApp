@@ -43,21 +43,16 @@
     <div id="load-activities" style="display: none">
         <div class="loader loader-medium"></div>
     </div>
-    @if (Model.HoursWorkedInTag != null && Model.HoursWorkedInTag.Any())
-    {
-        <ul class="list-group" id="activities">
-            @foreach (var e in Model.HoursWorkedInTag)
-            {
-                <li class="list-group-item" style="background: @e.Color; color: @e.ContrastColor">
-                    <span class="fas @e.ActivityTag"></span> <small> @e.Text<span style="float: right">#@e.TypeName</span></small>
-                </li>
-            }
-        </ul>
-    }
-    else
-    {
-        <p>Nothing found</p>
-    }
+
+    <ul class="list-group" id="activities">
+        @foreach (var e in Model.HoursWorkedInTag)
+        {
+            <li class="list-group-item" style="background: @e.Color; color: @e.ContrastColor">
+                <span class="fas @e.ActivityTag"></span> <small> @e.Text<span style="float: right">#@e.TypeName</span></small>
+            </li>
+        }
+    </ul>
+
 </div>
 
  @section Scripts{
