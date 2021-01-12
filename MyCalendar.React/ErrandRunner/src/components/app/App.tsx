@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import initialiseStore from '../../state/InitialiseStore';
 import { ConnectedRouter } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
-import { NewOrder } from '../roots/errandrunner/NewOrder';
+import { NewOrder } from '../roots/order/NewOrder';
 
 class App extends React.Component {
   private appElement: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();

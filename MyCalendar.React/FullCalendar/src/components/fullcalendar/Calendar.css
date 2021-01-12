@@ -67,12 +67,6 @@
  }
  
  @media only screen and (max-width: 600px) {
-    .calendar-margin {
-        margin-left: 60px;
-        opacity: 1;
-        transform: scale(1);
-    }
-
     .fc .fc-toolbar-title {
         font-size: 1.25em;
     }

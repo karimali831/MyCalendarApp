@@ -1,39 +1,30 @@
-import IBaseModel from "@appology/react-components/src/SelectionRefinement/IBaseModel";
-import { ICustomer } from './ICustomer';
 
-export interface IAddressFinder {
-    formData: ICustomer;
-    postcodeAddresses: string[];
-    loadingAddresses: boolean;
-}
+import IBaseModel from '@appology/react-components/dist/SelectionRefinement/IBaseModel';
+
 
 export interface IAddressLabel {
     id: string[],
     label: string[]
 }
 
+
 export interface IAddressSearch extends IBaseModel {
-    addresses?: IAddressSugestion[]
+    addresses?: IAddressPrediction[]
 }
 
-export interface IAddressSugestion {
-    address: string,
-    url: string,
-    id: string
+
+export interface IAddressPrediction{
+    prediction: string,
+    refs: string,
+    complete: boolean
 }
 
 export interface IAddress {
-    postcode: string,
-    latitude: string,
-    longitude: string,
-    building_number: string,
-    line_1: string,
-    line_2: string,
-    line_3: string,
-    line_4: string,
-    town_or_city: string,
+    addressline1: string,
+    summaryline: string,
+    number: string,
+    street: string,
+    posttown: string,
     county: string,
-    country: string,
-    residential: boolean
+    postcode: string
 }
-

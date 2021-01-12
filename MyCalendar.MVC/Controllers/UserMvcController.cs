@@ -23,14 +23,16 @@ namespace MyCalendar.Controllers
         private readonly IExceptionHandlerService exceptionHandlerService;
         private readonly IUserService userService;
         private readonly IFeatureRoleService featureRoleService;
+        private readonly INotificationService notificationService;
         protected readonly string AuthenticationName;
         public BaseVM BaseVM { get; set; }
 
-        public UserMvcController(IUserService userService, IFeatureRoleService featureRoleService)
+        public UserMvcController(IUserService userService, IFeatureRoleService featureRoleService, INotificationService notificationService)
         {
             this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             this.featureRoleService = featureRoleService ?? throw new ArgumentNullException(nameof(featureRoleService));
+            this.notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
 
             AuthenticationName = ConfigurationManager.AppSettings["AuthenticationName"];
         }
@@ -43,6 +45,7 @@ namespace MyCalendar.Controllers
             return new BaseVM
             {
                 User = user,
+                Notifications = await Notifications(),
                 Buddys = buddys,
                 AccessibleGroups = await AccessibleGroups(user.RoleIdsList),
                 AccessibleFeatures = await AccessibleFeatures(user.RoleIdsList),
@@ -51,7 +54,61 @@ namespace MyCalendar.Controllers
             };
         }
 
-        public async Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated)
+        public async Task<NotificationVM> Notifications()
+        {
+            var user = await GetUser();
+            var userCalendars = (await UserCalendars(user.UserID))
+                .Select(x => x.Id)
+                .ToArray();
+
+            var getNotifications = await notificationService.GetNotifications(user, userCalendars);
+            string notifications = "";
+
+            if (getNotifications != null && getNotifications.Any())
+            {
+                int i = 1;
+                foreach (var n in getNotifications)
+                {
+                    string icon = "";
+
+                    switch (n.Feature)
+                    {
+                        case Features.Calendar:
+                            icon = "<i class='fas fa-calendar-day'></i>";
+                            break;
+                        case Features.Write:
+                            icon = "<i class='fas fa-edit'></i>";
+                            break;
+                        case Features.ErrandRunner:
+                            icon = "<i class='fas fa-running></i>";
+                            break;
+                    }
+
+                    if (i != 1)
+                    {
+                        notifications += "<hr />";
+                    }
+                    if (n.Avatar.Length == 2)
+                    {
+                        //notifications += $"<p class='pull-right' default-avatar='{n.Avatar}'> {icon} {n.Text}</p>";
+                        notifications += $"{icon} {n.Text}";
+                    }
+                    else
+                    {
+                        notifications += $"{icon} <img class='pull-right' width='30' height='30' src='{n.Avatar}'> {n.Text}";
+                    }
+                    i++;
+                }
+            }
+
+            return new NotificationVM
+            {
+                Content = (Content(notifications, "text/html")),
+                Count = getNotifications != null ? getNotifications.Count() : 0
+            };
+        }
+
+        public async Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false)
         {
             return await userService.UserCalendars(userId, userCreated);
         }

@@ -198,35 +198,6 @@ namespace MyCalendar.Website.Controllers.API
             .Where(x => !x.reminder || (x.reminder && userId == x.userId));
         }
 
-        [Route("activity")]
-        [HttpGet]
-        public async Task<HttpResponseMessage> CurrentActivity()
-        {
-            var user = await GetUser();
-
-            var activity = new List<(string Avatar, string Text)>();
-            var activeEvents = await eventService.GetCurrentActivityAsync();
-            var currentActivity = await userService.CurrentUserActivity(activeEvents, user.UserID);
-
-            if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
-            {
-                var doc = await documentService.GetAsync(user.LastViewedDocId.Value);
-                activity.Add((
-                    Utils.AvatarSrc(user.UserID, user.Avatar, user.Name), 
-                    $"You recently viewed a document: {doc.Title}")
-                );
-            }
-
-            return Request.CreateResponse(HttpStatusCode.OK, new
-            {
-                activity = currentActivity.Concat(activity).Select(x => new 
-                {
-                    avatar = x.Avatar,
-                    text = x.Text
-                })
-            });
-        }
-
         [Route("events")]
         [HttpPost]
         public async Task<HttpResponseMessage> Get(RequestEventDTO request)

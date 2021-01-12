@@ -1,10 +1,6 @@
 ﻿using Ninject.Modules;
 using MyCalendar.Repository;
 using MyCalendar.Service;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using MyCalendar.ER.Service;
 using MyCalendar.ER.Repository;
 
@@ -23,6 +19,10 @@ namespace MyCalendar.Ninject
             Bind<IDocumentService>().To<DocumentService>();
             Bind<IFeatureRoleService>().To<FeatureRoleService>();
             Bind<ICustomerService>().To<CustomerService>();
+            Bind<ICategoryService>().To<CategoryService>();
+            Bind<IOrderService>().To<OrderService>();
+            Bind<ITripService>().To<TripService>();
+            Bind<INotificationService>().To<NotificationService>();
 
             // Repositories
             Bind<IEventRepository>().To<EventRepository>();
@@ -35,6 +35,9 @@ namespace MyCalendar.Ninject
             Bind<IFeatureRepository>().To<FeatureRepository>();
             Bind<IFeatureRoleRepository>().To<FeatureRoleRepository>();
             Bind<ICustomerRepository>().To<CustomerRepository>();
+            Bind<ICategoryRepository>().To<CategoryRepository>();
+            Bind<IOrderRepository>().To<OrderRepository>();
+            Bind<ITripRepository>().To<TripRepository>();
         }
     }
 }

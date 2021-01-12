@@ -75,6 +75,10 @@ textarea {
     .add-type, .edit-type{
         display: none;
     }
+
+    .notification-alert {
+
+    }
 }
 
 .card-header {
@@ -120,4 +124,46 @@ textarea {
     /*vertical-align: middle;*/
     margin-right: 2px;
     color: white;
+}
+
+/*header */
+.navik-header.header-dark {
+    z-index: 1007;
+    position: fixed;
+    width: 100%;
+}
+
+/* font awesome notification*/
+.fa-stack[data-count]:after {
+    position: absolute;
+    right: 0%;
+    top: 1%;
+    content: attr(data-count);
+    font-size: 40%;
+    padding: .6em;
+    border-radius: 999px;
+    line-height: .75em;
+    color: white;
+    background: rgba(255,0,0,.85);
+    text-align: center;
+    min-width: 2em;
+    font-weight: bold;
+}
+
+.notification-alerts {
+    position: absolute;
+    top: 25px;
+    right: -70px
+}
+
+@media (max-width: 800px) {
+    .notification-alerts {
+        position: absolute;
+        top: 25px;
+        left: 0px
+    }
+}
+
+.pull-right {
+    float: right;
 }

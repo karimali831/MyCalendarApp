@@ -16,7 +16,11 @@ namespace MyCalendar.Controllers
     {
         private readonly IEventService eventService;
 
-        public EventController(IEventService eventService, IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public EventController(
+            IUserService userService,
+            IEventService eventService,
+            IFeatureRoleService featureRoleService,
+            INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
    

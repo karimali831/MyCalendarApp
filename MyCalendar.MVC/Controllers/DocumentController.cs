@@ -22,7 +22,8 @@ namespace MyCalendar.Website.Controllers
             IDocumentService documentService, 
             IUserService userService, 
             ITypeService typeService,
-            IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+            INotificationService notificationService,
+            IFeatureRoleService featureRoleService) : base(userService, featureRoleService, notificationService)
         {
             this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
             this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));

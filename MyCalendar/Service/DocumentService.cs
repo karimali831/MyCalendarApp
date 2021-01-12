@@ -18,6 +18,7 @@ namespace MyCalendar.Service
         Task<bool> InsertOrUpdateAsync(Document doc);
         Task<bool> MoveAsync(Guid docId, int moveToId);
         Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
+        Task<IList<Notification>> DocumentActivity(User user);
     }
 
     public class DocumentService : IDocumentService
@@ -102,5 +103,23 @@ namespace MyCalendar.Service
             return await userRepo.UpdateLastViewedDoc(userId, docId);
         }
 
+        public async Task<IList<Notification>> DocumentActivity(User user)
+        {
+            var activity = new List<Notification>();
+
+            if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
+            {
+                var doc = await GetAsync(user.LastViewedDocId.Value);
+
+                activity.Add(new Notification
+                {
+                    Avatar = Utils.AvatarSrc(user.UserID, user.Avatar, user.Name),
+                    Text = $"You recently viewed a document: {doc.Title}",
+                    Feature = Features.Write
+                });
+            }
+
+            return activity;
+        }
     }
 }

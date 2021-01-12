@@ -3,7 +3,6 @@ import SideNav, { NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 import { FaCalendar, FaCalendarAlt, FaCalendarCheck, FaCalendarDay, FaCalendarWeek, FaSyncAlt } from 'react-icons/fa'
 import ClickOutside from 'react-click-outside'
 import '@trendmicro/react-sidenav/dist/react-sidenav.css';
-import './SidebarMenu.css'
 import { IUserCalendar } from 'src/models/IUserCalendar';
 import { Load } from '@appology/react-components';
 

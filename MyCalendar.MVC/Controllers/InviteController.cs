@@ -15,7 +15,10 @@ namespace MyCalendar.Website.Controllers
 {
     public class InviteController : UserMvcController
     {
-        public InviteController(IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public InviteController(
+            IUserService userService,
+            IFeatureRoleService featureRoleService,
+            INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
 
         }

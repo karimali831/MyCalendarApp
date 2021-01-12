@@ -16,5 +16,7 @@ export interface ICustomer {
 }
 
 export interface ICustomerSearch extends IBaseModel {
-    customers?: ICustomer[]
+    customers?: ICustomer[],
+    addressLine1: string,
+    postCode: string
 }

@@ -2,7 +2,6 @@ import { rootUrl } from 'src/components/utils/Utils';
 import { IUserCalendar } from 'src/models/IUserCalendar';
 import { IEvent, IEventDTO } from 'src/models/IEvent';
 import { ITag } from 'src/models/ITag';
-import { IActivity } from 'src/models/IActivity';
 
 export class Api {
     public rootUrl: string = `${rootUrl}/api/calendar`;
@@ -123,32 +122,9 @@ export class Api {
         })
         .then(data => data as boolean);
     }
-
-    public activity = async (): Promise<IActivityResponse> => {
-        return fetch(`${this.rootUrl}/activity`, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return response.json();
-
-        })
-        .then(data => data as IActivityResponse);
-    }
 }
 
 export const api = new Api();
-
-export interface IActivityResponse {
-    activity: IActivity[]
-}
 
 export interface IEventRequest {
     calendarIds: number[],

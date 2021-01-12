@@ -4,12 +4,14 @@ using MyCalendar.Model;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Web.Mvc;
 
 namespace MyCalendar.Website.ViewModels
 {
     public class BaseVM
     {
         public User User { get; set; }
+        public NotificationVM Notifications { get; set; }
         public IEnumerable<Group> AccessibleGroups { get; set; }
         public IEnumerable<Feature> AccessibleFeatures { get; set; }
         public IList<User> Buddys { get; set; }

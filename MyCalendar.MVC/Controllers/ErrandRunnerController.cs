@@ -15,7 +15,10 @@ namespace MyCalendar.Website.Controllers
 {
     public class ErrandRunnerController : UserMvcController
     {
-        public ErrandRunnerController(IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public ErrandRunnerController(
+            IUserService userService,
+            IFeatureRoleService featureRoleService,
+            INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
 
         }

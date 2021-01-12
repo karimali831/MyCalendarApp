@@ -16,7 +16,11 @@ namespace MyCalendar.Controllers
     {
         private readonly IDocumentService documentService;
 
-        public HomeController(IUserService userService, IFeatureRoleService featureRoleService, IDocumentService documentService) : base(userService, featureRoleService)
+        public HomeController(
+            IUserService userService,
+            IDocumentService documentService,
+            IFeatureRoleService featureRoleService,
+            INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
             this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
         }

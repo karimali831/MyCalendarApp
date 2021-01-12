@@ -4,7 +4,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from "@fullcalendar/interaction"; 
-import { api, IActivityResponse, IEventRequest, IEventResponse } from 'src/Api/Api';
+import { api, IEventRequest, IEventResponse } from 'src/Api/Api';
 import { IEvent, IEventDateSet, IEventSelect } from 'src/models/IEvent';
 import bootstrapPlugin from '@fullcalendar/bootstrap';
 import './Calendar.css'
@@ -12,16 +12,14 @@ import { IUserCalendar } from 'src/models/IUserCalendar';
 import { SidebarMenu } from '../menu/SidebarMenu';
 import { SaveEvent } from './SaveEvent';
 import { EventLoader } from '../utils/Loader';
-import { UserActivity } from './Activity';
 import BootstrapAlert from 'react-bootstrap/Alert';
 import { Modal } from 'react-bootstrap';
 import { FaCheck } from 'react-icons/fa';
 import { EditEvent } from './EditEvent';
 import * as moment from 'moment';
-import { UserAvatar } from './UserAvatar';
-import { IActivity } from 'src/models/IActivity';
 import { isMobile } from 'react-device-detect';
 import { strIsNullOrEmpty } from '@appology/react-components';
+import { UserAvatar } from './UserAvatar';
 
 export interface IOwnProps {
 
@@ -31,7 +29,6 @@ export interface IOwnState {
     loading: boolean,
     request: IEventRequest,
     pinSidebar: boolean,
-    showCurrentActivity: boolean,
     retainSelected?: boolean,
     retainSelection: boolean,
     alert: boolean,
@@ -42,7 +39,6 @@ export interface IOwnState {
     userCalendars: IUserCalendar[],
     selectedCalendarIds: number[],
     userId: string,
-    currentActivity: IActivity[],
     showAvatars: boolean,
     viewName: string
 }
@@ -79,14 +75,12 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                 ]
             },
             pinSidebar: false,
-            showCurrentActivity: true,
             retainSelected: undefined,
             retainSelection: false,
             alert: false,
             alertMsg: "",
             showViewsMenu: false,
             eventSelect: undefined,
-            currentActivity: [],
             events: [],
             userCalendars: [],
             selectedCalendarIds: [],
@@ -153,11 +147,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                     calendarSelected={this.calendarSelected} 
                     viewSelected={this.changeView}
                 />  
-                <div className={this.state.pinSidebar ? "calendar-margin" : ""}>
-                    <UserActivity 
-                        activity={this.state.currentActivity}
-                        onClose={this.showCurrentActivity} 
-                        display={this.state.showCurrentActivity && this.state.currentActivity.length > 0}  />
+                <div className={this.state.pinSidebar ? "sidebar-margin" : ""}>
                     {
                         this.state.eventSelect?.dateStart  || (this.state.eventSelect?.eventEdit && this.state.eventSelect?.eventEdit.userId === this.state.userId) ? 
                             <SaveEvent 
@@ -243,10 +233,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
     }
 
     private handleClose = () => { return; }
-
-    private showCurrentActivity = () => {
-        this.setState({ showCurrentActivity: !this.state.showCurrentActivity })
-    }
 
     private handleDateSelect = (dates?: DateSelectArg) => {
         this.setState({ 
@@ -378,21 +364,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             viewName: strIsNullOrEmpty(calendar.retainView) ? this.state.viewName : calendar.retainView
         })
 
-        this.loadActivity();
-
     }
-
-    private loadActivity = () => {
-        api.activity()
-            .then(e => this.loadActivitySuccess(e))
-    }
-
-    private loadActivitySuccess = (activity: IActivityResponse) => {
-        this.setState({ 
-            currentActivity: activity.activity
-        })
-    }
-
    
     private saveEventChange = (loading: boolean, event: IEvent) => {
         this.resetSelect()
@@ -413,8 +385,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             else{
                 this.setState({ events: [...this.state.events, event] })
             }
-
-            this.loadActivity();
         }
     } 
 
@@ -434,7 +404,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             this.setState({ 
                 events: this.state.events.filter(e => e.id !== eventId)
             })
-            this.loadActivity();
         }
         else{
             alert("An error occured");

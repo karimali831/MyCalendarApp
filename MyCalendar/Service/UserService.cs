@@ -21,7 +21,6 @@ namespace MyCalendar.Service
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
-        Task<List<(string Avatar, string Text)>> CurrentUserActivity(IEnumerable<Event> events, Guid userId);
         Task<IList<User>> GetBuddys(Guid userId);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
         Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false);
@@ -199,72 +198,7 @@ namespace MyCalendar.Service
             return Enumerable.Empty<Tag>();
         }
 
-        public async Task<List<(string Avatar, string Text)>> CurrentUserActivity(IEnumerable<Event> events, Guid userId)
-        {
-            var currentActivity = new List<(string Avatar, string Text)>();
 
-            if (events != null && events.Any())
-            {
-                foreach (var activity in events)
-                {
-                    var user = await GetByUserIDAsync(activity.UserID);
-
-                    // write activity
-
-                    if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
-                    {
-
-                    }
-
-                    // calendar activity
-                    Tag tag = null;
-                    if (activity.TagID.HasValue)
-                    {
-                        tag = await GetUserTagAysnc(activity.TagID.Value);
-                    }
-
-                    string getName = "";
-
-                    if (activity.InviteeIdsList.Any())
-                    {
-                        var inviteeList = new List<string>();
-                        foreach (var invitee in activity.InviteeIdsList)
-                        {
-                            var inviteeName = (await GetByUserIDAsync(invitee)).Name;
-                            inviteeList.Add(inviteeName);
-                        }
-
-                        getName += $"You, {string.Join(", ", string.Join(", ", inviteeList))}";
-                    }
-                    else
-                    {
-                        getName = (userId == activity.UserID ? "You" : user.Name);
-                    }
-
-                    string label = tag?.Name ?? activity.Description;
-                    string finishing = (activity.EndDate.HasValue ? "finishing " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
-                    string starting = Utils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
-                    string avatar = Utils.AvatarSrc(user.UserID, user.Avatar, user.Name);
-
-                    if (Utils.DateTime() >= Utils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && Utils.DateTime() < Utils.FromUtcToTimeZone(activity.StartDate))
-                    {
-                        string pronoun = getName.StartsWith("You") ? "have" : "has";
-
-                        currentActivity.Add((avatar, string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun))
-                        ); ;
-                    }
-                    else
-                    {
-                        string pronoun = getName.StartsWith("You") ? "are" : "is";
-
-                        currentActivity.Add((avatar, string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun))
-                        );
-                    }
-                }
-            }
-
-            return currentActivity;
-        }
 
         public async Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId)
         {

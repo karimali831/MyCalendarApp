@@ -19,7 +19,10 @@ namespace MyCalendar.Website.Controllers
     {
         private readonly ICronofyService cronofyService;
 
-        public CronofyController(IUserService userService, ICronofyService cronofyService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public CronofyController(
+            IUserService userService,
+            IFeatureRoleService featureRoleService,
+            INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
             

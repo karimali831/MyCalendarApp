@@ -258,6 +258,7 @@
     <Compile Include="ViewModels\CalendarVM.cs" />
     <Compile Include="ViewModels\DocumentMoveVM.cs" />
     <Compile Include="ViewModels\DocumentVM.cs" />
+    <Compile Include="ViewModels\NotificationVM.cs" />
     <Compile Include="ViewModels\SettingsVM.cs" />
     <Compile Include="ViewModels\CronofyVM.cs" />
     <Compile Include="ViewModels\Event.cs" />
@@ -451,6 +452,7 @@
     <Content Include="Content\Loader.css" />
     <Content Include="Content\menu\navik.css" />
     <Content Include="Content\menu\navik.min.css" />
+    <Content Include="Content\SidebarMenu.css" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />

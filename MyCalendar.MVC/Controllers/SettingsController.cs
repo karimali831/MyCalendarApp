@@ -25,8 +25,9 @@ namespace MyCalendar.Website.Controllers
             IUserService userService, 
             IFeatureRoleService featureRoleService, 
             ITypeService typeService,
+            INotificationService notificationService,
             IEventService eventService,
-            ICronofyService cronofyService) : base(userService, featureRoleService)
+            ICronofyService cronofyService) : base(userService, featureRoleService, notificationService)
         {
             this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));

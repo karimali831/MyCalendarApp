@@ -1,8 +1,10 @@
 import * as React from "react";
 import { api, ICustomerRegisterResponse } from 'src/Api/Api';
 import { customerSearchTxt } from 'src/components/utils/Utils';
-import { IAddress, IAddressLabel, IAddressSearch, IAddressSugestion } from 'src/models/IAddressFinder';
+import { IAddress, IAddressLabel, IAddressPrediction, IAddressSearch } from 'src/models/IAddressFinder';
 import { ICustomer, ICustomerSearch } from 'src/models/ICustomer';
+import { SelectionRefinement } from '@appology/react-components';
+import { addressApi } from "src/Api/AddressApi";
 
 export interface IOwnProps {
     onRegistrationChange: (customer: ICustomerSearch) => void
@@ -40,52 +42,83 @@ export default class CustomerRegistration extends React.Component<IOwnProps, IOw
             loadingAddresses: false
         };
         this.handleChange = this.handleChange.bind(this);
-        this.populateAddress = this.populateAddress.bind(this);
     }
   
     public componentDidUpdate = (prevProps: IOwnProps, prevState: IOwnState) => {
         if (prevState.filter !== this.state.filter && this.state.filter !== "") {
-            api.addressSearch(this.state.filter)
-                .then((c) => this.addressSearchSuccess(c.suggestions));
+            addressApi.addressSearch(this.state.filter)
+                .then((c) => this.addressSearchSuccess(c.predictions));
         }
     }
 
     public render(): JSX.Element {
         return (
-            <form onSubmit={this.handleRegistrationSubmit}>
-                <span className="login100-form-title p-b-49">
-                    Customer Registration
-                </span>
-                <div className="wrap-input100 m-b-23">
-                    <span className="label-input100">First Name</span>
-                    <input type="text" name="firstName" defaultValue="" className="form input100" onChange={this.handleChange} required={true}  />
-                    <span className="focus-input100" data-symbol="&#xf106;" />
-                </div>
-                <div className="wrap-input100 m-b-23">
-                    <span className="label-input100">Surname</span>
-                    <input type="text" name="lastName" defaultValue="" className="form input100" onChange={this.handleChange} required={true}  />
-                    <span className="focus-input100" data-symbol="&#xf106;" />
-                </div>
-                <div className="wrap-input100 m-b-23">
-                    <span className="label-input100">Email</span>
-                    <input type="text" name="email" defaultValue="" className="form input100" onChange={this.handleChange}  />
-                    <span className="focus-input100" data-symbol="&#xf15a;" />
-                </div>
+            <div className="customer-registration">
+                <form onSubmit={this.handleRegistrationSubmit}>
+                    <div className="wrap-input100 m-b-23">
+                        <span className="label-input100">First Name</span>
+                        <input autoFocus={true} type="text" name="firstName" defaultValue="" className="form input100" onChange={this.handleChange} required={true}  />
+                        <span className="focus-input100" data-symbol="&#xf106;" />
+                    </div>
+                    <div className="wrap-input100 m-b-23">
+                        <span className="label-input100">Surname</span>
+                        <input type="text" name="lastName" defaultValue="" className="form input100" onChange={this.handleChange} required={true}  />
+                        <span className="focus-input100" data-symbol="&#xf106;" />
+                    </div>
+                    <div className="wrap-input100 m-b-23">
+                        <span className="label-input100">Email</span>
+                        <input type="text" name="email" defaultValue="" className="form input100" onChange={this.handleChange}  />
+                        <span className="focus-input100" data-symbol="&#xf15a;" />
+                    </div>
 
-                {this.renderAddressDetails()}
-                <div className="wrap-input100 m-b-23">
-                    <span className="label-input100">Contact Number</span>
-                    <input type="text" name="contactNo1" defaultValue="" className="form input100" onChange={this.handleChange} required={true}  />
-                    <span className="focus-input100" data-symbol="&#xf2c8;" />
-                </div>
-                <div className="wrap-input100 m-b-23">
-                    <span className="label-input100">Altnernate Contact</span>
-                    <input type="text" name="contactNo2" defaultValue="" className="form input100" onChange={this.handleChange}  />
-                    <span className="focus-input100" data-symbol="&#xf2c8;" />
-                </div>
-                <button type="submit" className="btn btn-primary">Register</button>
-            </form>
+                    <SelectionRefinement<IAddressSearch>
+                            label="Address Search" 
+                            placeholder="Enter address..." 
+                            filter={this.state.filter} 
+                            focus={false}
+                            onChange={(f) => this.handleSearchAddressChange(f)} 
+                            loading={this.state.loadingAddresses}
+                            setFilterToItemName={true}
+                            itemSelected={(i) => this.addressSelected(i)}
+                            filteredResults={this.state.addresses} 
+                        />
+
+                    {this.renderAddressDetails()}
+                    <div className="wrap-input100 m-b-23">
+                        <span className="label-input100">Contact Number</span>
+                        <input type="text" name="contactNo1" defaultValue="" className="form input100" onChange={this.handleChange} required={true}  />
+                        <span className="focus-input100" data-symbol="&#xf2c8;" />
+                    </div>
+                    <div className="wrap-input100 m-b-23">
+                        <span className="label-input100">Altnernate Contact</span>
+                        <input type="text" name="contactNo2" defaultValue="" className="form input100" onChange={this.handleChange}  />
+                        <span className="focus-input100" data-symbol="&#xf2c8;" />
+                    </div>
+                    <button type="submit" className="btn btn-primary">Register</button>
+                </form>
+            </div>
         );
+    }
+
+    private addressSelected = (address: IAddressSearch) => {
+        addressApi.getAddress(address.name, address.id)
+            .then(a => this.addressSelectedSuccess(a))
+    }
+
+    private addressSelectedSuccess = (address: IAddress[]) => {
+
+        if (address.length === 1) {
+            this.setState(prevState => ({
+                customer: { ...prevState.customer,    
+                    address1: address[0].addressline1,
+                    town: address[0].posttown,
+                    county: address[0].county,
+                    postcode: address[0].postcode
+                }
+            }))
+        }
+
+        this.renderAddressDetails();
     }
 
     private handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
@@ -96,20 +129,13 @@ export default class CustomerRegistration extends React.Component<IOwnProps, IOw
         })
     }
 
-    private populateAddress = (address: IAddress) => {
-        this.setState(prevState => ({
-            customer: { ...prevState.customer,    
-                address1: address.line_1,
-                address2: address.line_2,
-                address3: address.line_3,
-                town: address.town_or_city,
-                county: address.county,
-                postcode: address.postcode
-            }
-        }))
-
-        this.renderAddressDetails();
+    private handleSearchAddressChange(filter: string) {
+        this.setState({ 
+            filter: filter, 
+            loadingAddresses: true 
+        })
     }
+
 
     private renderAddressDetails(): JSX.Element[] | JSX.Element {
         if (this.state.customer.address1 || !this.state.apiAddresses) {
@@ -185,13 +211,11 @@ export default class CustomerRegistration extends React.Component<IOwnProps, IOw
 
     private customerRegistrationSuccess = (c: ICustomerRegisterResponse) => {
         if (c.customer != null) {
-
-            // const arr: ICustomer[] = [];
-            // arr.push(customer.customer);
-
             const customerSearch: ICustomerSearch = {
                 id: c.customer.custId,
-                name: customerSearchTxt(c.customer)
+                name: customerSearchTxt(c.customer),
+                addressLine1: c.customer.address1,
+                postCode: c.customer.postcode
             }
 
             this.props.onRegistrationChange(customerSearch);
@@ -202,14 +226,13 @@ export default class CustomerRegistration extends React.Component<IOwnProps, IOw
     }
 
 
-    private addressSearchSuccess = (addresses: IAddressSugestion[]) => {
-
+    private addressSearchSuccess = (addresses:  IAddressPrediction[]) => {
         this.setState({ ...this.state,
             ...{ 
                 loadingAddresses: false,
                 addresses: addresses.map(address =>({ 
-                    id: address.id, 
-                    name: address.address
+                    id: address.refs, 
+                    name: address.prediction
                 } as IAddressSearch))
             }
         }) 

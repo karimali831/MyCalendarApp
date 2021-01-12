@@ -28,6 +28,7 @@ namespace MyCalendar.Service
         Task<string> GetLastStoredAlarm(Guid tagId);
         Task SaveCronofyEvent(Event e, IEnumerable<ExtCalendarRights> Rights);
         void DeleteCronofyEvent(string syncFromCalendarId, Guid eventId);
+        Task<IList<Notification>> EventActivity(IEnumerable<Event> events, Guid userId);
     }
 
     public class EventService : IEventService
@@ -74,6 +75,66 @@ namespace MyCalendar.Service
         public async Task<string> GetLastStoredAlarm(Guid tagId)
         {
             return await eventRepository.GetLastStoredAlarm(tagId);
+        }
+
+        public async Task<IList<Notification>> EventActivity(IEnumerable<Event> events, Guid userId)
+        {
+            var currentActivity = new List<Notification>();
+
+            if (events != null && events.Any())
+            {
+                foreach (var activity in events)
+                {
+                    var user = await userService.GetByUserIDAsync(activity.UserID);
+                    string getName = "";
+
+                    if (activity.InviteeIdsList.Any())
+                    {
+                        var inviteeList = new List<string>();
+                        foreach (var invitee in activity.InviteeIdsList)
+                        {
+                            var inviteeName = (await userService.GetByUserIDAsync(invitee)).Name;
+                            inviteeList.Add(inviteeName);
+                        }
+
+                        getName += $"You, {string.Join(", ", string.Join(", ", inviteeList))}";
+                    }
+                    else
+                    {
+                        getName = (userId == activity.UserID ? "You" : user.Name);
+                    }
+
+                    string label = activity.Subject ?? activity.Description;
+                    string finishing = (activity.EndDate.HasValue ? "finishing " + Utils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
+                    string starting = Utils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
+                    string avatar = Utils.AvatarSrc(user.UserID, user.Avatar, user.Name);
+
+                    if (Utils.DateTime() >= Utils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && Utils.DateTime() < Utils.FromUtcToTimeZone(activity.StartDate))
+                    {
+                        string pronoun = getName.StartsWith("You") ? "have" : "has";
+
+                        currentActivity.Add(new Notification
+                        {
+                            Avatar = avatar,
+                            Text = string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun),
+                            Feature = Features.Calendar
+                        });
+                    }
+                    else
+                    {
+                        string pronoun = getName.StartsWith("You") ? "are" : "is";
+
+                        currentActivity.Add(new Notification
+                        {
+                            Avatar = avatar,
+                            Text = string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun),
+                            Feature = Features.Calendar
+                        });
+                    }
+                }
+            }
+
+            return currentActivity;
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync(User user, RequestEventDTO request)

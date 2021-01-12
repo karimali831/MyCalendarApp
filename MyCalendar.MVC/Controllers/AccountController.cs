@@ -15,9 +15,11 @@ namespace MyCalendar.Website.Controllers
 {
     public class AccountController : UserMvcController
     {
-        public AccountController(IUserService userService, IFeatureRoleService featureRoleService) : base(userService, featureRoleService)
+        public AccountController(
+            IUserService userService, 
+            IFeatureRoleService featureRoleService,
+            INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
-
         }
 
         [Route("Account/Index/{inviteeId?}")]

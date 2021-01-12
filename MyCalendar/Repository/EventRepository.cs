@@ -105,7 +105,17 @@ namespace MyCalendar.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Event>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
+                string sqlTxt = $@"
+                    SELECT e.CalendarId, e.UserID, e.TagID, e.Description, e.StartDate, e.EndDate, t.Name AS Subject, ty.InviteeIds
+                    FROM Events e
+                    LEFT JOIN Tags t
+                    ON e.TagID = t.Id
+                    LEFT JOIN Types ty
+                    ON t.TypeID = ty.Id
+                    WHERE CAST(StartDate as Date) = CAST(GetDate() as Date)
+                    ORDER BY StartDate DESC";
+
+                return (await sql.QueryAsync<Event>(sqlTxt)).ToArray();
             }
         }
 

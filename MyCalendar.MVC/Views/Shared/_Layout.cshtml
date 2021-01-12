@@ -14,10 +14,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@AppName</title>
-    <link href="~/Content/Site.css?v=@version" rel="stylesheet" type="text/css" />
     <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/Loader.css" rel="stylesheet" type="text/css" />
-    <link href="~/Content/menu/navik.min.css" rel="stylesheet" type="text/css">
+    <link href="~/Content/menu/navik.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/SidebarMenu.css" rel="stylesheet" type="text/css" />
     <!-- forms -->
     <link rel="stylesheet" type="text/css" href="~/Content/form/css/util.css">
     <link rel="stylesheet" type="text/css" href="~/Content/form/css/main.css">
@@ -35,6 +36,24 @@
                         <img style="width:230px; height: 30px" src="~/Content/img/logo.png" alt="logo" />
                     </a>
                 </div>
+                @*data-trigger="focus"*@
+                @if (Model != null && Model.User != null && Model.Notifications.Count > 0)
+                {
+                    <div class="notification-alerts">
+                        <a href="#">
+                            <span class="fa-stack fa-lg"
+                                  data-count="@Model.Notifications.Count"
+                                  tabindex="0"
+                                  data-placement="bottom"
+                                  data-toggle="popover"
+                                  title="Notifications"
+                                  data-content="@Model.Notifications.Content.Content">
+                                <i class="fa fa-circle fa-stack-2x"></i>
+                                <i class="fas fa-bell fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </a>
+                    </div>
+                }
                 <div class="burger-menu">
                     <div class="line-menu line-half first-line"></div>
                     <div class="line-menu"></div>
@@ -128,7 +147,7 @@
         </div>
     </div>
     <div class="container body-content">
-        <br />
+        <br /><br /><br /><br /><br />
         @RenderBody()
         <hr />
         <footer>
@@ -137,8 +156,17 @@
     </div>
 
     <script src="~/Scripts/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
     <script src="~/Scripts/bootstrap.min.js"></script>
-    <script src="~/Scripts/navik.menu.js"></script> 
+    <script type="text/javascript">
+        $("[data-toggle='popover']").popover({
+            //trigger: 'focus',
+            container: 'body',
+            html: true
+        });
+    </script>
+
+    <script src="~/Scripts/navik.menu.js"></script>
     @RenderSection("Scripts", false)
 </body>
 </html>
