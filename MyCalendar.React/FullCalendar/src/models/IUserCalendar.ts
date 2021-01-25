@@ -6,4 +6,4 @@ export interface IUserCalendar {
     selected: boolean
 }
 
-export interface ISelect {label: string, value: number}
+export interface ISelect {label: string, value: string}

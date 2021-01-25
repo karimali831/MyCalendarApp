@@ -155,8 +155,8 @@ namespace MyCalendar.Website.Controllers.API
             return Request.CreateResponse(HttpStatusCode.OK, status);
         }
 
-        [Route("retainview")]
-        [HttpPost]
+        [Route("retainview/{view}")]
+        [HttpGet]
         public async Task<HttpResponseMessage> RetainCalendarView(string view)
         {
             var user = await GetUser();

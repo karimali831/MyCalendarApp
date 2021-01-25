@@ -18,12 +18,11 @@ import { FaCheck } from 'react-icons/fa';
 import { EditEvent } from './EditEvent';
 import * as moment from 'moment';
 import { isMobile } from 'react-device-detect';
-import { strIsNullOrEmpty } from '@appology/react-components';
+import { strIsNullOrEmpty, Variant } from '@appology/react-components';
 import { UserAvatar } from './UserAvatar';
 
-export interface IOwnProps {
 
-}
+export interface IOwnProps {}
 
 export interface IOwnState {
     loading: boolean,
@@ -33,6 +32,7 @@ export interface IOwnState {
     retainSelection: boolean,
     alert: boolean,
     alertMsg: string,
+    alertVariant?: Variant,
     showViewsMenu: boolean,
     eventSelect?: IEventSelect,
     events: IEvent[],
@@ -40,7 +40,8 @@ export interface IOwnState {
     selectedCalendarIds: number[],
     userId: string,
     showAvatars: boolean,
-    viewName: string
+    initialView: string,
+    userSelectedView?: string
 }
 
 export default class Calendar extends React.Component<IOwnProps, IOwnState> {
@@ -79,6 +80,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             retainSelection: false,
             alert: false,
             alertMsg: "",
+            alertVariant: undefined,
             showViewsMenu: false,
             eventSelect: undefined,
             events: [],
@@ -86,7 +88,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             selectedCalendarIds: [],
             userId: "",
             showAvatars: false,
-            viewName: "dayGridMonth"
+            initialView: "",
+            userSelectedView: undefined
         };
     }
 
@@ -137,13 +140,15 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                 </Modal>
                 <SidebarMenu 
                     initialState={this.initialState}
-                    initialView={this.state.viewName}
+                    initialView={this.state.initialView}
+                    userSelectedView={this.state.userSelectedView}
                     pinSidebar={this.state.pinSidebar} 
                     loading={this.state.loading} 
                     userId={this.state.userId} 
                     userCalendars={this.state.userCalendars}  
                     retainSelection={this.state.retainSelection}
                     retainSelected={this.retainSelected}
+                    retainView={this.retainView}
                     calendarSelected={this.calendarSelected} 
                     viewSelected={this.changeView}
                 />  
@@ -170,43 +175,47 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                    
                     }      
                     <EventLoader display={this.state.loading} />
-                    <FullCalendar
-                        plugins={[ dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
-                        initialView={this.state.viewName}
-                        customButtons={{
-                            toggle: {
-                                icon: "fa fa fa-bars",
-                                click: this.toggleMenu
-                            },
-                            avatars: {
-                                icon: `fa fa ${this.state.showAvatars ? "fa-user-clock" : "fa-user-check"}`,
-                                click: this.showAvatars
-                            },
-                        }}
-                        headerToolbar={{
-                            left: "toggle,prev,next",
-                            center: "title",
-                            right: "avatars"
-                        }}
-                        views={{
-                            dayGridWeek: {
-                                titleFormat:  { year: 'numeric', month: 'short' },
-                                dayMaxEventRows: 999
-                            },
-                            dayGrid: { dayMaxEventRows: 999}
-                        }}
-                        eventContent={(c: EventContentArg) => this.renderEventContent(c)}
-                        select={(date: DateSelectArg) => this.handleDateSelect(date)}
-                        selectable={true}
-                        loading={() => this.state.loading}
-                        events={this.state.events}
-                        longPressDelay={200}
-                        height={650}
-                        eventDisplay="block"
-                        datesSet={(dateInfo) => this.datesSet(dateInfo)}
-                        dayMaxEventRows={4}
-                        eventClick={(e: EventClickArg) => this.handleEventSelect(e.event)}
-                        ref={this.calendarRef} />
+                    {
+                        this.state.initialView !== "" ?
+                            <FullCalendar
+                                plugins={[ dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
+                                initialView={this.state.initialView}
+                                customButtons={{
+                                    toggle: {
+                                        icon: "fa fa fa-bars",
+                                        click: this.toggleMenu
+                                    },
+                                    avatars: {
+                                        icon: `fa fa ${this.state.showAvatars ? "fa-user-clock" : "fa-user-check"}`,
+                                        click: this.showAvatars
+                                    },
+                                }}
+                                headerToolbar={{
+                                    left: "toggle,prev,next",
+                                    center: "title",
+                                    right: "avatars"
+                                }}
+                                views={{
+                                    dayGridWeek: {
+                                        titleFormat:  { year: 'numeric', month: 'short' },
+                                        dayMaxEventRows: 999
+                                    },
+                                    dayGrid: { dayMaxEventRows: 999}
+                                }}
+                                eventContent={(c: EventContentArg) => this.renderEventContent(c)}
+                                select={(date: DateSelectArg) => this.handleDateSelect(date)}
+                                selectable={true}
+                                loading={() => this.state.loading}
+                                events={this.state.events}
+                                longPressDelay={200}
+                                height={650}
+                                eventDisplay="block"
+                                datesSet={(dateInfo) => this.datesSet(dateInfo)}
+                                dayMaxEventRows={4}
+                                eventClick={(e: EventClickArg) => this.handleEventSelect(e.event)}
+                                ref={this.calendarRef} />
+                        : null
+                    }
                 </div>
             </div>
         )
@@ -223,7 +232,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
 
         if(this.state.showAvatars && event) {
             if (isMobile) {
-                return <UserAvatar avatar={event.avatar} content={this.state.viewName === "dayGrid" ? maxContent : minContent} />
+                return <UserAvatar avatar={event.avatar} content={this.state.initialView === "dayGrid" ? maxContent : minContent} />
             } else {
                 return <UserAvatar avatar={event.avatar} content={maxContent} />
             }
@@ -272,7 +281,14 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
     private changeView = (viewName: string):void=> {
         if (this.calendarRef.current !== null)
         {
-            this.setState({ viewName: viewName })
+            this.setState({ initialView: viewName })
+
+            if (isMobile) {
+                if (((viewName === "listWeek" || viewName === "dayGrid") && !this.state.showAvatars) || (
+                    this.state.showAvatars && viewName !== "listWeek" && viewName !== "dayGrid")) {
+                    this.showAvatars();
+                }
+            }
 
             this.calendarRef.current
                 .getApi()
@@ -311,17 +327,27 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
         })
     }
 
+    private retainView = (view: string) => {
+        this.setState({ loading: true })
+
+        api.retainView(view)
+            .then(r => this.showAlert("Default view successfully retained"))
+
+    }
+
     private saveRetainSelection = () => {
         api.retainSelection(!this.state.retainSelected ? null : this.state.selectedCalendarIds)
             .then(s => this.showAlert("The calendars selected are now retained"));
     }
 
-    private showAlert = (msg: string) => {
-        this.setState({
+    private showAlert = (msg: string, variant?: Variant) => {
+        this.setState({ 
+            loading: false,
             alert: true,
             alertMsg: msg,
-            loading: false
+            alertVariant: variant ?? Variant.Success
         })
+        
     }
 
     private initialState = () => {
@@ -353,6 +379,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
     }
 
     private eventsSuccess = (calendar: IEventResponse) => {
+        const view = strIsNullOrEmpty(calendar.retainView) ? "dayGridMonth" : calendar.retainView;
+   
         this.setState({ 
             loading: false,
             events: calendar.events,
@@ -360,8 +388,9 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             selectedCalendarIds: calendar.userCalendars.filter(o => o.selected).map(c=> c.id),
             userId: calendar.userId,
             retainSelection: calendar.retainSelection,
-            showAvatars: calendar.userCalendars.some(c => c.userCreatedId !== calendar.userId && c.selected),
-            viewName: strIsNullOrEmpty(calendar.retainView) ? this.state.viewName : calendar.retainView
+            showAvatars: !isMobile ? true : (view === "listWeek" || view === "dayGrid") ? true : false,
+            userSelectedView: calendar.retainView,
+            initialView: view
         })
 
     }

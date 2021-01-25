@@ -60,7 +60,24 @@ export class Api {
                 throw new Error(response.statusText);
             }
             return response.json();
+        })
+        .then(data => data as boolean);
+    }
 
+    public retainView = async (view: string): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/retainview/${view}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
         })
         .then(data => data as boolean);
     }

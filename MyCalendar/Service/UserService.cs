@@ -198,8 +198,6 @@ namespace MyCalendar.Service
             return Enumerable.Empty<Tag>();
         }
 
-
-
         public async Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId)
         {
             return await userRepository.RetainCalendarSelection(calendarIds, userId);

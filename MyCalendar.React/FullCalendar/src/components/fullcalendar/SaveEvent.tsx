@@ -63,16 +63,16 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
             <Modal show={this.state.show} onHide={this.handleClose}>
                 <div className="modal-bg">
                     <Modal.Header closeButton={true}>Save Event</Modal.Header>
-                
                     <Modal.Body style={{marginLeft: 10}}>
                         <div className="m-b-23">
                             <span className="label-input100">Calendar</span>
                             <Select 
-                                options={this.props.userCalendars.map(o => ({value: o.id,label: o.name}))}
+                                options={this.props.userCalendars.map(o => ({value: o.id.toString(), label: o.name}))}
                                 placeholder="Select Calendar"
                                 isMulti={false}
-                                defaultValue={this.props.userCalendars.filter(uc => uc.id === this.state.event.calendarId).map(o => ({value: o.id,label: o.name}))[0]}
-                                onChange={(value: ISelect) => this.handleCalendarsChange(value)} />
+                                defaultValue={this.props.userCalendars.map(uc => ({ value: uc.id.toString(), label: uc.name })).find(uc => uc.value.toString() === this.state.event.calendarId.toString())}
+                                onChange={(value: ISelect) => this.handleCalendarsChange(value.value)} 
+                            />
                         </div>
                         <div className="m-b-23">
                             <ToggleSwitch inline={true} id="reminder" name="Reminder" checked={this.state.event.reminder} onChange={(value: boolean) => this.handleReminderChange(value)} />
@@ -94,6 +94,7 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
                                         label="Tag"
                                         id="tagId"
                                         icon="&#xf188;"
+                                        selectorName="Select Tag"
                                         selected={this.props.eventSelect?.event?.tagId}
                                         selectorOptions={this.state.userTags}
                                         onSelectChange={this.handleTagChange} 
@@ -197,10 +198,10 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
         })
     }
 
-    private handleCalendarsChange = (selectedCalendar: ISelect) => {
+    private handleCalendarsChange = (selectedCalendar: string) => {
         this.setState({
             event: { ...this.state.event,    
-                calendarId: selectedCalendar.value
+                calendarId: Number(selectedCalendar)
             }
         })
         

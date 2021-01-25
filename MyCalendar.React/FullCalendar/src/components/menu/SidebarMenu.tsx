@@ -3,15 +3,16 @@ import SideNav, { NavItem, NavIcon, NavText } from '@trendmicro/react-sidenav';
 import { FaCalendar, FaCalendarAlt, FaCalendarCheck, FaCalendarDay, FaCalendarWeek, FaSyncAlt } from 'react-icons/fa'
 import ClickOutside from 'react-click-outside'
 import '@trendmicro/react-sidenav/dist/react-sidenav.css';
-import { IUserCalendar } from 'src/models/IUserCalendar';
+import { ISelect, IUserCalendar } from 'src/models/IUserCalendar';
 import { Load } from '@appology/react-components';
 
-interface IOwnState {
+export interface IOwnState {
     expanded: boolean,
-    selected: string
+    selected: string,
+    defaultView?: string
 }
 
-interface IOwnProps {
+export interface IOwnProps {
     pinSidebar: boolean,
     expanded?: boolean,
     userCalendars: IUserCalendar[],
@@ -19,9 +20,11 @@ interface IOwnProps {
     loading: boolean,
     retainSelection: boolean,
     initialView: string,
+    userSelectedView?: string,
     initialState: () => void,
     calendarSelected: (option: IUserCalendar) => void,
-    retainSelected: (e: React.ChangeEvent<HTMLInputElement>) => void
+    retainSelected: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    retainView: (view: string) => void
     viewSelected: (view: string) => void
 }
 
@@ -33,12 +36,21 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
 
         this.state = {
             expanded: this.props.expanded !== undefined ? this.props.expanded : false,
-            selected: this.props.initialView
+            selected: this.props.initialView,
+            defaultView: undefined
         };
     }
 
 
     public render() {
+
+        const views : ISelect[] = [
+            {value: "dayGridMonth", label: "Month"},
+            {value: "dayGridWeek", label: "Week"},
+            {value: "dayGrid", label: "Day"},
+            {value: "listWeek", label: "Agenda"}
+        ]
+
         return (
             this.props.pinSidebar ?
                 <ClickOutside
@@ -77,7 +89,7 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                                     <FaCalendarDay />
                                 </NavIcon>
                                 <NavText>
-                                    Day
+                                    Agenda
                                 </NavText>
                             </NavItem>
                             <NavItem eventKey="listWeek" onSelect={() => this.calendarViewChange("listWeek")}>
@@ -104,8 +116,22 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                                 )}
                                 <NavItem>
                                     <NavText>
+                                        {
+                                            this.props.userCalendars.length > 1 ?
+                                            <>
+                                                <div className="sidenav-divider" />
+                                                <label><input disabled={this.props.loading} type="checkbox" onChange={(e) => this.props.retainSelected(e)} checked={this.props.retainSelection} /> Retain Selection</label>
+                                            </>
+                                            : null
+                                        }
                                         <div className="sidenav-divider" />
-                                        <label><input disabled={this.props.loading} type="checkbox" onChange={(e) => this.props.retainSelected(e)} checked={this.props.retainSelection} /> Retain Selection</label>
+                                        <label>
+                                            Default View <select disabled={this.props.loading} onChange={this.defaultViewChange} value={this.state.defaultView ?? this.props.userSelectedView}>
+                                                {views.map(v => ( 
+                                                    <option key={v.value} value={v.value}>{v.label}</option>
+                                                ))}
+                                            </select>       
+                                        </label>    
                                     </NavText>
                                 </NavItem>
                             </NavItem>
@@ -114,6 +140,11 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                 </ClickOutside>
             : null
         );
+    }
+
+    private defaultViewChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        this.setState({ defaultView: e.target.value })
+        this.props.retainView(e.target.value)
     }
 
     private onSetSidebarOpen = (value: boolean) => {
