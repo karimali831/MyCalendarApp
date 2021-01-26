@@ -2,8 +2,9 @@ import { takeLatest, call, select } from "redux-saga/effects";
 import { LOCATION_CHANGE } from "connected-react-router";
 import * as Route from 'route-parser';
 import { getLocation, getHash } from 'src/state/contexts/router/Selectors';
-import { LoadCustomers } from './loadCustomersApiSaga';
+import { loadStakeholders } from './loadStakeholdersApiSaga';
 import { rootUrl } from "src/components/utils/Utils";
+import { getStakeholderId, getStakeholderSearchFilter } from "src/state/contexts/landing/Selectors";
 
 interface IRoute {
     route: string,
@@ -19,7 +20,7 @@ const routes: IRoute[] = [
     {
         route: '/home',
         action: function* (params: IIdParam) {
-            yield call(LoadCustomers)
+            yield call(loadStakeholders, yield select(getStakeholderSearchFilter), yield select(getStakeholderId))
         }
     }
 ];

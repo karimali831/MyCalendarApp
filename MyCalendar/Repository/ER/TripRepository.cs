@@ -14,6 +14,7 @@ namespace MyCalendar.ER.Repository
     public interface ITripRepository
     {
         Task<Trip> GetAsync(Guid TripId);
+        Task<(Trip Trip, bool Status)> GetByOrderIdAsync(Guid orderId);
         Task<bool> TripExists(Guid tripId);
         Task<(Trip Trip, bool Status)> InsertOrUpdateAsync(Trip trip);
     }
@@ -37,6 +38,24 @@ namespace MyCalendar.ER.Repository
             }
         }
 
+        public async Task<(Trip Trip, bool Status)> GetByOrderIdAsync(Guid orderId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    var trip = (await sql.QueryAsync<Trip>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE OrderId = @orderId", new { orderId })).FirstOrDefault();
+                    return (trip, true);
+
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return (null, false);
+                }
+            }
+        }
+
         public async Task<bool> TripExists(Guid tripId)
         {
             using (var sql = dbConnectionFactory())
@@ -51,6 +70,8 @@ namespace MyCalendar.ER.Repository
             {
                 try
                 {
+                    trip.Modified = Utils.FromTimeZoneToUtc(Utils.DateTime());
+
                     if (!await TripExists(trip.TripId))
                     {
                         trip.TripId = Guid.NewGuid();
@@ -58,7 +79,6 @@ namespace MyCalendar.ER.Repository
                     }
                     else
                     {
-                        trip.Modified = Utils.FromTimeZoneToUtc(Utils.DateTime());
                         await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE TripId = @TripId", trip);
                     }
 

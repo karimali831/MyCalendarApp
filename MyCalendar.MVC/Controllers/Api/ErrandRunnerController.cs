@@ -1,8 +1,11 @@
 ﻿using MyCalendar.Enums;
 using MyCalendar.ER.Model;
 using MyCalendar.ER.Service;
+using MyCalendar.Helpers;
+using MyCalendar.Model;
 using MyCalendar.Service;
 using MyCalendar.Website.Controllers.Api;
+using Stripe;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -19,13 +22,21 @@ namespace MyCalendar.Website.Controllers.API
     [CamelCaseControllerConfig]
     public class ErrandRunnerController : ApiController
     {
-        private readonly ICustomerService customerService;
+        private readonly IStakeholderService stakeholderService;
         private readonly ICategoryService categoryService;
+        private readonly IOrderService orderService;
+        private readonly ITripService tripService;
 
-        public ErrandRunnerController(ICustomerService customerService, ICategoryService categoryService)
+        public ErrandRunnerController(
+            IStakeholderService stakeholderService, 
+            ICategoryService categoryService,
+            IOrderService orderService,
+            ITripService tripService)
         {
-            this.customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
+            this.stakeholderService = stakeholderService ?? throw new ArgumentNullException(nameof(stakeholderService));
             this.categoryService = categoryService ?? throw new ArgumentNullException(nameof(categoryService));
+            this.orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
+            this.tripService = tripService ?? throw new ArgumentNullException(nameof(tripService));
         }
 
         [Route("services")]
@@ -36,21 +47,79 @@ namespace MyCalendar.Website.Controllers.API
             return Request.CreateResponse(HttpStatusCode.OK, new { services });
         }
 
-        [Route("customers/{filter}")]
+        [Route("order/{orderId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetCustomers(string filter)
+        public async Task<HttpResponseMessage> GetOrder(Guid orderId)
         {
-            var customers = await customerService.GetAllAsync(filter);
-            return Request.CreateResponse(HttpStatusCode.OK, new { Customers = customers });
+            var order = await orderService.GetAsync(orderId);
+            var trip = await tripService.GetByOrderIdAsync(orderId);
+
+            if (orderId != Guid.Empty && order.Status && trip.Status)
+            {
+                var driver = await stakeholderService.GetAsync(trip.Trip.AssignedRunnerId);
+
+                return Request.CreateResponse(HttpStatusCode.OK, new { 
+                    order = order.Order, 
+                    trip = trip.Trip,
+                    driver = driver.Stakeholder, 
+                    status = true 
+                });
+            }
+            else
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, new { status = false });
+            }
         }
 
-        [Route("customers/register")]
+        [Route("orders/{userId}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetOrders(Guid userId)
+        {
+            var orders = await orderService.GetAllAsync(userId);
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                orders = orders.Select(x => new
+                {
+                    id = x.OrderId,
+                    name = $"{x.Modified.ToShortDateString()} - {Utils.ToCurrency(x.Invoice)}"
+                })
+            });
+        }
+
+        [Route("saveorder")]
         [HttpPost]
-        public async Task<HttpResponseMessage> RegisterCustomer(Customer customer)
+        public async Task<HttpResponseMessage> SaveOrder(SaveOrderRequest request)
         {
-            var register = await customerService.RegisterAsync(customer);
-            return Request.CreateResponse(HttpStatusCode.OK, new { Customer = register.customer, Message = register.Message });
+            var order = await orderService.InsertOrUpdateAsync(request.Order, request.Trip);
+
+            return Request.CreateResponse(HttpStatusCode.OK, new { 
+                order.Order, 
+                order.Trip, 
+                order.Status 
+            });
         }
 
+        [Route("stakeholders/{stakeholderId}/{filter?}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetStakeholders(Stakeholders stakeholderId, string filter = null)
+        {
+            var stakeholders = await stakeholderService.GetAllAsync(stakeholderId, filter);
+            return Request.CreateResponse(HttpStatusCode.OK, new { Stakeholders = stakeholders });
+        }
+
+        [Route("stakeholders/register")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> RegisterStakeholder(Stakeholder stakeholder)
+        {
+            var register = await stakeholderService.RegisterAsync(stakeholder);
+            return Request.CreateResponse(HttpStatusCode.OK, new { Stakeholder = register.stakeholder, Message = register.Message });
+        }
+    }
+
+    public class SaveOrderRequest
+    {
+        public ER.Model.Order Order { get; set; }
+        public Trip Trip { get; set; }
     }
 }

@@ -11,16 +11,15 @@ namespace MyCalendar.ER.Model
         public Guid TripId { get; set; }
         public Guid OrderId { get; set; }
         public Guid AssignedRunnerId { get; set; }
-        public bool CustPickupLocation { get; set; }
-        public bool CustDropoffLocation { get; set; }
         public string PickupId { get; set; }
-        public string PickupLatLng { get; set; }
-        public string PickupAddress { get; set; }
-        public decimal TripMiles { get; set; }
-        public int TripMins { get; set; }
-        public string DropoffId { get; set; }
-        public string DropoffLatLng { get; set; }
-        public string DropoffAddress { get; set; }
+        public string PickupPlace { get; set; }
+        public decimal PickupLat { get; set; }
+        public decimal PickupLng { get; set; }
+        public string Distance { get; set; }
+        public string Duration { get; set; }
+        public string DropOffAddress { get; set; }
+        public string DropOffPostcode { get; set; }
+       
         public DateTime? Modified { get; set; }
     }
 

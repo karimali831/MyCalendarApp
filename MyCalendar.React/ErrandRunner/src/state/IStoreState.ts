@@ -1,4 +1,5 @@
-import ICustomerState, { CustomerState } from './contexts/landing/ICustomerState';
+import ILandingState, { LandingState } from './contexts/landing/ILandingState';
+import IOrderState, { OrderState } from './contexts/order/IOrderState';
 import { IRouteState, RouteState } from './contexts/router/IRouteState';
 
 
@@ -8,13 +9,15 @@ import { IRouteState, RouteState } from './contexts/router/IRouteState';
 
 export default interface IStoreState {
     router: IRouteState,
-    customer: ICustomerState,
+    landing: ILandingState,
+    order: IOrderState,
 }
 
 export class StoreState {
     public static readonly initialState: IStoreState = {
         router: RouteState.initialState,
-        customer: CustomerState.intialState
+        landing: LandingState.intialState,
+        order: OrderState.intialState
     };
 }
 

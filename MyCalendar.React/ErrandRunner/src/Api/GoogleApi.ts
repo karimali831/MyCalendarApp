@@ -4,7 +4,7 @@ export class GoogleApi {
     public googleMapsApiKey = "AIzaSyCLwS2RBnIr0LFPvyRrMzrJCQGNbYLEcUY";
     public proxyurl = "https://boiling-peak-84695.herokuapp.com/";
 
-    public googleAutoComplete = async (filter: string, lat: string, lng: string, radius: string): Promise<IGoogleAutoCompleteResponse> => {
+    public googleAutoComplete = async (filter: string, lat: number, lng: number, radius: string): Promise<IGoogleAutoCompleteResponse> => {
         const API_URL = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${filter}&types=establishment&location=${lat},${lng}&radius=${radius}&strictbounds&key=${this.googlePlacesApiKey}`;
 
         return fetch(this.proxyurl + API_URL, {
@@ -36,8 +36,8 @@ export class GoogleApi {
         .then(data => data as IGoogleAddressGeoResponse);
     }
 
-    public distanceMatrix = async (pickupLocationId: string, customerLocation: IGoogleGeoLocation): Promise<IGoogleDistanceMatrixResponse> => {
-        const API_URL = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=place_id:${pickupLocationId}&destinations=${customerLocation.lat},${customerLocation.lng}&key=${this.googlePlacesApiKey}`;
+    public distanceMatrix = async (pickupPlaceId: string, stakeholderLocation: IGoogleGeoLocation): Promise<IGoogleDistanceMatrixResponse> => {
+        const API_URL = `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=place_id:${pickupPlaceId}&destinations=${stakeholderLocation.lat},${stakeholderLocation.lng}&key=${this.googlePlacesApiKey}`;
 
         return fetch(this.proxyurl + API_URL, {
             method: "GET"
@@ -51,9 +51,37 @@ export class GoogleApi {
         })
         .then(data => data as IGoogleDistanceMatrixResponse);
     }
+
+    public placeDetails = async (placeId: string): Promise<IGooglePlaceDetailsResponse> => {
+        const API_URL = `https://maps.googleapis.com/maps/api/place/details/json?placeid=${placeId}&key=${this.googlePlacesApiKey}`;
+
+        return fetch(this.proxyurl + API_URL, {
+            method: "GET"
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as IGooglePlaceDetailsResponse);
+    }
 }
 
 export const googleApi = new GoogleApi();
+
+export interface IGooglePlaceDetailsResponse {
+    result: IPlaceDetails
+}
+
+export interface IPlaceDetails {
+    geometry: IPlaceDetailsGeometry
+}
+
+export interface IPlaceDetailsGeometry {
+    location: IGoogleGeoLocation
+}
 
 export interface IGoogleAutoCompleteResponse {
     predictions: [],
@@ -74,8 +102,8 @@ export interface IGoogleGeometry {
 }
 
 export interface IGoogleGeoLocation {
-    lat: string,
-    lng: string
+    lat: number,
+    lng: number
 }
 
 export interface IGoogleDistanceMatrixResponse {

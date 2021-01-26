@@ -8,8 +8,9 @@ namespace MyCalendar.ER.Service
 {
     public interface IOrderService
     {
-        Task<Order> GetAsync(Guid custId);
-        Task<(Order Order, bool Status)> InsertOrUpdateAsync(Order order);
+        Task<(Order Order, bool Status)> GetAsync(Guid orderId);
+        Task<IEnumerable<Order>> GetAllAsync(Guid customerId);
+        Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip);
     }
 
     public class OrderService : IOrderService
@@ -21,14 +22,19 @@ namespace MyCalendar.ER.Service
             this.orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
         }
 
-        public async Task<Order> GetAsync(Guid orderId)
+        public async Task<IEnumerable<Order>> GetAllAsync(Guid customerId)
+        {
+            return await orderRepository.GetAllAsync(customerId);
+        }
+
+        public async Task<(Order Order, bool Status)> GetAsync(Guid orderId)
         {
             return await orderRepository.GetAsync(orderId);
         }
 
-        public async Task<(Order Order, bool Status)> InsertOrUpdateAsync(Order order)
+        public async Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip)
         {
-            return await orderRepository.InsertOrUpdateAsync(order);
+            return await orderRepository.InsertOrUpdateAsync(order, trip);
         }
     }
 }

@@ -114,6 +114,14 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                                         </div>  
                                     </NavText>
                                 </NavItem>
+                                <NavItem key="minimumOrderValue">
+                                    <NavText>
+                                        <div className="form-group">
+                                            <label htmlFor="minimumOrderValue">Minimum Order Value</label>
+                                            <input type="number" id="minimumOrderValue" value={this.props.config.minimumOrderValue} className="form-control" onChange={this.inputChange} />           
+                                        </div>  
+                                    </NavText>
+                                </NavItem>
                             </NavItem>                                    
                         </SideNav.Nav>
                     </SideNav>

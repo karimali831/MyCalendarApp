@@ -21,16 +21,19 @@ namespace MyCalendar.ER.Model
         public decimal NET { get; set; }
         public decimal DriverFee { get; set; }
         public decimal DriverEarning { get; set; }
-        public DateTime? Modified { get; set; }
-
+        [DbIgnore]
+        public DateTime Created { get; set; }
+        public DateTime Modified { get; set; }
+        [DbIgnore]
+        public string ServiceName { get; set; }
         [DbIgnore]
         public IEnumerable<OrderItems> OrderItems { get; set; }
     }
 
     public class OrderItems
     {
-        public string ItemName { get; set; }
-        public int Quantity { get; set; }
+        public string Name { get; set; }
+        public int Qty { get; set; }
         public int Cost { get; set; }
         public string Notes { get; set; }
     }

@@ -1,65 +1,54 @@
 import Form from 'react-bootstrap/Form'
 import Table from 'react-bootstrap/Table'
 import * as React from 'react';
-import { IOrderItem } from 'src/models/IOrderItem';
 import Button from 'react-bootstrap/Button'
-import { FaMinus, FaPlus, FaSlidersH } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaMinus, FaPlus } from 'react-icons/fa';
 import InputGroup from 'react-bootstrap/InputGroup'
 import { OrderOverview } from './OrderOverview';
-import { ITripOverview } from 'src/models/TripOverview';
+import { IOrderForm } from 'src/models/IOrder';
 import { IDefaultConfig } from 'src/models/IDefaultConfig';
+import { ITripOverview } from 'src/models/ITrip';
+import { SetDriverStep4Action, ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
+import { IOrderOverview } from 'src/models/IOrder';
 
-interface IOwnState {
-    items: IOrderItem[],
-    orderFee: number,
-    itemsQuantity: number,
-    itemsCost: number
+export interface IPropsFromDispatch {
+    toggleConfig: () => ToggleConfigAction,
+    updateOrder: (order: IOrderForm) => UpdateOrderAction,
+    setDriverStep4: () => SetDriverStep4Action
 }
 
-interface IOwnProps {
-    trip: ITripOverview,
+export interface IPropsFromState {
+    tripOverview?: ITripOverview,
+    orderOverview: IOrderOverview,
+    order: IOrderForm,
     config: IDefaultConfig,
-    pinSidebar: boolean,
-    configChange: () => void
+    pinSidebar: boolean
 }
 
-export class OrderDetails extends React.Component<IOwnProps, IOwnState> {
+export interface IOwnState {}
 
-    constructor(props: IOwnProps) {
-        super(props);
+type AllProps = IPropsFromState & IPropsFromDispatch;
 
-        this.state = {
-            items: [{
-                name: "",
-                qty: 1,
-                cost: 0,
-                total: 0,
-                notes: ""
-            }],
-            orderFee: 0,
-            itemsQuantity: 1,
-            itemsCost: 0
-        };
-    }
+export default class OrderDetails extends React.Component<AllProps, IOwnState> {
 
-    public componentDidUpdate = (prevProps: IOwnProps, prevState: IOwnState) => {
-        if (JSON.stringify(this.state.items.filter(i => i.qty)) !== JSON.stringify(prevState.items.filter(i => i.qty))) {
+    public componentDidUpdate = (prevProps: AllProps, prevState: IOwnState) => {
+        if (JSON.stringify(this.props.order.items.filter(i => i.qty)) !== JSON.stringify(prevProps.order.items.filter(i => i.qty))) {
             this.updateFigures();
         }
+        
+        if (JSON.stringify(prevProps.config.orderFeeFormula) !== JSON.stringify(this.props.config.orderFeeFormula)  || prevProps.order.orderValue !== this.props.order.orderValue) {
+            this.orderFeeChange();
+        }
 
-        if (JSON.stringify(prevProps.config.orderFeeFormula) !== JSON.stringify(this.props.config.orderFeeFormula)  || prevState.itemsCost !== this.state.itemsCost) {
-            this.orderFee();
+        // selected order
+        if (this.props.order.orderValue !== 0 && this.props.order.orderId) {
+            if (this.props.order.orderFee === 0) {
+                this.orderFeeChange();
+            }
         }
     }
 
     public render() {
-        const tripMileage = Number(this.props.trip.distance.replace(/\D+$/g, ""));
-        const calcDeliveryFee = tripMileage * this.props.config.deliveryFeePerMile;
-        const serviceFee = this.props.config.serviceFee * this.state.itemsCost;
-        const invoiceAmt = this.state.itemsCost + this.state.orderFee + serviceFee + calcDeliveryFee;
-        const netProfit = invoiceAmt - this.state.itemsCost;
-        const driverFee = netProfit * this.props.config.driverFee;
-
         return ( 
             <div>
                 {
@@ -74,7 +63,7 @@ export class OrderDetails extends React.Component<IOwnProps, IOwnState> {
                         </thead>
                         <tbody>
                         {
-                            this.state.items.map((x, i) => {
+                            this.props.order.items.map((x, i) => {
                                 return (
                                     <>
                                         <tr>
@@ -111,7 +100,7 @@ export class OrderDetails extends React.Component<IOwnProps, IOwnState> {
                                                     />
                                                     <InputGroup.Prepend>                 
                                                         {
-                                                            this.state.items.length !== 1 && 
+                                                            this.props.order.items.length !== 1 && 
                                                                 <Button variant="danger" onClick={() => this.handleRemoveClick(i)}>
                                                                     <FaMinus />
                                                                 </Button>
@@ -122,16 +111,16 @@ export class OrderDetails extends React.Component<IOwnProps, IOwnState> {
                                         </tr>
                                         <tr>
                                             {
-                                                this.state.items.length - 1 === i && 
+                                                this.props.order.items.length - 1 === i && 
                                                 <>
                                                     <td colSpan={2}>
-                                                        <Button variant="primary" onClick={this.props.configChange}>
-                                                            <FaSlidersH /> {this.props.pinSidebar ? "Hide Config" : "Show Config"} 
-                                                    </Button>
+                                                        <Button variant="success" onClick={this.handleAddClick}>
+                                                            <FaPlus /> Add Item
+                                                        </Button>
                                                     </td>
                                                     <td colSpan={2} align="right">
-                                                        <Button variant="success" onClick={this.handleAddClick}>
-                                                            <FaPlus /> Add
+                                                        <Button disabled={this.props.order.orderValue < this.props.config.minimumOrderValue} variant="primary" onClick={this.props.setDriverStep4}>
+                                                            <FaAngleDoubleRight /> Assign Driver
                                                         </Button>
                                                     </td>
                                                 </>
@@ -144,70 +133,74 @@ export class OrderDetails extends React.Component<IOwnProps, IOwnState> {
                         </tbody>
                     </Table>
                 }
-                <OrderOverview
-                    itemsQuantity={this.state.itemsQuantity}
-                    totalItemsCost={this.state.itemsCost}
-                    serviceFee={serviceFee}
-                    orderFee={this.state.orderFee}
-                    deliveryFee={calcDeliveryFee}
-                    tripMileage={tripMileage}
-                    invoiceAmt={invoiceAmt}
-                    netProfit={netProfit}
-                    driverFee={driverFee}
-                    trip={this.props.trip} />
+                {
+                    this.props.tripOverview !== undefined && this.props.orderOverview !== undefined ?
+                        <OrderOverview
+                            order={this.props.order}
+                            mov={this.props.config.minimumOrderValue-this.props.order.orderValue}
+                            orderOverview={this.props.orderOverview}
+                            trip={this.props.tripOverview}
+                            toggleConfig={this.props.toggleConfig} />
+                        : null
+                }
             </div>
         );
     }
 
-    private orderFee = () => {
+    private orderFeeChange = () => {
         let orderFee = 0;
-
         this.props.config.orderFeeFormula.map(c => {
-            if (this.state.itemsCost >= c.orderValueMin && this.state.itemsCost <= c.orderValueMax) {
+            if (this.props.order.orderValue >= c.orderValueMin && this.props.order.orderValue <= c.orderValueMax) {
                 orderFee = c.fee;
             }
         });
 
-        this.setState({ orderFee: this.state.itemsCost * orderFee })
+        this.props.updateOrder({ ...this.props.order,
+            orderFee: this.props.order.orderValue * orderFee
+        } as IOrderForm);
     }
 
     private handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
         const { name, value } = e.target;
-        const items = [...this.state.items]
+        const items = [...this.props.order.items]
         items[idx][name] = value;
+
+        this.props.updateOrder({ ...this.props.order,
+            items: items
+        } as IOrderForm);
 
         if (name === "qty" || name === "cost") {
             this.updateFigures();
         }
-
-        this.setState({ items: items });
     }
 
     private updateFigures = () => {
-        this.setState({ 
-            itemsQuantity: this.state.items.reduce((sum, current) => sum + (current.qty * 1), 0),
-            itemsCost: this.state.items.map(item => item.qty * item.cost).reduce((a, b) => a + b)
-        })
+        this.props.updateOrder({ ...this.props.order,
+            totalItems: this.props.order.items.reduce((sum, current) => sum + (current.qty * 1), 0),
+            orderValue: this.props.order.items.map(item => item.qty * item.cost).reduce((a, b) => a + b)
+        } as IOrderForm);
     }
 
 
     private handleRemoveClick = (idx: number) => {
-        const items = [...this.state.items]
+        const items = [...this.props.order.items]
         items.splice(idx, 1);
-        this.setState({ items: items });
+
+        this.props.updateOrder({ ...this.props.order,
+            items: items
+        } as IOrderForm);
     };
 
     private handleAddClick = () => {
-        this.setState({ 
+        this.props.updateOrder({ ...this.props.order,
             items: [
-                ...this.state.items, { 
+                ...this.props.order.items, { 
                     name: "",
                     qty: 1,
                     cost: 0,
-                    total: 0,
                     notes: ""
                 }
             ]
-        });
+        } as IOrderForm);
     };
 }

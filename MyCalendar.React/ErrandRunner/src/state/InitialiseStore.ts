@@ -5,7 +5,7 @@ import { rootSaga } from './middleware/sagas/rootSaga';
 import { actionToPlainObject } from './middleware/actionToPlainObject';
 import { History } from 'history';
 import { routerMiddleware } from 'connected-react-router';
-import { LoadCustomersAction } from './contexts/landing/Actions';
+// import { LoadStakeholdersAction } from './contexts/landing/Actions';
 
 export default function initialiseStore(history: History<any>) {
 
@@ -32,7 +32,7 @@ export default function initialiseStore(history: History<any>) {
 		);
 
 	sagaMiddleware.run(rootSaga);
-	store.dispatch(new LoadCustomersAction);
+	// store.dispatch(new LoadStakeholdersAction);
 
 	return store;
 

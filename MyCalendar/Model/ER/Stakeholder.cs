@@ -1,13 +1,17 @@
 ﻿using DFM.Utils;
+using MyCalendar.Enums;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 
 namespace MyCalendar.ER.Model
 {
-    public class Customer
+    public class Stakeholder
     {
-        public Guid CustId { get; set; }
+        public Guid Id { get; set; }
+        public Stakeholders StakeholderId { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
@@ -18,18 +22,25 @@ namespace MyCalendar.ER.Model
         public string ContactNo1 { get; set; }
         public string ContactNo2 { get; set; }
         public DateTime? Modified { get; set; }
+        public decimal? ApiLat { get; set; }
+        public decimal? ApiLng { get; set; }
+        public string ApiFormattedAddress { get; set; }
+        public string PaymentIds { get; set; }
+        [DbIgnore]
+        public IList<string> PaymentIdsList => !string.IsNullOrEmpty(PaymentIds) ? PaymentIds.Split(',') : new List<string>();
+
     }
 
-    public class CustomerMap : EntityTypeConfiguration<Customer>
+    public class StakeholderMap : EntityTypeConfiguration<Stakeholder>
     {
-        public CustomerMap()
+        public StakeholderMap()
         {
             // Primary Key
-            this.HasKey(t => t.CustId);
+            this.HasKey(t => t.Id);
 
             // Properties
             // Table & Column Mappings
-            this.ToTable("dbo.[ER.Customers]");
+            this.ToTable("dbo.[ER.Stakeholders]");
 
             // Relationships
         }

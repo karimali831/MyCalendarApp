@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 import initialiseStore from '../../state/InitialiseStore';
 import { ConnectedRouter } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
-import { NewOrder } from '../roots/order/NewOrder';
+import LandingConnected  from '../roots/landing/LandingConnected';
 
 class App extends React.Component {
   private appElement: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
@@ -18,9 +18,9 @@ class App extends React.Component {
         <ConnectedRouter history={(createBrowserHistory())}>
             <div className="App" ref={this.appElement}>
               <Switch>
-                  <Route exact={true} path="/" component={NewOrder} />
-                  <Route exact={true} path="" component={NewOrder} />
-                  <Route path="/home" component={NewOrder} />
+                  <Route exact={true} path="/" component={LandingConnected} />
+                  <Route exact={true} path="" component={LandingConnected} />
+                  <Route path="/home" component={LandingConnected} />
               </Switch>
             </div>
         </ConnectedRouter>

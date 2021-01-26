@@ -93,7 +93,15 @@ namespace MyCalendar.Service
                         var inviteeList = new List<string>();
                         foreach (var invitee in activity.InviteeIdsList)
                         {
-                            var inviteeName = (await userService.GetByUserIDAsync(invitee)).Name;
+                            string inviteeName;
+                            if (invitee != userId)
+                            {
+                                inviteeName = (await userService.GetByUserIDAsync(invitee)).Name;
+                            }
+                            else
+                            {
+                                inviteeName = user.Name;
+                            }
                             inviteeList.Add(inviteeName);
                         }
 

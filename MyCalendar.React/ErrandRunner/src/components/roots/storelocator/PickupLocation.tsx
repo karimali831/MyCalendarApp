@@ -1,25 +1,30 @@
 import { SelectElement, SelectionRefinement } from "@appology/react-components";
 import IBaseModel from "@appology/react-components/dist/SelectionRefinement/IBaseModel";
 import * as React from "react";
-import { googleApi, IGoogleAddressGeoResponse, IGoogleGeoLocation } from "src/Api/GoogleApi";
+import { googleApi, IGoogleGeoLocation } from "src/Api/GoogleApi";
 import { IGoogleAutoCompleteSearch, IPrediction } from 'src/models/IGoogleAutoComplete';
+import { IStakeholder } from "src/models/IStakeholder";
 
 
-export interface IOwnProps {
-    addressLine1: string,
-    postCode: string,
-    onStoreChange: (store: IGoogleAutoCompleteSearch, customerLocation?: IGoogleGeoLocation) => void
+export interface IPropsFromDispatch {
+    onStoreChange: (store: IGoogleAutoCompleteSearch, storeLocation: IGoogleGeoLocation, stakeholderLocation: IGoogleGeoLocation) => void
+}
+
+export interface IPropsFromState {
+    customer?: IStakeholder
 }
 
 export interface IOwnState {
     filter: string,
     stores: IGoogleAutoCompleteSearch[]
     loading: boolean,
-    customerLocation?: IGoogleGeoLocation,
+    stakeholderLocation?: IGoogleGeoLocation,
     radius: IBaseModel
 }
 
-export default class PickupLocation extends React.Component<IOwnProps, IOwnState> {
+type AllProps = IPropsFromState & IPropsFromDispatch;
+
+export default class PickupLocation extends React.Component<AllProps, IOwnState> {
 
     constructor(props: any) {
         super(props);
@@ -27,7 +32,7 @@ export default class PickupLocation extends React.Component<IOwnProps, IOwnState
             filter: "",
             stores: [],
             loading: false,
-            customerLocation: undefined,
+            stakeholderLocation: undefined,
             radius: {
                 id: "8046",
                 name: "5 miles"
@@ -35,9 +40,16 @@ export default class PickupLocation extends React.Component<IOwnProps, IOwnState
         }
     }
 
-    public componentDidUpdate = (prevProps: IOwnProps, prevState: IOwnState) => {
+    public componentDidUpdate = (prevProps: AllProps, prevState: IOwnState) => {
         if (prevState.filter !== this.state.filter && this.state.filter !== "") {
-            this.googleGeometry();
+            if (this.props.customer?.apiLat !== undefined && this.props.customer?.apiLng !== undefined) {
+                this.googleGeometry(this.props.customer.apiLat, this.props.customer.apiLng)
+            }
+            else{
+                alert("CUSTOMER DETAILS DOES NOT HAVE APILAT API LNG - GET GEO DATA FROM API");
+                googleApi.getAddressGeo(`${this.props.customer?.address1} ${this.props.customer?.postcode}`)
+                    .then(data => this.googleGeometry(data.results[0].geometry.location.lat, data.results[0].geometry.location.lng))
+            }
         }
     }
 
@@ -52,25 +64,23 @@ export default class PickupLocation extends React.Component<IOwnProps, IOwnState
         return (
             <div>
                 <SelectElement 
-                    label="Stores proximity from customer address"
+                    label="Stores proximity from customer location"
                     icon="&#xf299;"
                     id="radius"
                     selected={this.state.radius.id}
                     selectorOptions={radiusOptions}
                     onSelectChange={this.handleRadiusChange}
                 />
-
                 <SelectionRefinement<IGoogleAutoCompleteSearch>
                     label="Store Selection"
                     placeholder="Search establishment..."
                     filter={this.state.filter} 
-                    onChange={(f) => this.pickupLocationChanged(f)} 
+                    onChange={(f) => this.pickupPlaceChanged(f)} 
                     setFilterToItemName={true}
                     itemSelected={(i) => this.selectedStore(i)}
                     loading={this.state.loading}
                     filteredResults={this.state.stores} />
-            </div>
-                    
+            </div>  
         );
     }
 
@@ -82,36 +92,32 @@ export default class PickupLocation extends React.Component<IOwnProps, IOwnState
         this.setState({ radius: radius })
     }
 
-    private googleGeometry = () => {
-        googleApi.getAddressGeo(`${this.props.addressLine1} ${this.props.postCode}`)
-            .then(data => this.googleGeometrySuccess(data))
-    }
+    private googleGeometry = (lat: number, lng: number) => {
+            const geometry : IGoogleGeoLocation = { lat: lat, lng: lng }
+            this.setState({ stakeholderLocation: geometry })
 
-    private googleGeometrySuccess = (data: IGoogleAddressGeoResponse) => {
-        if (data.results.length === 1) {
-            const geometry : IGoogleGeoLocation = { 
-                lat: data.results[0].geometry.location.lat,
-                lng: data.results[0].geometry.location.lng
-            }
-
-            this.setState({ customerLocation: geometry })
-            
             googleApi.googleAutoComplete(this.state.filter, geometry.lat, geometry.lng, this.state.radius.id)
                 .then((c) => this.autoCompleteSuccess(c.predictions));
-        }
+        
     }
 
-
     private selectedStore = (store: IGoogleAutoCompleteSearch) => {
-        this.props.onStoreChange(store, this.state.customerLocation);
-
         this.setState({ 
             loading: true,
             filter: ""
         })
+
+        googleApi.placeDetails(store.id)
+            .then(p => this.selectedStoreSuccess(store, p.result.geometry.location))
     }
 
-    private pickupLocationChanged = (filter: string) => {
+    private selectedStoreSuccess = (store: IGoogleAutoCompleteSearch, storeLocation: IGoogleGeoLocation) => {
+        if (this.state.stakeholderLocation !== undefined) {
+            this.props.onStoreChange(store, storeLocation, this.state.stakeholderLocation);
+        }
+    }
+
+    private pickupPlaceChanged = (filter: string) => {
         this.setState({ 
             loading: true,
             filter: filter 
@@ -128,6 +134,5 @@ export default class PickupLocation extends React.Component<IOwnProps, IOwnState
                 } as IGoogleAutoCompleteSearch))
             }
         }) 
-      }
-
+    }
 }

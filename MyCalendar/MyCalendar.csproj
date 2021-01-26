@@ -159,6 +159,7 @@
     <Compile Include="Enums\CronofyStatus.cs" />
     <Compile Include="Enums\DateFrequency.cs" />
     <Compile Include="Enums\Feature.cs" />
+    <Compile Include="Enums\Stakeholders.cs" />
     <Compile Include="Enums\Types.cs" />
     <Compile Include="Enums\TypeGroup.cs" />
     <Compile Include="Enums\Section.cs" />
@@ -169,7 +170,7 @@
     <Compile Include="Helpers\Utils.cs" />
     <Compile Include="Model\ER\Trip.cs" />
     <Compile Include="Model\ER\Order.cs" />
-    <Compile Include="Model\ER\Customer.cs" />
+    <Compile Include="Model\ER\Stakeholder.cs" />
     <Compile Include="Model\ExtCalendarRights.cs" />
     <Compile Include="Model\Category.cs" />
     <Compile Include="Model\Feature.cs" />
@@ -189,7 +190,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repository\ER\TripRepository.cs" />
     <Compile Include="Repository\ER\OrderRepository.cs" />
-    <Compile Include="Repository\ER\CustomersRepository.cs" />
+    <Compile Include="Repository\ER\StakeholderRepository.cs" />
     <Compile Include="Repository\CategoryRepository.cs" />
     <Compile Include="Repository\FeatureRepository.cs" />
     <Compile Include="Repository\GroupRepository.cs" />
@@ -208,7 +209,7 @@
     <Compile Include="Service\DocumentService.cs" />
     <Compile Include="Service\ER\TripService.cs" />
     <Compile Include="Service\ER\OrderService.cs" />
-    <Compile Include="Service\ER\CustomerService.cs" />
+    <Compile Include="Service\ER\StakeholderService.cs" />
     <Compile Include="Service\FeatureRoleService.cs" />
     <Compile Include="Service\CategoryService.cs" />
     <Compile Include="Service\NotificationService.cs" />

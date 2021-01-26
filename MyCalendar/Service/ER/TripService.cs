@@ -8,8 +8,7 @@ namespace MyCalendar.ER.Service
 {
     public interface ITripService
     {
-        Task<Trip> GetAsync(Guid custId);
-        Task<(Trip Trip, bool Status)> InsertOrUpdateAsync(Trip trip);
+        Task<(Trip Trip, bool Status)> GetByOrderIdAsync(Guid orderId);
     }
 
     public class TripService : ITripService
@@ -26,9 +25,9 @@ namespace MyCalendar.ER.Service
             return await tripRepository.GetAsync(tripId);
         }
 
-        public async Task<(Trip Trip, bool Status)> InsertOrUpdateAsync(Trip trip)
+        public async Task<(Trip Trip, bool Status)> GetByOrderIdAsync(Guid orderId)
         {
-            return await tripRepository.InsertOrUpdateAsync(trip);
+            return await tripRepository.GetByOrderIdAsync(orderId);
         }
     }
 }

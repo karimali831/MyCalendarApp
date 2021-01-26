@@ -3,7 +3,7 @@ import { FaInfo } from 'react-icons/fa';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Popover from 'react-bootstrap/Popover'
 import { TripOverviewDetails } from './TripOverviewDetails';
-import { ITripOverview } from 'src/models/TripOverview';
+import { ITripOverview } from 'src/models/ITrip';
 
 interface IOwnProps {
     trip: ITripOverview
@@ -24,7 +24,7 @@ export const TripOverview: React.FC<IOwnProps> = (props) => {
                 </Popover>
             }>
             <span className="badge badge-primary" style={{ cursor: "pointer"}}>
-                <FaInfo /> Pick up from {props.trip.pickupLocation}
+                <FaInfo /> Pick up from {props.trip.pickupPlace}
             </span>
         </OverlayTrigger>
     )

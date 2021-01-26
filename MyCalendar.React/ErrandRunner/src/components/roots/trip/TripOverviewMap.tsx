@@ -3,8 +3,8 @@ import { googleApi } from 'src/Api/GoogleApi';
 
 interface IOwnProps {
     originPlaceId: string,
-    destinationLat: string,
-    destinationLng: string,
+    destinationLat: number,
+    destinationLng: number,
     width?: number,
     height?: number
 }

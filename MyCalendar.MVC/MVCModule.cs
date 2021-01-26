@@ -18,7 +18,7 @@ namespace MyCalendar.Ninject
             Bind<ICronofyService>().To<CronofyService>();
             Bind<IDocumentService>().To<DocumentService>();
             Bind<IFeatureRoleService>().To<FeatureRoleService>();
-            Bind<ICustomerService>().To<CustomerService>();
+            Bind<IStakeholderService>().To<StakeholderService>();
             Bind<ICategoryService>().To<CategoryService>();
             Bind<IOrderService>().To<OrderService>();
             Bind<ITripService>().To<TripService>();
@@ -34,7 +34,7 @@ namespace MyCalendar.Ninject
             Bind<IGroupRepository>().To<GroupRepository>();
             Bind<IFeatureRepository>().To<FeatureRepository>();
             Bind<IFeatureRoleRepository>().To<FeatureRoleRepository>();
-            Bind<ICustomerRepository>().To<CustomerRepository>();
+            Bind<IStakeholderRepository>().To<StakeholderRepository>();
             Bind<ICategoryRepository>().To<CategoryRepository>();
             Bind<IOrderRepository>().To<OrderRepository>();
             Bind<ITripRepository>().To<TripRepository>();
