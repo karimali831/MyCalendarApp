@@ -1,0 +1,17 @@
+﻿@model Appology.Website.Areas.MiFinance.ViewModels.MonzoAccountSummaryVM
+@{
+    ViewBag.Title = "Approve Data Access";
+}
+
+<div class="content-shadow">
+    <div class="content-inner">
+        <h2>Open Monzo App to approve data access...</h2>
+
+        @Html.ActionLink(
+            "I have approved",
+            "ApproveDataAccess",
+            "Monzo",
+            new { accessToken = Model.Token },
+            new { @class = "btn btn-lg btn-primary", role = "button" })
+    </div>
+</div>

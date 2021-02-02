@@ -1,0 +1,200 @@
+﻿body {
+    background-image: url('./img/bg.jpg')
+}
+
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    max-width: 280px;
+}
+
+
+.form-inline {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+}
+
+/* Add some margins for each label */
+.form-inline label {
+    margin: 5px 10px 5px 0;
+}
+
+/* Style the input fields */
+.form-inline input {
+    vertical-align: middle;
+    margin: 5px 10px 5px 0;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+/* Style the submit button */
+.form-inline button {
+    padding: 10px 20px;
+    background-color: dodgerblue;
+    border: 1px solid #ddd;
+    color: white;
+}
+
+.form-inline button:hover {
+    background-color: royalblue;
+}
+
+/* active item */
+.active {
+    color: #09c;
+}
+
+/* Add responsiveness - display the form controls vertically instead of horizontally on screens that are less than 800px wide */
+@media (max-width: 800px) {
+    .form-inline input {
+        margin: 10px 0;
+    }
+
+    .form-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .add-type, .edit-type{
+        display: none;
+    }
+
+    .notification-alert {
+
+    }
+}
+
+.card-header {
+    height: 55px;
+}
+
+
+/* bootstrap overrides*/
+
+.modal-content {
+    margin-top: 100px;
+}
+
+.icon-align {
+    margin-left: -5px;
+    margin-right: -20px;
+}
+
+.btn-link {
+    color: #09c !important;
+}
+
+.btn-link a {
+    color: #09c !important;
+}
+
+/*caledar overrides*/
+.fc-more {
+    font-size: x-small !important;
+}
+
+/*avatar */
+[default-avatar]:before {
+    content: attr(default-avatar);
+    display: inline-block;
+    font-size: 1em;
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    text-align: center;
+    border-radius: 50%;
+    background: #09c;
+    /*vertical-align: middle;*/
+    margin-right: 2px;
+    color: white;
+}
+
+/*header */
+.navik-header.header-dark {
+    z-index: 1007;
+    position: fixed;
+    width: 100%;
+}
+
+/* font awesome notification*/
+.fa-stack[data-count]:after {
+    position: absolute;
+    right: 0%;
+    top: 1%;
+    content: attr(data-count);
+    font-size: 40%;
+    padding: .6em;
+    border-radius: 999px;
+    line-height: .75em;
+    color: white;
+    background: rgba(255,0,0,.85);
+    text-align: center;
+    min-width: 2em;
+    font-weight: bold;
+}
+
+.notification-alerts {
+    position: absolute;
+    top: 25px;
+    right: -70px
+}
+
+.body-container {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+@media (max-width: 800px) {
+    .notification-alerts {
+        position: absolute;
+        top: 25px;
+        left: 0px
+    }
+
+    .body-container {
+        padding: 0px !important;
+        margin: 0px !important;
+    }
+}
+
+.pull-right {
+    float: right;
+}
+
+
+/* content boxes */
+.content-shadow {
+    -webkit-border-radius: 0% 0% 100% 100% / 0% 0% 8px 8px;
+    -webkit-box-shadow: rgba(0, 0, 0,.30) 0 2px 3px;
+}
+
+.content-inner {
+    margin: 0 auto;
+    padding: 20px;
+    height: auto;
+    background: #F2F2F2;
+    border: 1px solid #ccc;
+    box-shadow: 1px 1px 2px #fff inset, -1px -1px 2px #fff inset;
+    border-radius: 3px/6px;
+}
+

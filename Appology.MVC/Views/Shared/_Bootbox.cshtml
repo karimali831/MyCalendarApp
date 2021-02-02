@@ -1,0 +1,33 @@
+﻿@model Appology.Website.Areas.MiFinance.ViewModels.BootBox
+@using Appology.Helpers
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+
+@if (Model.Reload)
+{
+    <script>
+        var url = new URL(window.location.href);
+        var desc1 = '@Model.Description[0]'
+        var desc2 = '@(Model.Description.Length > 1 ? Model.Description[1] : "")'
+        if (!url.searchParams.get('reloaded')) {
+            var dialog = bootbox.dialog({
+                title: '@Model.Title',
+                message: '<p><i class="fa fa-spin fa-spinner"></i> ' + desc1 + ' <br> ' + desc2 + '</p>'
+            });
+
+            dialog.init(function () {
+                setTimeout(function () {
+                    if ('@Model.Redirect.HasValue') {
+                        var url = '@Url.Action(Model.Redirect.Value.ActionName, Model.Redirect.Value.Controller)';
+                        window.location.href = url;
+                    } else {
+                        window.location.reload(1);
+                    }
+                }, '@Model.TimeoutMs');
+            });
+        }
+    </script>
+}

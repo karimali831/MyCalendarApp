@@ -1,0 +1,66 @@
+﻿@model Appology.Website.Areas.MiFinance.ViewModels.AddTransactionVM
+@using Appology.MiFinance.Enums
+@{
+    ViewBag.Title = "Add Transaction";
+}
+
+<div class="content-shadow">
+    <div class="content-inner">
+        <h2>Add @Enum.GetName(typeof(CategoryType), Model.Type)</h2>
+        <form action="@Url.Action((Model.Type == CategoryType.Spendings ? "AddSpending" : "AddIncome"), "Monzo")" method="post" class="form-horizontal">
+            @if (Model.Type == CategoryType.Spendings)
+            {
+                <div class="form-group form-group-lg">
+                    <select onchange='location.href = this.value' class="form-control">
+                        <option value="@Url.Action("AddTransaction", "Monzo", new { Model.MonzoTransId, Model.Name, Model.Amount, Model.Date, isFinance = false, Id = 0 })">-- select finance --</option>
+                        @foreach (var finance in Model.Finances)
+                        {
+                            <option value="@Url.Action("AddTransaction", "Monzo", new { Model.MonzoTransId, Model.Name, Model.Amount, Model.Date, isFinance = true, finance.Id })" selected="@(Model.SelectedId == finance.Id)">@finance.Name</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="form-group form-group-lg">
+                @if (!Model.IsFinance.Value)
+                {
+                    <select onchange='location.href = this.value' class="form-control">
+                        <option value="0">-- select category --</option>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <option value="@Url.Action("AddTransaction", "Monzo", new { Model.MonzoTransId, Model.Name, Model.Amount, Model.Date, isFinance = false, category.Id, category.SecondTypeId })" selected="@(Model.SelectedId == category.Id)">@category.Name</option>
+                        }
+                    </select>
+                    if (Model.SecondCategories != null && Model.SecondCategories.Any())
+                    {
+                        <select name="secondCatId" class="form-control">
+                            <option value="0">-- select subcategory --</option>
+                            @foreach (var category in Model.SecondCategories)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+                    }
+                }
+            </div>
+            @if (Model.Type == CategoryType.Spendings)
+            {
+                <div class="form-group form-group-lg">
+                    <input name="name" class="form-control" type="text" value="@Model.Name" placeholder="Enter item" />
+                </div>
+                <div class="form-group form-group-lg">
+                    <input name="cashExpense" class="form-control" type="checkbox" checked="@Model.CashExpense" />
+                </div>
+                @Html.HiddenFor(x => x.IsFinance)
+            }
+            <div class="form-group form-group-lg">
+                <input name="date" class="form-control" type="datetime-local" value="@Model.Date" placeholder="dd-MM-yy" />
+            </div>
+            @Html.HiddenFor(x => x.SelectedId)
+            @Html.HiddenFor(x => x.MonzoTransId)
+            <div class="form-group form-group-lg">
+                <input name="amount" class="form-control" step="any" type="number" value="@Model.ActualAmount" placeholder="Enter amount" />
+            </div>
+            <button type="submit" class="btn btn-primary">Add @Enum.GetName(typeof(CategoryType), Model.Type)</button>
+        </form>
+    </div>
+</div>

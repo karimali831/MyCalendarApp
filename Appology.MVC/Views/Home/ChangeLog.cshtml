@@ -1,0 +1,31 @@
+﻿@model IEnumerable<Appology.MiCalendar.Model.Document>
+@{
+    ViewBag.Title = "ChangeLog";
+}
+
+<h2>App Change Log</h2>
+
+<div id="accordion">
+    @{
+        int i = 1;
+        foreach (var c in Model.OrderByDescending(x => x.Title))
+        {
+            <div class="card">
+                <div class="card-header" id="@c.Title">
+                    <h7 class="mb-0">
+                        <a class="btn btn-link" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse@(i)" aria-expanded="true" aria-controls="collapse@(i)">
+                            <i class="fas fa-th-list"></i> @c.Title
+                        </a>
+
+                    </h7>
+                </div>
+                <div id="collapse@(i)" class="panel-collapse collapse in  @(i == 1 ? "show" : "")" role="tabpanel" aria-labelledby="headingOne">
+                    <div class="card-body">
+                        @Html.Raw(c.Text)
+                    </div>
+                </div>
+            </div>
+            { i++; }
+        }
+    }
+</div>

@@ -1,0 +1,43 @@
+﻿@model Appology.Website.ViewModels.BaseVM
+@using Appology.Enums
+
+@if (Model.UpdateStatus.UpdateResponse != null)
+{
+    if (Model.UpdateStatus.UpdateResponse == Status.Info)
+    {
+        <div class="alert alert-info alert-dismissible fade show">
+            <div class="alert-heading">
+                <i class="fas fa-info-circle"></i> @Model.UpdateStatus.UpdateMsg
+            </div>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    }
+    else if (Model.UpdateStatus.UpdateResponse == Status.Success)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <div class="alert-heading">
+                <i class="fas fa-check"></i> @(string.IsNullOrEmpty(Model.UpdateStatus.UpdateMsg) ? "Action successful" : Model.UpdateStatus.UpdateMsg)
+            </div>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    }
+
+    else if (Model.UpdateStatus.UpdateResponse == Status.Failed)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <div class="alert-heading">
+                <i class="fa fa-times"></i> @(string.IsNullOrEmpty(Model.UpdateStatus.UpdateMsg) ? "Action unsuccessful" : Model.UpdateStatus.UpdateMsg)
+            </div>
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+        </div>
+    }
+
+    else if (Model.UpdateStatus.UpdateResponse == Status.NotLoggedIn)
+    {
+        <div class="alert alert-danger" role="alert">
+            <div class="col-auto align-self-start">
+                <i class="fas fa-times"></i> @(string.IsNullOrEmpty(Model.UpdateStatus.UpdateMsg) ? "You are not logged-in!" : Model.UpdateStatus.UpdateMsg)
+            </div>
+        </div>
+    }
+}

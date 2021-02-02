@@ -1,0 +1,26 @@
+﻿@model Appology.MiFinance.Model.Setting
+@{
+    ViewBag.Title = "Settings";
+}
+
+@using (Html.BeginForm())
+{
+    <div class="content-shadow">
+        <div class="content-inner">
+            <h2>Settings</h2>
+            <div class="form-group">
+                @Html.LabelFor(x => x.AvailableCredit, "Available Credit")
+                @Html.TextBoxFor(s => s.AvailableCredit, Model.AvailableCredit.ToString("#.##"), new { @class = "form-control", @type = "text", @placeholder = "Available credit" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(x => x.StartingDate, "Starting Date")
+                @Html.TextBoxFor(s => s.StartingDate, Model.StartingDate.ToString("yyyy-MM-ddTHH:mm"), new { @class = "form-control", @type = "datetime-local", @placeholder = "Starting date" })
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(x => x.AvailableCash, "Available Cash")
+                @Html.TextBoxFor(s => s.AvailableCash, Model.AvailableCash.ToString("#.##"), new { @class = "form-control", @type = "text", @placeholder = "Available cash" })
+            </div>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+    </div>
+}
