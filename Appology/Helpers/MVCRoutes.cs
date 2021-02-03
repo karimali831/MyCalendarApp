@@ -18,6 +18,7 @@ namespace Appology.Helpers
             return  new List<KeyValuePair<Section, string>>() {
                 // base
                 new KeyValuePair<Section, string>(Section.Login, "/account/index"),
+                new KeyValuePair<Section, string>(Section.LoginSubmit, "/account/login"),
                 new KeyValuePair<Section, string>(Section.Home, "/home/index"),
                 new KeyValuePair<Section, string>(Section.Profile, "/settings/index"),
                 new KeyValuePair<Section, string>(Section.UpdateTags, "/settings/updatetags"),

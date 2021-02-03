@@ -22,6 +22,9 @@ using Appology.Website.ViewModels;
 
 namespace Appology.Areas.MiFinance.Controllers
 {
+    #if !DEBUG
+    [RequireHttps] //apply to all actions in controller
+    #endif
     public sealed class MonzoController : UserMvcController
     {
         private readonly IMonzoAuthorizationClient _monzoAuthorizationClient;

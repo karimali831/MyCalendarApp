@@ -379,6 +379,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\Calendar\CalendarAreaRegistration.cs" />
     <Compile Include="Areas\Calendar\CalendarModule.cs" />
+    <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="Areas\ER\ErAreaRegistration.cs" />
     <Compile Include="Areas\ER\ErModule.cs" />
     <Compile Include="Areas\Finance\Controllers\API\BaseController.cs" />
@@ -390,7 +391,7 @@
     <Compile Include="Areas\Finance\Controllers\MonzoController.cs" />
     <Compile Include="Areas\Finance\FinanceAreaRegistration.cs" />
     <Compile Include="Areas\Finance\ViewModels\AddTransactionVM.cs" />
-    <Compile Include="Areas\Finance\ViewModels\BootBox.cs" />
+    <Compile Include="ViewModels\BootBox.cs" />
     <Compile Include="Areas\Finance\ViewModels\CategoriesVM.cs" />
     <Compile Include="Areas\Finance\ViewModels\Error.cs" />
     <Compile Include="Areas\Finance\ViewModels\MonzoAccountSummaryVM.cs" />

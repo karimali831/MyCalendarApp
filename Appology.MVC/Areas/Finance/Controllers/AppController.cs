@@ -13,6 +13,9 @@ using System.Web.Mvc;
 
 namespace Appology.Areas.MiFinance.Controllers
 {
+    #if !DEBUG
+    [RequireHttps] //apply to all actions in controller
+    #endif
     public class AppController : UserMvcController
     {
         private readonly IBaseService baseService;

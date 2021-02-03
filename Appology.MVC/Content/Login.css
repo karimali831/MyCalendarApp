@@ -72,7 +72,7 @@ h2.active {
 
 /* FORM TYPOGRAPHY*/
 
-input.login[type=button], input.login[type=submit], input.login[type=reset] {
+button.login[type=button], button.login[type=submit], button.login[type=reset] {
 	background-color: #56baed;
 	border: none;
 	color: white;
@@ -94,11 +94,11 @@ input.login[type=button], input.login[type=submit], input.login[type=reset] {
 	transition: all 0.3s ease-in-out;
 }
 
-	input.login[type=button]:hover, input.login[type=submit]:hover, input.login[type=reset]:hover {
+	button.login[type=button]:hover, button.login[type=submit]:hover, button.login[type=reset]:hover {
 		background-color: #39ace7;
 	}
 
-	input.login[type=button]:active, input.login[type=submit]:active, input.login[type=reset]:active {
+	button.login[type=button]:active, button.login[type=submit]:active, button.login[type=reset]:active {
 		-moz-transform: scale(0.95);
 		-webkit-transform: scale(0.95);
 		-o-transform: scale(0.95);

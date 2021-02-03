@@ -118,7 +118,7 @@ namespace Appology.Controllers
             return await userService.GetUserTags(userId);
         }
 
-        public async Task<User> Login(string email, string password)
+        public async Task<User> GetUser(string email, string password)
         {
             return await userService.GetUser(email, password);
         }

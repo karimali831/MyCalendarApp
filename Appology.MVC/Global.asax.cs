@@ -22,6 +22,7 @@ namespace Appology
 
         protected void Application_Start()
         {
+            //GlobalFilters.Filters.Add(new RequireHttpsAttribute());
             AreaRegistration.RegisterAllAreas();
             GlobalConfiguration.Configure(WebApiConfig.Register);
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);

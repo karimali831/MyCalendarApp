@@ -4,7 +4,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LoadNotificationsAction } from 'src/state/contexts/landing/Actions';
 import { commonApi } from 'src/Api/CommonApi';
-import { priorityBadge, monzoAccountSummary, monzoIconUrl } from 'src/components/utils/Utils';
+import { priorityBadge } from 'src/components/utils/Utils';
 import { IReminder, IReminderNotification } from 'src/models/IReminder';
 import { ReminderType } from 'src/enums/ReminderType';
 import Button from 'react-bootstrap/Button'
@@ -64,7 +64,6 @@ export default class Notifications extends React.Component<AllProps, IOwnState> 
 
         return (
             <div>
-                <a href={monzoAccountSummary()}><img className="monzo_icon" src={monzoIconUrl()} /></a>
                 {
                     notifications.overDueReminders.length > 0 ? 
                         <Button variant="danger" onClick={() => this.showReminders(ReminderType.Overdue)}>

@@ -60,7 +60,7 @@ namespace Appology.MiFinance.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                await sql.ExecuteAsync($"{DapperHelper.INSERT("MonzoTransactions", TRANSFIELDS)}", transaction);
+                await sql.ExecuteAsync($"{DapperHelper.INSERT(Tables.Name(Table.MonzoTransactions), TRANSFIELDS)}", transaction);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Appology.MiFinance.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                await sql.ExecuteAsync($"{DapperHelper.DELETE("MonzoTransactions")} WHERE Id = @Id", new { Id = transId });
+                await sql.ExecuteAsync($"{DapperHelper.DELETE(Tables.Name(Table.MonzoTransactions))} WHERE Id = @Id", new { Id = transId });
             }
         }
     }

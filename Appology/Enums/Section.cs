@@ -10,6 +10,7 @@ namespace Appology.Enums
     {
         Home,
         Login,
+        LoginSubmit,
         Invite,
         RemoveBuddy,
         Overview,

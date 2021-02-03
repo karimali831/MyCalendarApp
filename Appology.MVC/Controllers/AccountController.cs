@@ -3,12 +3,10 @@ using Appology.Helpers;
 using Appology.Model;
 using Appology.Security;
 using Appology.Service;
+using Appology.Website.Areas.MiFinance.ViewModels;
 using Appology.Website.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 
 namespace Appology.Controllers
@@ -26,7 +24,7 @@ namespace Appology.Controllers
         public ActionResult Index(Guid? inviteeId = null)
         {
             TempData["InviteeId"] = inviteeId;
-            return View();
+            return View(new LoginViewModel());
         }
 
         //[ValidateAntiForgeryToken()]
@@ -36,32 +34,27 @@ namespace Appology.Controllers
 
         //}
 
-        [HttpPost]
-        public ActionResult Test(string name)
-        {
-            return View("Index");
-        }
 
         [ValidateAntiForgeryToken()]
         [HttpPost]
-        public async Task<ActionResult> Index(string email, string password, Guid? inviteeId = null)
+        public async Task<ActionResult> Login(LoginViewModel model)
         {
 
-            if (string.IsNullOrEmpty(email) ||
-                string.IsNullOrEmpty(password) ||
-                await Login(email, password) == null)
+            if (string.IsNullOrEmpty(model.Email) ||
+                string.IsNullOrEmpty(model.Password) ||
+                await GetUser(model.Email, model.Password) == null)
             {
                 TempData["ErrorMsg"] = "Login failed";
-                return RedirectToRoute(Url.Login(inviteeId));
+                return Json(new { status = false, url = Url.Login(model.InviteeId) });
             }
-            SessionPersister.Email = email;
+            SessionPersister.Email = model.Email;
         
-            if (inviteeId.HasValue)
+            if (model.InviteeId.HasValue)
             {
-                return RedirectToRoute(Url.Invite(inviteeId.Value));
+                return Json(new { status = true, url = Url.Invite(model.InviteeId.Value) });
             }
 
-            return RedirectToRoute(Url.Home());
+            return Json(new { status = true, url = Url.Home() });
         }
 
         public ActionResult Logout()

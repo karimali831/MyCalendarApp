@@ -6,6 +6,9 @@ using System.Web.Mvc;
 
 namespace Appology.Areas.ER.Controllers
 {
+    #if !DEBUG
+    [RequireHttps] //apply to all actions in controller
+    #endif
     public class OrderController : UserMvcController
     {
         public OrderController(

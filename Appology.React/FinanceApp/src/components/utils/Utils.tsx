@@ -99,9 +99,6 @@ export const rootUrl: string = process.env.NODE_ENV === "development" ? "http://
 export const appUrl: string = "http://localhost:3000";
 export const appPathUrl: string = "/finance/app";
 export const spendingsForFinance = (id: number) => `${appPathUrl}/spendings/${id}/0/1/true/false/null/null`;
-export const monzoAccountSummary = () => `${rootUrl}/finance/Monzo/ApproveDataAccess`
-export const monzoLogoUrl = () => `${rootUrl}/Content/img/monzo_logo.png`
-export const monzoIconUrl = () => `${rootUrl}/Content/img/monzo_icon.png`
 
 export const SummaryFilteredList =
 	(categoryType: CategoryType, catId?: number, frequency?: DateFrequency, interval?: number, isFinance?: boolean, isSecondCat?: boolean, fromDate?: string | null, toDate?: string | null) => `${appPathUrl}/${CategoryType[categoryType]}/${catId}/${frequency}/${interval}/${categoryType === CategoryType.Spendings ? isFinance + "/" : ""}${isSecondCat}/${fromDate}/${toDate}`;
