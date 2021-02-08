@@ -1,2 +1,9 @@
-﻿<link href="~/Content/FinanceApp.css" rel="stylesheet" type="text/css" />
-@Html.Partial("_ReactApp", "finance")
+﻿@using Appology.Website.ViewModels
+
+<link href="~/Content/FinanceApp.css" rel="stylesheet" type="text/css" />
+
+@Html.Partial("_ReactApp", new ReactAppVM
+{
+    App = "finance",
+    Version = "v2.0.2"
+})

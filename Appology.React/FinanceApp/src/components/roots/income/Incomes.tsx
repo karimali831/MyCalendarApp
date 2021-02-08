@@ -4,6 +4,7 @@ import { priceFormatter } from '../../utils/Utils';
 import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
 import { LoadIncomesAction } from 'src/state/contexts/income/Actions';
+import { Load } from '@appology/react-components';
 
 export interface IPropsFromState {
     incomes: IIncome[],
@@ -54,12 +55,14 @@ const options: ITableOptions = {
 export const Incomes : React.SFC<AllProps> = (props) => (
     <>
         {
-          <Table 
-              table="Incomes"
-              data={props.incomes}
-              columns={columns}
-              options={options}
-          /> 
+          props.loading ?
+            <Load withBackground={true} /> :
+            <Table 
+                table="Incomes"
+                data={props.incomes}
+                columns={columns}
+                options={options}
+            /> 
         }
     </>
 )

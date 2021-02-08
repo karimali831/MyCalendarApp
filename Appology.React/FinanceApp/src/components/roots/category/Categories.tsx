@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Load } from '../../base/Loader';
+import { Load } from '@appology/react-components'
 import { commonApi } from '../../../Api/CommonApi';
 import { ICategory } from '../../../models/ICategory';
 import Table from '../../base/CommonTable';
@@ -31,7 +31,7 @@ export default class Categories extends React.Component<IOwnProps, IOwnState> {
 
     public render() {
         if (this.state.loading) {
-            return <Load text="Loading categories..." />
+            return <Load withBackground={true} />
         }
 
         const columns: ITableProps[] = [{

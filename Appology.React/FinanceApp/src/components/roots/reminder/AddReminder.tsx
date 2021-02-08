@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { commonApi } from '../../../Api/CommonApi'
 import { Redirect } from 'react-router-dom'
-import { Load } from '../../base/Loader';
+import { Load } from '@appology/react-components'
 import { IReminderDTO } from '../../../models/IReminder';
 import { Priority } from 'src/enums/Priority';
 
@@ -40,7 +40,7 @@ export default class AddReminder extends React.Component<IPropsFromState, IOwnSt
         }
 
         if (loading) {
-            return <Load text="Loading..."/>
+            return <Load />
         }
 
         return (

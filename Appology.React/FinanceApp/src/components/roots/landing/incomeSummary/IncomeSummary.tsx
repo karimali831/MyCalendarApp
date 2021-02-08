@@ -3,7 +3,7 @@ import { faArrowUp, faChartPie, faChartLine } from '@fortawesome/free-solid-svg-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DateFilter from './connected/DateFilterISConnected'
 import { IIncomeSummary } from '../../../../models/IIncome';
-import { Load } from '../../../base/Loader';
+import { Load } from '@appology/react-components'
 import { IDateFilter } from 'src/models/IDateFilter';
 import { ShowSecondCategoryIncomeSummaryAction } from 'src/state/contexts/landing/Actions';
 import { CategoryType } from 'src/enums/CategoryType';
@@ -39,7 +39,7 @@ export default class IncomeSummary extends React.Component<AllProps> {
 
     public render() {
         if (this.props.loading) {
-            return <Load text="Loading income summary..." />
+            return <Load />
         }
 
         const incomeExpenseChartRequest: IMonthComparisonChartRequest = {

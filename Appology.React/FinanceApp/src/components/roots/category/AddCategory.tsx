@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { commonApi } from '../../../Api/CommonApi'
 import { Redirect } from 'react-router-dom'
-import { Load } from '../../base/Loader';
+import { Load } from '@appology/react-components'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { ICategory, ICategoryDTO } from '../../../models/ICategory';
@@ -47,7 +47,7 @@ export default class AddCategory extends React.Component<IOwnProps, IOwnState> {
         }
 
         if (loading) {
-            return <Load text="Loading..."/>
+            return <Load />
         }
 
         return (

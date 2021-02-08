@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { api } from '../../../Api/Api';
-import { Load } from '../../base/Loader';
+import { Load } from '@appology/react-components'
 import { priceFormatter, intToOrdinalNumberString, paymentStatus, cleanText, boolHighlight, spendingsForFinance } from '../../utils/Utils';
 import { IFinance } from '../../../models/IFinance';
 import Table from '../../base/CommonTable';
@@ -44,7 +44,7 @@ export default class Finances extends React.Component<IOwnProps, IOwnState> {
 
     public render() {
         if (this.state.loading) {
-            return <Load text="Loading finances..." />
+            return <Load withBackground={true} />
         }
 
         const columns: ITableProps[] = [{

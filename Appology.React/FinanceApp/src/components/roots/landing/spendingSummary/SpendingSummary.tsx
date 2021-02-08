@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faChartPie, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { ISpendingSummary } from '../../../../models/ISpending';
-import { Load } from '../../../base/Loader';
+import { Load } from '@appology/react-components'
 import { ShowSecondCategorySpendingSummaryAction, FilterChangedAction } from '../../../../state/contexts/landing/Actions';
 import { IDateFilter } from 'src/models/IDateFilter';
 import { CategoryType } from 'src/enums/CategoryType';
@@ -56,7 +56,7 @@ export default class SpendingSummary extends React.Component<AllProps, IOwnState
 
     public render() {
         if (this.props.loading) {
-            return <Load text="Loading spending summary..." />
+            return <Load />
         }
 
         const chartRequest: IMonthComparisonChartRequest = {

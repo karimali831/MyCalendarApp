@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Load } from '../../../base/Loader';
+import { Load } from '@appology/react-components'
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { LoadNotificationsAction } from 'src/state/contexts/landing/Actions';
@@ -51,7 +51,7 @@ export default class Notifications extends React.Component<AllProps, IOwnState> 
         const { loading, notifications } = this.props;
 
         if (loading) {
-            return <Load text="Loading notifications..." />
+            return <Load />
         }
 
         if (this.state.loadingDeleted) {

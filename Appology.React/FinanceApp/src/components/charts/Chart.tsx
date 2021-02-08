@@ -11,7 +11,7 @@ import { ICategory } from 'src/models/ICategory';
 import { IFinance } from 'src/models/IFinance';
 import SelectionRefinementForChartCategories from './SelectionRefinementForChartCategories';
 import { CategoryType } from 'src/enums/CategoryType';
-import { Load } from '../base/Loader';
+import { Load } from '@appology/react-components'
 import Badge from 'react-bootstrap/Badge'
 import 'chartjs-plugin-datalabels';
 
@@ -99,7 +99,7 @@ export class Chart extends React.Component<IOwnProps, IOwnState> {
 		const summary = this.props.chartSummary;
 
 		if (this.state.loading) {
-            return <Load text="Loading..."/>
+            return <Load withBackground={true} />
         }
 
         return (

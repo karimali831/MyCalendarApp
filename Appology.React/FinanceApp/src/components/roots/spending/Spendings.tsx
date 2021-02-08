@@ -4,6 +4,7 @@ import { priceFormatter, boolHighlight } from '../../utils/Utils';
 import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
 import { LoadSpendingsAction } from 'src/state/contexts/spending/Actions';
+import { Load } from '@appology/react-components';
 
 
 export interface IPropsFromState {
@@ -66,12 +67,14 @@ const options: ITableOptions = {
 export const Spendings : React.SFC<AllProps> = (props) => (
     <>
         {
-          <Table 
-              table="Spendings"
-              data={props.spendings}
-              columns={columns}
-              options={options}
-          /> 
+          props.loading ?
+            <Load withBackground={true} /> :
+            <Table 
+                table="Spendings"
+                data={props.spendings}
+                columns={columns}
+                options={options}
+            /> 
         }
     </>
 )

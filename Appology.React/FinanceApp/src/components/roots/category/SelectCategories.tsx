@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Load } from 'src/components/base/Loader';
+import { Load } from '@appology/react-components'
 import { OnChangeSelectedCategoryAction, OnChangeSelectedSecondCategoryAction, LoadCategoriesAction } from 'src/state/contexts/common/Actions';
 import { CategoryType } from 'src/enums/CategoryType';
 import { ICategory } from 'src/models/ICategory';

@@ -3,7 +3,7 @@ import { IReminder } from '../../../models/IReminder';
 import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
 import { api } from 'src/Api/Api';
-import { Load } from 'src/components/base/Loader';
+import { Load } from '@appology/react-components'
 
 interface IOwnProps {
 }
@@ -32,7 +32,7 @@ export default class Reminders extends React.Component<IOwnProps, IOwnState> {
 
     public render() {
         if (this.state.loading) {
-            return <Load text="Loading reminders..." />
+            return <Load withBackground={true} />
         }
 
         const columns: ITableProps[] = [{

@@ -4,7 +4,7 @@ import * as moment from 'moment'
 import { IFinance } from '../../../models/IFinance';
 import { commonApi } from '../../../Api/CommonApi';
 import { api } from '../../../Api/Api';
-import { Load } from '../../base/Loader';
+import { Load } from '@appology/react-components'
 import { ISpendingDTO } from '../../../models/ISpending';
 import SelectionRefinementForSpendingCategories from './SelectionRefinementForSpendingCategories';
 import { appPathUrl } from 'src/components/utils/Utils';
@@ -60,7 +60,7 @@ class AddSpending extends React.Component<AllProps, IOwnState> {
         }
 
         if (loading) {
-            return <Load text="Loading..." />
+            return <Load  />
         }
 
         return (
