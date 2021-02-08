@@ -18,6 +18,7 @@ namespace Appology.ER.Repository
         Task<(Trip Trip, bool Status)> GetByOrderIdAsync(Guid orderId);
         Task<bool> TripExists(Guid tripId);
         Task<(Trip Trip, bool Status)> InsertOrUpdateAsync(Trip trip);
+        Task<bool> DeleteTripByOrderId(Guid orderId);
     }
 
     public class TripRepository : ITripRepository
@@ -54,6 +55,23 @@ namespace Appology.ER.Repository
                     string.IsNullOrEmpty(exp.Message);
                     return (null, false);
                 }
+            }
+        }
+
+        public async Task<bool> DeleteTripByOrderId(Guid orderId)
+        {
+            try
+            {
+                using var sql = dbConnectionFactory();
+                await sql.ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
+
+                return true;
+
+            }
+            catch (Exception exp)
+            {
+                string.IsNullOrEmpty(exp.Message);
+                return false;
             }
         }
 

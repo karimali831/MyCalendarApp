@@ -20,6 +20,7 @@ namespace Appology.ER.Repository
         Task<IEnumerable<Order>> GetAllAsync(Guid customerId);
         Task<bool> OrderExists(Guid orderId);
         Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip);
+        Task<bool> DeleteOrder(Guid orderId);
     }
 
     public class OrderRepository : IOrderRepository
@@ -123,7 +124,22 @@ namespace Appology.ER.Repository
                     return (null, null, false);
                 }
             }
-            
+        }
+
+        public async Task<bool> DeleteOrder(Guid orderId)
+        {
+            try
+            {
+                using var sql = dbConnectionFactory();
+                await sql.ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
+
+                return await tripRepository.DeleteTripByOrderId(orderId);
+            }
+            catch (Exception exp)
+            {
+                string.IsNullOrEmpty(exp.Message);
+                return false;
+            }
         }
     }
 }

@@ -5,8 +5,9 @@ import { IDefaultConfig } from "src/models/IDefaultConfig";
 import { IGoogleAutoCompleteSearch } from "src/models/IGoogleAutoComplete";
 import { INavigator } from "src/models/INavigator";
 import { ITripOverview } from "src/models/ITrip";
-import { defaultConfig, defaultNavigator } from "./Selectors";
+import { defaultConfig, defaultNavigator, defaultTimeout } from "./Selectors";
 import { Stakeholders } from "src/Enums/Stakeholders";
+import { Variant } from "@appology/react-components";
 
 export default interface ILandingState {
     config: IDefaultConfig,
@@ -22,7 +23,10 @@ export default interface ILandingState {
     pickupPlace?: IGoogleAutoCompleteSearch,
     selectedCustomer?: IStakeholder,
     selectedDriver?: IStakeholder,
-    selectedService?: IBaseModel
+    selectedService?: IBaseModel,
+    alertTxt: string,
+    alertVariant?: Variant,
+    alertTimeout?: number
 }
 
 export class LandingState {
@@ -38,6 +42,9 @@ export class LandingState {
         stakeholderLocation: undefined,
         pickupPlace: undefined,
         selectedCustomer: undefined,
-        selectedService: undefined
+        selectedService: undefined,
+        alertTxt: "",
+        alertVariant: Variant.Success,
+        alertTimeout: defaultTimeout
     }
 }

@@ -1,4 +1,4 @@
-import { Load, SelectElement, Variant } from '@appology/react-components';
+import { SelectElement  } from '@appology/react-components';
 import IBaseModel from '@appology/react-components/src/SelectionRefinement/IBaseModel';
 import * as React from 'react';
 import { api } from 'src/Api/Api';
@@ -8,21 +8,21 @@ import { Stakeholders } from 'src/Enums/Stakeholders';
 import { IGoogleMapMarker } from 'src/models/IGoogleMapMarker';
 import { IStakeholder } from 'src/models/IStakeholder';
 import { SelectedDriverAction } from 'src/state/contexts/landing/Actions';
-import Button from 'react-bootstrap/Button'
-import { FaShareSquare } from 'react-icons/fa';
+import { FaCreditCard  } from 'react-icons/fa';
 import { SaveOrderAction } from 'src/state/contexts/order/Actions';
-import { showAlert } from 'src/components/utils/Utils';
+import { SaveButton } from 'src/components/utils/ActionButtons';
+import { SaveStatus } from 'src/Enums/SaveStatus';
 
 export interface IPropsFromDispatch {
     selectedDriverAssigned: (stakeholder: IStakeholder | undefined) => SelectedDriverAction,
-    saveOrder: () => SaveOrderAction
+    saveOrder: (saved?: boolean) => SaveOrderAction
 }
 
 export interface IPropsFromState {
+    orderId?: string,
     pickupPlaceName: string,
     dropoffCustomerName: string,
-    loading: boolean,
-    orderSavedStatus?: boolean,
+    saveOrderStatus: SaveStatus,
     pickupLocation?: IGoogleGeoLocation,
     selectedDriver?: IStakeholder,
     selectedCustomer?: IStakeholder
@@ -62,15 +62,6 @@ export default class EmptyStateComponent extends React.Component<AllProps, IOwnS
     }
 
     public componentDidUpdate = (prevProps: AllProps, prevState: IOwnState) => {
-        if (this.props.orderSavedStatus !== undefined) {
-            if (this.props.orderSavedStatus) {
-                showAlert("Order successfully saved");
-            }
-            else{
-                showAlert("There was an issue with saving the order", Variant.Danger);
-            }
-        }
-
         if (this.props.selectedDriver !== undefined) {
             if (this.props.selectedDriver?.id !== prevProps.selectedDriver?.id) {
                 let newDriverRegistration : IGoogleMapMarker | undefined;
@@ -124,9 +115,12 @@ export default class EmptyStateComponent extends React.Component<AllProps, IOwnS
                 }
                 {
                     !this.props.registrationOn && this.props.selectedDriver !== undefined ?
-                        <Button disabled={this.props.loading} className="float-right"  variant="primary" onClick={this.props.saveOrder}>
-                            <FaShareSquare /> Save Order {this.props.loading ? <Load smallSize={true} /> : null}
-                        </Button>
+                        <SaveButton 
+                            style={{ float: "right" }} 
+                            value={this.props.orderId ? "Update & Checkout" : "Create & Checkout"}
+                            icon={<FaCreditCard />}
+                            saving={this.props.saveOrderStatus === SaveStatus.Processing} 
+                            onSaveClick={() => this.props.saveOrder()} />
                     : null
                 }
                 {

@@ -1,6 +1,7 @@
 import IStoreState from '../../../state/IStoreState';
 import { connect } from 'react-redux';
 import { Overview, IPropsFromState, IPropsFromDispatch } from './Overview';
+import { ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -15,7 +16,7 @@ const mapStateToProps =
 // Add required action creators for component
 const mapPropsFromDispatch: IPropsFromDispatch =
 {
-
+    handleAlert: ToggleAlertAction.creator
 };
 
 // This does the magic of subscribing to state changes and ensuring the wrapped

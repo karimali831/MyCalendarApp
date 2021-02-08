@@ -6,7 +6,6 @@ import { IOrderForm } from 'src/models/IOrder';
 import { IOrderOverview } from 'src/models/IOrder';
 import { ITripOverview } from 'src/models/ITrip';
 import { TripOverviewDetails } from '../trip/TripOverviewDetails';
-// import { TripOverviewMap } from '../trip/TripOverviewMap';
 
 interface IOwnProps {
     trip: ITripOverview,
@@ -19,21 +18,6 @@ interface IOwnProps {
 export const OrderOverview: React.FC<IOwnProps> = (props) => {
     return (
         <CardGroup>
-            {/* <Card>
-                <Card.Header>
-                    <FaMap /> <b>Map Directions</b>
-                </Card.Header>
-                <Card.Body>
-                    <Card.Text>
-                        <TripOverviewMap
-                            originPlaceId={props.trip.pickupId}
-                            destinationLat={props.trip.stakeholderLocation.lat}
-                            destinationLng={props.trip.stakeholderLocation.lng}
-                            width={300}
-                            height={200} />
-                    </Card.Text>
-                </Card.Body>
-            </Card> */}
             <Card>
                 <Card.Header>
                     <FaCar /> <b>Driver Trip</b>

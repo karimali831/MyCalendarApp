@@ -99,6 +99,14 @@ namespace Appology.Areas.ER.Controllers.API
             });
         }
 
+        [Route("deleteorder/{orderId}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> DeleteOrder(Guid orderId)
+        {
+            var order = await orderService.DeleteOrder(orderId);
+            return Request.CreateResponse(HttpStatusCode.OK, order);
+        }
+
         [Route("stakeholders/{stakeholderId}/{filter?}")]
         [HttpGet]
         public async Task<HttpResponseMessage> GetStakeholders(Stakeholders stakeholderId, string filter = null)

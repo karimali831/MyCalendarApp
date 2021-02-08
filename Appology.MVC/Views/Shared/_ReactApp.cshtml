@@ -1,8 +1,4 @@
-﻿@using System.Configuration
-@model string
-@{
-    var version = ConfigurationManager.AppSettings["AppVersion"];
-}
+﻿@model Appology.Website.ViewModels.ReactAppVM
 
 <div id="root"></div>
-@Scripts.Render($"~/Scripts/dist/{Model}/bundle.js?v={version}")
+@Scripts.Render($"~/Scripts/dist/{Model.App}/bundle.js?v={Model.Version}")

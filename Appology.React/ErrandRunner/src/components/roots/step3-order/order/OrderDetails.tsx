@@ -2,7 +2,7 @@ import Form from 'react-bootstrap/Form'
 import Table from 'react-bootstrap/Table'
 import * as React from 'react';
 import Button from 'react-bootstrap/Button'
-import { FaAngleDoubleRight, FaMinus, FaPlus } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaMinus, FaPlus, FaTrashAlt } from 'react-icons/fa';
 import InputGroup from 'react-bootstrap/InputGroup'
 import { OrderOverview } from './OrderOverview';
 import { IOrderForm } from 'src/models/IOrder';
@@ -10,11 +10,17 @@ import { IDefaultConfig } from 'src/models/IDefaultConfig';
 import { ITripOverview } from 'src/models/ITrip';
 import { SetDriverStep4Action, ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
 import { IOrderOverview } from 'src/models/IOrder';
+import { DeleteButton } from 'src/components/utils/ActionButtons';
+import { api } from 'src/Api/Api';
+import { Variant } from '@appology/react-components';
+import { ResetOrderAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 
 export interface IPropsFromDispatch {
     toggleConfig: () => ToggleConfigAction,
     updateOrder: (order: IOrderForm) => UpdateOrderAction,
-    setDriverStep4: () => SetDriverStep4Action
+    setDriverStep4: () => SetDriverStep4Action,
+    handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction,
+    resetOrder: () => ResetOrderAction
 }
 
 export interface IPropsFromState {
@@ -25,11 +31,20 @@ export interface IPropsFromState {
     pinSidebar: boolean
 }
 
-export interface IOwnState {}
+export interface IOwnState {
+    deleting: boolean
+}
 
 type AllProps = IPropsFromState & IPropsFromDispatch;
 
 export default class OrderDetails extends React.Component<AllProps, IOwnState> {
+
+    constructor(props: AllProps) {
+        super(props);
+        this.state = {
+            deleting: false
+        };
+    }
 
     public componentDidUpdate = (prevProps: AllProps, prevState: IOwnState) => {
         if (JSON.stringify(this.props.order.items.filter(i => i.qty)) !== JSON.stringify(prevProps.order.items.filter(i => i.qty))) {
@@ -66,7 +81,7 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                             this.props.order.items.map((x, i) => {
                                 return (
                                     <>
-                                        <tr>
+                                        <tr key={i}>
                                             <td>
                                                 <Form.Control 
                                                     autoFocus={i === 0}
@@ -109,10 +124,9 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                                                 </InputGroup>
                                             </td>
                                         </tr>
-                                        <tr>
-                                            {
-                                                this.props.order.items.length - 1 === i && 
-                                                <>
+                                        {
+                                            this.props.order.items.length - 1 === i && 
+                                                <tr key={i+1}>
                                                     <td colSpan={2}>
                                                         <Button variant="success" onClick={this.handleAddClick}>
                                                             <FaPlus /> Add Item
@@ -123,9 +137,9 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                                                             <FaAngleDoubleRight /> Assign Driver
                                                         </Button>
                                                     </td>
-                                                </>
-                                            }
-                                        </tr>
+                                                </tr>
+                                        }
+                                   
                                     </>
                                 );
                             })
@@ -143,8 +157,38 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                             toggleConfig={this.props.toggleConfig} />
                         : null
                 }
+
+                {
+                    this.props.order.orderId && 
+                        <DeleteButton 
+                            icon={<FaTrashAlt />}
+                            style={{ float: "right" }} 
+                            value="Delete Order" 
+                            deleting={this.state.deleting} 
+                            onDeleteClick={() => this.deleteOrder()} />
+                }
             </div>
         );
+    }
+
+    private deleteOrder = () => {
+        this.setState({ deleting: true })
+        
+        api.deleteOrder(this.props.order.orderId)
+            .then(status => this.deleteOrderSuccess(status))
+    }
+
+    private deleteOrderSuccess = (status: boolean) => {
+        this.setState({ deleting: false })
+
+        if (status) {
+            this.props.resetOrder();
+            this.props.handleAlert("Order successfully deleted")
+        }
+        else{
+            this.props.handleAlert("There was an issue deleting this order", Variant.Danger)
+        }
+
     }
 
     private orderFeeChange = () => {

@@ -1,8 +1,7 @@
-
+import IStoreState from '../../../../state/IStoreState';
 import { connect } from 'react-redux';
-import Navigator, { IPropsFromState, IPropsFromDispatch } from './Navigator';
-import IStoreState from 'src/state/IStoreState';
-import { SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import PickupLocation, { IPropsFromState, IPropsFromDispatch } from './PickupLocation';
+import { DistanceMatrixAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -10,17 +9,15 @@ import { SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landi
 // Map full state to state required for component
 const mapStateToProps =
     (state: IStoreState): IPropsFromState => ({
-        activeStep: state.landing.activeStep,
-        navigator: state.landing.navigator
+        customer: state.landing.selectedCustomer
     });
 
 // Add required action creators for component
 const mapPropsFromDispatch: IPropsFromDispatch =
 {
-    setActiveStep: SetActiveStepAction.creator,
-    handleAlert: ToggleAlertAction.creator
+    onStoreChange: DistanceMatrixAction.creator
 };
 
 // This does the magic of subscribing to state changes and ensuring the wrapped
 // stateless component gets all the properties it needs from the Redux state
-export default connect(mapStateToProps, mapPropsFromDispatch)(Navigator);
+export default connect(mapStateToProps, mapPropsFromDispatch)(PickupLocation);

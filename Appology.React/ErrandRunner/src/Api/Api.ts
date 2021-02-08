@@ -125,6 +125,25 @@ export class Api {
         .then(data => data as ISaveOrderResponse);
     }
 
+    public deleteOrder = async (orderId: string): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/deleteorder/${orderId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
+    }
+
     public paymentCharge = async (request: IPaymentChargeRequest): Promise<boolean> => {
         return fetch(`${this.rootUrl}/payment`, {
             method: "POST",

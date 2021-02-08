@@ -1,11 +1,11 @@
 
-import { call, put, select, takeLatest } from 'redux-saga/effects';
-import { OrderActionTypes, OrderOverviewAction, SaveOrderFailureAction, SaveOrderSuccessAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
+import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
+import { OrderActionTypes, OrderOverviewAction, ResetOrderAction, SaveOrderFailureAction, SaveOrderSuccessAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
 import { getOrderOverview, getOrderForm, getOrder, getTrip } from 'src/state/contexts/order/Selectors';
 import { IOrder, IOrderForm, IOrderOverview } from 'src/models/IOrder';
-import { ToggleDriverStep4Action, LandingActionTypes, SetActiveStepAction, UpdateTripAction, SelectedOrderEnableStepsAction, SelectedServiceAction, DistanceMatrixAction } from 'src/state/contexts/landing/Actions';
+import { ToggleDriverStep4Action, LandingActionTypes, SetActiveStepAction, UpdateTripAction, SelectedOrderEnableStepsAction, SelectedServiceAction, DistanceMatrixAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 import { IDefaultConfig } from 'src/models/IDefaultConfig';
-import { getConfig, getPickupGeometry, getSelectedCustomer, getSelectedDriver, getSelectedService, getTripOverview } from 'src/state/contexts/landing/Selectors';
+import { getAlertTimeout, getConfig, getPickupGeometry, getSelectedCustomer, getSelectedDriver, getSelectedService, getTripOverview } from 'src/state/contexts/landing/Selectors';
 import { ITrip, ITripOverview } from 'src/models/ITrip';
 import { IStakeholder } from 'src/models/IStakeholder';
 import IBaseModel from '@appology/react-components/src/SelectionRefinement/IBaseModel';
@@ -13,6 +13,7 @@ import { api, ISaveOrderRequest, ISaveOrderResponse } from 'src/Api/Api';
 import { ReportErrorAction } from 'src/state/contexts/error/Actions';
 import { IGoogleGeoLocation } from 'src/Api/GoogleApi';
 import { IGoogleAutoCompleteSearch } from 'src/models/IGoogleAutoComplete';
+import { Variant } from '@appology/react-components';
 
 export default function* orderApiSaga() {
     yield takeLatest(OrderActionTypes.UpdateOrder, updateOrderChange);
@@ -20,11 +21,19 @@ export default function* orderApiSaga() {
     yield takeLatest(LandingActionTypes.UpdateConfig, updateOrderChange);
     yield takeLatest(OrderActionTypes.SetDriverStep4, setDriverStep4);
     yield takeLatest(OrderActionTypes.SaveOrder, saveOrder);
-    yield takeLatest(OrderActionTypes.SelectedOrder, selectedOrder)
+    yield takeLatest(OrderActionTypes.SelectedOrder, selectedOrder);
+
+    // reset existing order if ResetOrder is yielded
+    yield takeLatest(LandingActionTypes.ResetOrder, resetOrder)
 }
 
 export function * setDriverStep4() {
     yield put(new SetActiveStepAction(3));
+}
+
+// When LandingActionType ResetOrder is called then yield OrderActionType ResetOrder
+export function* resetOrder() {
+    yield put(new ResetOrderAction());
 }
 
 export function* updateOrderChange() {
@@ -125,16 +134,27 @@ export function* saveOrder() {
         // Start the API call asynchronously
         const orderResult: ISaveOrderResponse = yield call(api.saveOrder, request);
 
+        // If creating order for first time set the order id in the order form to prevent repeating of order
+        orderForm.orderId = orderResult.order.orderId
+        yield put(new UpdateOrderAction(orderForm))
+
         // Create an action to dispatch on success with the returned entity from API
         const orderResultAction = new SaveOrderSuccessAction(orderResult.order, orderResult.trip);
 
         // Dispatch the new action with Redux
         yield put(orderResultAction);
+        yield put(new ToggleAlertAction("Order successfully saved"))
 
+        // go step 5
+        const alertTimeout : number = yield select(getAlertTimeout);
 
+        yield delay(alertTimeout);
+        yield put(new SetActiveStepAction(4));
+    
     } catch (e) {
 
         // Dispatch a failure action to Redux
+        yield put(new ToggleAlertAction("There was an issue with saving the order", Variant.Danger))
         yield put(new SaveOrderFailureAction(e.message));
         yield put(new ReportErrorAction(e.message));
         return;

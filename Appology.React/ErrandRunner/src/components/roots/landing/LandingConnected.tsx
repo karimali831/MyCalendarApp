@@ -1,8 +1,8 @@
 import IStoreState from '../../../state/IStoreState';
 import { connect } from 'react-redux';
 import Landing, { IPropsFromState, IPropsFromDispatch } from './Landing';
-import { ResetOrderAction, SelectedDriverAction, SelectedServiceAction, UpdateConfigAction } from 'src/state/contexts/landing/Actions';
-import { SelectedOrderAction } from 'src/state/contexts/order/Actions';
+import { ResetOrderAction, ToggleAlertAction, UpdateConfigAction } from 'src/state/contexts/landing/Actions';
+import { Variant } from '@appology/react-components';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -10,15 +10,14 @@ import { SelectedOrderAction } from 'src/state/contexts/order/Actions';
 // Map full state to state required for component
 const mapStateToProps =
     (state: IStoreState): IPropsFromState => ({
-        tripOverview: state.landing.tripOverview,
         selectedCustomer: state.landing.selectedCustomer,
-        selectedService: state.landing.selectedService,
+        selectedOrder: state.order.order,
         config: state.landing.config,
         pinSidebar: state.order.pinSidebar,
-        stakeholders: state.landing.stakeholders,
-        filter: state.landing.filter,
         step: state.landing.activeStep,
-        order: state.order.order
+        alertTxt: state.landing.alertTxt,
+        alertVariant: state.landing.alertVariant ?? Variant.Success,
+        alertTimeout: state.landing.alertTimeout
     });
 
 // Add required action creators for component
@@ -26,9 +25,7 @@ const mapPropsFromDispatch: IPropsFromDispatch =
 {
     updateConfig: UpdateConfigAction.creator,
     resetOrder: ResetOrderAction.creator,
-    selectedDriverChange: SelectedDriverAction.creator,
-    selectedOrderChange: SelectedOrderAction.creator,
-    selectedServiceChange: SelectedServiceAction.creator,
+    handleAlert: ToggleAlertAction.creator
 };
 
 // This does the magic of subscribing to state changes and ensuring the wrapped

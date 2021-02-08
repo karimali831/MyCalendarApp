@@ -6,7 +6,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "build:development": "env-cmd .env.development npm run build",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "node scripts/test.js --env=jsdom",
+    "analyze": "source-map-explorer '../../Appology.MVC/Scripts/dist/errandrunner/bundle.js'"
   },
   "repository": {
     "type": "git",
@@ -86,6 +87,7 @@
     "redux": "^4.0.5",
     "redux-saga": "^1.1.1",
     "route-parser": "0.0.5",
+    "source-map-explorer": "^2.5.2",
     "sw-precache-webpack-plugin": "^0.11.5",
     "ts-jest": "^24.3.0",
     "ts-loader": "^6.2.2",

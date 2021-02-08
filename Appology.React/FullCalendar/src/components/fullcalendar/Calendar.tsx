@@ -18,9 +18,8 @@ import { FaCheck } from 'react-icons/fa';
 import { EditEvent } from './EditEvent';
 import * as moment from 'moment';
 import { isMobile } from 'react-device-detect';
-import { strIsNullOrEmpty, Variant } from '@appology/react-components';
-import { UserAvatar } from './UserAvatar';
-
+import { strIsNullOrEmpty, Variant, UserAvatar } from '@appology/react-components';
+import { rootUrl } from '../utils/Utils';
 
 export interface IOwnProps {}
 
@@ -28,8 +27,6 @@ export interface IOwnState {
     loading: boolean,
     request: IEventRequest,
     pinSidebar: boolean,
-    retainSelected?: boolean,
-    retainSelection: boolean,
     alert: boolean,
     alertMsg: string,
     alertVariant?: Variant,
@@ -41,7 +38,9 @@ export interface IOwnState {
     userId: string,
     showAvatars: boolean,
     initialView: string,
-    userSelectedView?: string
+    initialNativeView: string,
+    userSelectedView?: string,
+    userSelectedNativeView?: string
 }
 
 export default class Calendar extends React.Component<IOwnProps, IOwnState> {
@@ -76,8 +75,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                 ]
             },
             pinSidebar: false,
-            retainSelected: undefined,
-            retainSelection: false,
             alert: false,
             alertMsg: "",
             alertVariant: undefined,
@@ -89,7 +86,9 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             userId: "",
             showAvatars: false,
             initialView: "",
-            userSelectedView: undefined
+            initialNativeView: "",
+            userSelectedView: undefined,
+            userSelectedNativeView: undefined
         };
     }
 
@@ -113,10 +112,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                 JSON.stringify(this.state.request.year) !== JSON.stringify(prevState.request.year)) {
                 this.getEvents();
             }
-        }
-
-        if (this.state.retainSelected !== prevState.retainSelected) {
-            this.saveRetainSelection();
         }
 
         if (this.state.alert !== prevState.alert) {
@@ -146,9 +141,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                     loading={this.state.loading} 
                     userId={this.state.userId} 
                     userCalendars={this.state.userCalendars}  
-                    retainSelection={this.state.retainSelection}
-                    retainSelected={this.retainSelected}
-                    retainView={this.retainView}
                     calendarSelected={this.calendarSelected} 
                     viewSelected={this.changeView}
                 />  
@@ -179,7 +171,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                         this.state.initialView !== "" ?
                             <FullCalendar
                                 plugins={[ dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, bootstrapPlugin]}
-                                initialView={this.state.initialView}
+                                initialView={isMobile ? this.state.initialNativeView : this.state.initialView}
                                 customButtons={{
                                     toggle: {
                                         icon: "fa fa fa-bars",
@@ -233,9 +225,9 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
 
         if(this.state.showAvatars && event) {
             if (isMobile) {
-                return <UserAvatar avatar={event.avatar} content={this.state.initialView === "dayGrid" ? maxContent : minContent} />
+                return <UserAvatar rootUrl={rootUrl} width={30} height={30} avatar={event.avatar} content={this.state.initialView === "dayGrid" ? maxContent : minContent} />
             } else {
-                return <UserAvatar avatar={event.avatar} content={maxContent} />
+                return <UserAvatar rootUrl={rootUrl} width={30} height={30} avatar={event.avatar} content={maxContent} />
             }
         } else {
             return maxContent;
@@ -320,27 +312,6 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
         }
     }
 
-    private retainSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({ 
-            loading: true,
-            retainSelected: e.target.checked, 
-            retainSelection: e.target.checked 
-        })
-    }
-
-    private retainView = (view: string) => {
-        this.setState({ loading: true })
-
-        api.retainView(view)
-            .then(r => this.showAlert("Default view successfully retained"))
-
-    }
-
-    private saveRetainSelection = () => {
-        api.retainSelection(!this.state.retainSelected ? null : this.state.selectedCalendarIds)
-            .then(s => this.showAlert("The calendars selected are now retained"));
-    }
-
     private showAlert = (msg: string, variant?: Variant) => {
         this.setState({ 
             loading: false,
@@ -380,7 +351,8 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
     }
 
     private eventsSuccess = (calendar: IEventResponse) => {
-        const view = strIsNullOrEmpty(calendar.retainView) ? "dayGridMonth" : calendar.retainView;
+        const view = strIsNullOrEmpty(calendar.defaultView) ? "dayGridMonth" : calendar.defaultView;
+        const nativeView = strIsNullOrEmpty(calendar.defaultNativeView) ? "dayGridMonth" : calendar.defaultNativeView;
    
         this.setState({ 
             loading: false,
@@ -388,10 +360,11 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             userCalendars: calendar.userCalendars,
             selectedCalendarIds: calendar.userCalendars.filter(o => o.selected).map(c=> c.id),
             userId: calendar.userId,
-            retainSelection: calendar.retainSelection,
             showAvatars: !isMobile ? true : (view === "listWeek" || view === "dayGrid") ? true : false,
-            userSelectedView: calendar.retainView,
-            initialView: view
+            userSelectedView: calendar.defaultView,
+            userSelectedNativeView: calendar.defaultNativeView,
+            initialView: view,
+            initialNativeView: nativeView
         })
 
     }

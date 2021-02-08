@@ -45,43 +45,6 @@ export class Api {
         .then(data => data as IUserTagResponse);
     }
 
-    public retainSelection = async (calendarIds: number[] | null): Promise<boolean> => {
-        return fetch(`${this.rootUrl}/retainselection`, {
-            method: "POST",
-            body: JSON.stringify(calendarIds),
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => data as boolean);
-    }
-
-    public retainView = async (view: string): Promise<boolean> => {
-        return fetch(`${this.rootUrl}/retainview/${view}`, {
-            method: "GET",
-            headers: {
-                "Accept": "application/json",
-                "Content-Type": "application/json"
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => data as boolean);
-    }
-
     public saveEvent = async (event: IEventDTO): Promise<IEvent> => {
         return fetch(`${this.rootUrl}/save`, {
             method: "POST",
@@ -153,8 +116,8 @@ export interface IEventResponse {
     userId: string,
     events: IEvent[],
     userCalendars: IUserCalendar[],
-    retainSelection: boolean,
-    retainView: string
+    defaultView: string,
+    defaultNativeView: string
 }
 
 export interface IUserTagResponse {

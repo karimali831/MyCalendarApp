@@ -5,6 +5,7 @@ import { IDefaultConfig } from "src/models/IDefaultConfig";
 import { IGoogleAutoCompleteSearch } from "src/models/IGoogleAutoComplete";
 import { ITripOverview } from "src/models/ITrip";
 import { Stakeholders } from "src/Enums/Stakeholders";
+import { Variant } from "@appology/react-components";
 
 // action types
 export class LandingActionTypes {
@@ -23,6 +24,7 @@ export class LandingActionTypes {
     public static readonly ResetOrder = "@@landing/resetorder";
     public static readonly ToggleDriverStep4 = "@@landing/toggledriverstep4";
     public static readonly SelectedOrderEnableSteps = "@@landing/seletedorderenablesteps";
+    public static readonly ShowAlert = "@@landing/showalert";
 }
 
 export class LoadStakeholdersAction {
@@ -33,6 +35,18 @@ export class LoadStakeholdersAction {
     constructor(
         public filter: string,
         public stakeholderId: Stakeholders
+    ) { }
+}
+
+export class ToggleAlertAction {
+    public static readonly creator = (text: string, variant?: Variant, timeout?: number) => new ToggleAlertAction(text, variant, timeout);
+
+    public readonly type = LandingActionTypes.ShowAlert;
+
+    constructor(
+        public text: string,
+        public variant?: Variant,
+        public timeout?: number
     ) { }
 }
 
@@ -187,4 +201,5 @@ export type LandingActions =
     DistanceMatrixFailureAction |
     ResetOrderAction |
     ToggleDriverStep4Action |
-    SelectedOrderEnableStepsAction
+    SelectedOrderEnableStepsAction |
+    ToggleAlertAction

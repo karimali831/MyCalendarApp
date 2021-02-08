@@ -1,17 +1,17 @@
-import { SelectionRefinement, ToggleSwitch } from '@appology/react-components';
+import { SelectionRefinement, ToggleSwitch, Variant } from '@appology/react-components';
 import * as React from 'react';
-import { showAlert } from 'src/components/utils/Utils';
 import { Stakeholders } from 'src/Enums/Stakeholders';
 import {  IStakeholder, IStakeholderSearch } from 'src/models/IStakeholder';
-import { SelectedCustomerAction, SelectedDriverAction } from 'src/state/contexts/landing/Actions';
-import DriverLocatorConnected from '../driverlocator/DriverLocatorConnected';
+import { SelectedCustomerAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import DriverLocatorConnected from '../step4-driver/DriverLocatorConnected';
 import RegistrationForm from './RegistrationForm';
 
 
 export interface IPropsFromDispatch {
     searchStakeholder: (filter: string, stakeholderId: Stakeholders) => void,
     selectedCustomerChange: (stakeholder: IStakeholder | undefined) => SelectedCustomerAction,
-    selectedDriverChange: (stakeholder: IStakeholder | undefined) => SelectedDriverAction
+    selectedDriverChange: (stakeholder: IStakeholder | undefined) => SelectedDriverAction,
+    handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction
 }
 
 export interface IPropsFromState {
@@ -123,7 +123,7 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
     }
 
     private customerRegistrationChange = (stakeholder: IStakeholderSearch) => {
-        showAlert("Customer registration successful");
+        this.props.handleAlert("Customer registration successful")
         this.selectedCustomer(stakeholder.stakeholder)
     }
 
@@ -146,7 +146,7 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
     }
 
     private driverRegistrationChange = (stakeholder: IStakeholderSearch) => {
-        showAlert("Driver registration successful");
+        this.props.handleAlert("Driver registration successful");
         this.selectedDriver(stakeholder.stakeholder)
     }
 }

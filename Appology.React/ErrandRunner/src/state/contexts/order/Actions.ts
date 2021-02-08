@@ -12,6 +12,7 @@ export class OrderActionTypes {
     public static readonly SaveOrderSuccess = "@@order/saveordersuccess";
     public static readonly SaveOrderFailure = "@@order/saveorderfailure";
     public static readonly SelectedOrder = "@@order/selectedorder";
+    public static readonly ResetOrder = "@@order/resetorder";
 }
 
 export class SetDriverStep4Action {
@@ -21,9 +22,13 @@ export class SetDriverStep4Action {
 }
 
 export class SaveOrderAction {
-    public static readonly creator = () => new SaveOrderAction();
+    public static readonly creator = (saved?: boolean) => new SaveOrderAction(saved);
 
     public readonly type = OrderActionTypes.SaveOrder
+
+    constructor(
+        public saved?: boolean
+    ) { }
 }
 
 export class SelectedOrderAction {
@@ -35,6 +40,12 @@ export class SelectedOrderAction {
         public order: IOrder | undefined,
         public trip: ITrip | undefined
     ) { }
+}
+
+export class ResetOrderAction {
+    public static readonly creator = () => new ResetOrderAction();
+
+    public readonly type = OrderActionTypes.ResetOrder;
 }
 
 // this action is called from OrderDetails when any order inputs are altered
@@ -98,4 +109,5 @@ export type OrderActions =
     SaveOrderAction |
     SaveOrderSuccessAction |
     SaveOrderFailureAction |
-    SelectedOrderAction
+    SelectedOrderAction |
+    ResetOrderAction

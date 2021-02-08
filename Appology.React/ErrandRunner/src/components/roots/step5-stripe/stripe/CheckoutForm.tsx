@@ -3,23 +3,21 @@ import { CardElement } from '@stripe/react-stripe-js';
 import { StripeElements, Stripe, StripeElementChangeEvent } from '@stripe/stripe-js';
 import * as React from 'react';
 import { IPaymentIntentRequest, IPaymentIntentResponse, stripeApi } from 'src/Api/StripeApi';
-import { showAlert } from 'src/components/utils/Utils';
+import { ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 
 export interface IOwnProps {
-    elements: StripeElements | null;
-    stripe: Stripe | null;
+    elements: StripeElements | null,
+    stripe: Stripe | null,
     orderId: string,
     invoice: number
+    handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction
 }
 
 export interface IOwnState {
     clientSecret: string,
     disabled: boolean,
-    error?: string,
-    succeeded: boolean,
     processing: boolean
 }
-
 
 export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
 
@@ -29,8 +27,6 @@ export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
         this.state = {
             clientSecret: "",
             disabled: true,
-            error: undefined,
-            succeeded: false,
             processing: false
         };
     }
@@ -40,7 +36,7 @@ export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
     }
 
     public render() {
-        const { processing, disabled, succeeded, error } = this.state;
+        const { processing, disabled } = this.state;
 
         const cardStyle = {
             style: {
@@ -63,39 +59,45 @@ export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
         return (
             <form id="payment-form" onSubmit={this.handleSubmit}>
                 <CardElement id="card-element" options={cardStyle} onChange={this.handleChange} />
-                <button disabled={processing || disabled || succeeded || error !== undefined} id="submit">
-                <span id="button-text">
-                    {processing ? <div className="spinner" id="spinner" />  : "Pay" }
-                </span>
+                <button disabled={processing || disabled} id="submit">
+                    <span id="button-text">
+                        {processing ? <div className="spinner" id="spinner" />  : "Pay" }
+                    </span>
                 </button>
-                { error && showAlert(error, Variant.Danger) }
-                { succeeded && showAlert("Payment successful") }
             </form>
         );
     }
 
     private handleChange = async (event: StripeElementChangeEvent) => {
-        this.setState({ 
-            disabled: event.empty,
-            error: event.error ? event.error.message : ""
-        })
+        this.setState({ disabled: event.empty })
+
+        if (event.error) {
+            this.props.handleAlert(event.error.message, Variant.Danger) 
+        }
     }
 
     private createPaymentIntent = () => {
-        const paymentIntentRequest : IPaymentIntentRequest = {
-            orderId: this.props.orderId,
-            invoice: this.props.invoice
-        }
+        if (this.props.orderId !== undefined) {
+            const paymentIntentRequest : IPaymentIntentRequest = {
+                orderId: this.props.orderId,
+                invoice: this.props.invoice
+            }
 
-        stripeApi.paymentIntent(paymentIntentRequest)
-            .then(r => this.createPaymentIntentSuccess(r))
+            stripeApi.paymentIntent(paymentIntentRequest)
+                .then(r => this.createPaymentIntentSuccess(r))
+
+        } 
+        else{
+            this.props.handleAlert("Invalid order", Variant.Danger) 
+        }
     }    
 
     private createPaymentIntentSuccess = (response: IPaymentIntentResponse) => {
-        this.setState({ 
-            clientSecret: response.clientSecret,
-            error: response.status ? undefined : "Error creating payment intent"
-         });
+        this.setState({ clientSecret: response.clientSecret });
+
+        if (!response.status) {
+            this.props.handleAlert("Error creating payment intent", Variant.Danger) 
+        }
     }
 
     private handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -122,17 +124,12 @@ export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
         });
 
         if (payload.error) {
-            this.setState({
-                error: `Payment failed ${payload.error.message}`,
-                processing: false
-            })
+            this.setState({ processing: false })
+            this.props.handleAlert(`Payment failed ${payload.error.message}`, Variant.Danger) 
         } 
         else{
-            this.setState({
-                error: undefined,
-                processing: false,
-                succeeded: true
-            })
+            this.setState({ processing: false })
+            this.props.handleAlert("Payment successful", Variant.Success) 
         }
     };
 }

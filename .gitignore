@@ -277,3 +277,5 @@ __pycache__/
 /MyCalendar.React/ErrandRunner/package-lock.json
 /Appology.MVC/Scripts/dist/finance/bundle.js
 /Appology.MVC/Scripts/dist/finance/bundle.js.map
+/Appology.React/FullCalendar/package-lock.json
+/Appology.React/ErrandRunner/package-lock.json

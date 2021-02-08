@@ -193,28 +193,7 @@ const LandingReducer: Reducer<ILandingsState, LandingActions> =
                                 } else {
                                     return { ...l }
                                 }
-                        }),
-                        orderForm: {
-                            items: [{
-                                name: "",
-                                qty: 1,
-                                cost: 0,
-                                total: 0,
-                                notes: ""
-                            }],
-                            orderValue: 0,
-                            orderFee: 0,
-                            totalItems: 1,
-                
-                        },
-                        orderOverview: {
-                            tripMiles: 0,
-                            deliveryFee: 0,
-                            serviceFee: 0,
-                            invoiceAmt: 0,
-                            netProfit: 0,
-                            driverFee: 0
-                        },
+                        })
                     }
                 }      
 
@@ -230,6 +209,16 @@ const LandingReducer: Reducer<ILandingsState, LandingActions> =
                         } as IStakeholderSearch))
                     }
                 }
+
+            case LandingActionTypes.ShowAlert:
+                return {
+                    ...state, ...{ 
+                        alertTxt: action.text,
+                        alertVariant: action.variant,
+                        alertTimeout: action.timeout
+                    }
+                }  
+
 
             default:
                 return state;

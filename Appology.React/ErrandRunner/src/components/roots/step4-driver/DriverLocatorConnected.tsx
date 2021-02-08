@@ -15,8 +15,8 @@ const mapStateToProps =
         pickupLocation: state.landing.pickupLocation,
         selectedDriver: state.landing.selectedDriver,
         selectedCustomer: state.landing.selectedCustomer,
-        loading: state.order.saveOrderLoading,
-        orderSavedStatus: state.order.saveOrderStatus
+        saveOrderStatus: state.order.saveOrderStatus,
+        orderId: state.order.orderForm.orderId
     });
 
 // Add required action creators for component

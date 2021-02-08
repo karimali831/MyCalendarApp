@@ -48,6 +48,12 @@ export const getConfig = (state: IStoreState) : IDefaultConfig => {
     return state.landing.config
 }
 
+export const getAlertTimeout = (state: IStoreState) : number => {
+    return state.landing.alertTimeout ?? defaultTimeout
+}
+
+export const defaultTimeout : number = 1200;
+
 export const defaultNavigator : INavigator[] = [
     {
         stepNo: 0,
@@ -56,7 +62,7 @@ export const defaultNavigator : INavigator[] = [
     }, 
     {
         stepNo: 1,
-        label: 'Service & Store', 
+        label: 'Service', 
         disabledMsg: "Select or register a customer first"
     },
     {

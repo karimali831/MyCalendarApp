@@ -11,6 +11,7 @@ namespace Appology.ER.Service
         Task<(Order Order, bool Status)> GetAsync(Guid orderId);
         Task<IEnumerable<Order>> GetAllAsync(Guid customerId);
         Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip);
+        Task<bool> DeleteOrder(Guid orderId);
     }
 
     public class OrderService : IOrderService
@@ -35,6 +36,11 @@ namespace Appology.ER.Service
         public async Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip)
         {
             return await orderRepository.InsertOrUpdateAsync(order, trip);
+        }
+
+        public async Task<bool> DeleteOrder(Guid orderId)
+        {
+            return await orderRepository.DeleteOrder(orderId);
         }
     }
 }

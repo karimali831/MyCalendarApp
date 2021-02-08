@@ -1,3 +1,4 @@
+import { SaveStatus } from 'src/Enums/SaveStatus';
 import { IOrder, IOrderForm, IOrderOverview } from 'src/models/IOrder';
 import { ITrip } from 'src/models/ITrip';
 
@@ -6,8 +7,7 @@ export default interface IOrderState {
     trip?: ITrip,
     orderForm: IOrderForm,
     orderOverview: IOrderOverview,
-    saveOrderLoading: boolean,
-    saveOrderStatus?: boolean,
+    saveOrderStatus: SaveStatus,
     pinSidebar: boolean
 }
 
@@ -36,8 +36,7 @@ export class OrderState {
             netProfit: 0,
             driverFee: 0
         },
-        saveOrderLoading: false,
-        saveOrderStatus: undefined,
+        saveOrderStatus: SaveStatus.Unprocessing,
         pinSidebar: false
     }
 }

@@ -2,11 +2,13 @@ import * as React from 'react';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
-import { SetActiveStepAction } from 'src/state/contexts/landing/Actions';
+import { SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 import { INavigator } from 'src/models/INavigator';
+import { Variant } from '@appology/react-components';
 
 export interface IPropsFromDispatch {
-    setActiveStep: (step: number) => SetActiveStepAction
+    setActiveStep: (step: number) => SetActiveStepAction,
+    handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction
 }
 
 export interface IPropsFromState {
@@ -41,7 +43,7 @@ export default class Navigator extends React.Component<AllProps, IOwnState> {
 
     private setStep = (idx: number) => {
         if (this.props.navigator[idx].disabledMsg !== "") {
-            alert(this.props.navigator[idx].disabledMsg);
+            this.props.handleAlert(this.props.navigator[idx].disabledMsg, Variant.Danger);
         }
         else{
             this.props.setActiveStep(idx);
