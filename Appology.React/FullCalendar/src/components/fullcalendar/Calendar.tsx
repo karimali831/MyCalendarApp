@@ -183,9 +183,9 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                                     },
                                 }}
                                 headerToolbar={{
-                                    left: "toggle,prev,next",
+                                    left: "toggle,avatars",
                                     center: "title",
-                                    right: "avatars"
+                                    right: "prev,next"
                                 }}
                                 views={{
                                     dayGridWeek: {
@@ -291,24 +291,54 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
 
     private datesSet = (dates: IEventDateSet) => {
         if (this.calendarRef.current !== null) {
-            const month = this.calendarRef.current.getApi().view.currentStart.getMonth() + 1;
-            const year = this.calendarRef.current.getApi().view.currentStart.getFullYear();
 
-            if (!this.state.request.month.includes(month)) {
-                this.setState({ 
-                    request: { ...this.state.request,    
-                        month: [...this.state.request.month, month]
-                    }
-                })
-            }
+            const startDate = this.calendarRef.current.getApi().view.currentStart;
 
-            if (!this.state.request.year.includes(year)) {
-                this.setState({ 
-                    request: { ...this.state.request,    
-                        year: [...this.state.request.year, year]
-                    }
-                })
-            }
+            const date1 = new Date(startDate.setMonth(startDate.getMonth()-1));
+            const date2 = new Date(startDate.setMonth(startDate.getMonth()+0));
+            const date3 = new Date(startDate.setMonth(startDate.getMonth()+1));
+
+            const months: number[] = [
+                this.actualMonth(date1.getMonth()+1), 
+                this.actualMonth(date2.getMonth()+1), 
+                this.actualMonth(date3.getMonth()+1)
+            ]
+
+
+            const years: number[] = [
+                date1.getFullYear(),
+                date2.getFullYear(),
+                date3.getFullYear()
+            ]
+
+            const distinctYears = years
+                .concat(this.state.request.year)
+                .filter((year, i, array) => array.indexOf(year) === i)
+                .sort((n1,n2) => n1 - n2);
+
+            const distinctMonths = months
+                .concat(this.state.request.month)
+                .filter((year, i, array) => array.indexOf(year) === i)
+                .sort((n1,n2) => n1 - n2);
+       
+            this.setState({ 
+                request: { ...this.state.request,    
+                    month: distinctMonths,
+                    year: distinctYears
+                }
+            })
+        }
+    }
+
+    private actualMonth = (month: number) => {
+        if (month === 0 ) {
+            return 12;
+        }
+        else if (month === 13) {
+            return 1;
+        }
+        else {
+            return month;
         }
     }
 

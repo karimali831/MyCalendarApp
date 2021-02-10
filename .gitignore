@@ -279,3 +279,7 @@ __pycache__/
 /Appology.MVC/Scripts/dist/finance/bundle.js.map
 /Appology.React/FullCalendar/package-lock.json
 /Appology.React/ErrandRunner/package-lock.json
+/Appology.React/FinanceApp/package-lock.json
+/Appology.MVC/Scripts/dist/fullcalendar/bundle.js
+/Appology.MVC/Scripts/dist/fullcalendar/bundle.js.map
+/Appology.React/FullCalendar/package-lock.json
