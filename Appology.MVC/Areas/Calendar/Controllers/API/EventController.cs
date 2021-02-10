@@ -29,7 +29,6 @@ namespace Appology.Areas.MiCalendar.Controllers.API
         private readonly IUserService userService;
         private readonly string rootUrl = ConfigurationManager.AppSettings["RootUrl"];
 
-
         public EventController(IEventService eventService, IUserService userService)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
@@ -147,24 +146,6 @@ namespace Appology.Areas.MiCalendar.Controllers.API
             }
         }
 
-        [Route("retainselection")]
-        [HttpPost]
-        public async Task<HttpResponseMessage> RetainCalendarSelection(int[] calendarIds)
-        {
-            var user = await GetUser();
-            var status = await userService.RetainCalendarSelection(calendarIds, user.UserID);
-            return Request.CreateResponse(HttpStatusCode.OK, status);
-        }
-
-        [Route("retainview/{view}")]
-        [HttpGet]
-        public async Task<HttpResponseMessage> RetainCalendarView(string view)
-        {
-            var user = await GetUser();
-            var status = await userService.RetainCalendarView(view, user.UserID);
-            return Request.CreateResponse(HttpStatusCode.OK, status);
-        }
-
         private IEnumerable<object> MapDTO(IEnumerable<Event> events, Guid userId)
         {
             return events.Select(x => new
@@ -179,10 +160,8 @@ namespace Appology.Areas.MiCalendar.Controllers.API
                 allDay = x.IsFullDay,
                 url = "",
                 classNames = "",
-                editable = false, // x.UserID == userId draggable or resizeable api not implemented
+                editable = false, 
                 backgroundColor = x.ThemeColor ?? "lightslategrey",
-                //display = x.UserID != userId ? "list-item" : "block",
-                //textColor = !string.IsNullOrEmpty(x.ThemeColor) ? Utils.ContrastColor(x.ThemeColor) : null,
                 // non standard props
                 calendarId = x.CalendarId,
                 userId = x.UserID,
@@ -205,21 +184,16 @@ namespace Appology.Areas.MiCalendar.Controllers.API
         {
             var user = await GetUser();
             var userCalendars = await userService.UserCalendars(user.UserID);
-
-            // retain selection checked
+   
+            // user has set calendar seleciton
             if (user.SelectedCalendarsList != null && user.SelectedCalendarsList.Any())
             {
                 request.CalendarIds = request.CalendarIds.Length > 0 ? request.CalendarIds : userCalendars
                     .Where(x => user.SelectedCalendarsList.Contains(x.Id))
                     .Select(x => x.Id)
                     .ToArray();
-
-                if (!Enumerable.SequenceEqual(user.SelectedCalendarsList, request.CalendarIds))
-                {
-                    await userService.RetainCalendarSelection(request.CalendarIds, user.UserID);
-                }
             }
-            // retain selection unchecked
+            // user not set calendar selection - get default
             else
             {
                 request.CalendarIds = request.CalendarIds.Length > 0 ? request.CalendarIds : new int[] { userCalendars
@@ -228,12 +202,13 @@ namespace Appology.Areas.MiCalendar.Controllers.API
                     .FirstOrDefault()
                 };
             }
-            
+
             var events = await eventService.GetAllAsync(user, request);
- 
-            return Request.CreateResponse(HttpStatusCode.OK, new { 
-                Events = MapDTO(events, user.UserID), 
-                UserCalendars = userCalendars.Select(x => new
+
+            return Request.CreateResponse(HttpStatusCode.OK, new {
+                userId = user.UserID,
+                events = MapDTO(events, user.UserID), 
+                userCalendars = userCalendars.Select(x => new
                 {
                     id = x.Id,
                     name = x.Name,
@@ -241,9 +216,8 @@ namespace Appology.Areas.MiCalendar.Controllers.API
                     invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
                     selected = request.CalendarIds.Contains(x.Id)
                 }),
-                retainSelection = user.SelectedCalendarsList != null && user.SelectedCalendarsList.Any(),
-                retainView = user.SelectedCalendarView,
-                UserId = user.UserID
+                defaultView = user.DefaultCalendarView,
+                defaultNativeView = user.DefaultNativeCalendarView
             });
         }
     }

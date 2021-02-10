@@ -1,4 +1,6 @@
-﻿using Appology.MiCalendar.DTOs;
+﻿using Appology.DTOs;
+using Appology.Enums;
+using Appology.MiCalendar.DTOs;
 using Appology.MiCalendar.Model;
 using Appology.MiCalendar.Repository;
 using System;
@@ -16,8 +18,8 @@ namespace Appology.MiCalendar.Service
         Task<IEnumerable<Types>> GetUserTypesAsync(Guid userId);
         Task<Types> GetAsync(int Id);
         Task<bool> UpdateTypeAsync(Types type);
-        Task<bool> AddTypeAsync(TypeDTO type);
-        Task<bool> DeleteTypeAsync(int Id);
+        Task<(bool Status, Types Calendar)> AddTypeAsync(TypeDTO type);
+        Task<(bool Status, string Msg)> DeleteTypeAsync(int Id, Guid userId);
         Task<bool> MoveTypeAsync(int Id, int? moveToId = null);
     }
 
@@ -34,7 +36,7 @@ namespace Appology.MiCalendar.Service
         {
             var result = new List<Types>();
             var userTypes = (await typeRepository.GetAllByUserIdAsync(userId)).Where(x => x.SuperTypeId == null);
-           
+            
             foreach (var userType in userTypes)
             {
                 userType.Children = await UserTagsTree(userId, userType);
@@ -82,14 +84,15 @@ namespace Appology.MiCalendar.Service
             return await typeRepository.UpdateTypeAsync(type);
         }
 
-        public async Task<bool> AddTypeAsync(TypeDTO type)
+        public async Task<(bool Status, Types Calendar)> AddTypeAsync(TypeDTO type)
         {
             return await typeRepository.AddTypeAsync(type);
         }
 
-        public async Task<bool> DeleteTypeAsync(int Id)
+        public async Task<(bool Status, string Msg)> DeleteTypeAsync(int Id, Guid userId)
         {
-            return await typeRepository.DeleteTypeAsync(Id);
+            var status = await typeRepository.DeleteTypeAsync(Id);
+            return (status, status ? "Deleted successfully" : "An error occured");
         }
 
         public async Task<bool> MoveTypeAsync(int Id, int? moveToId = null)

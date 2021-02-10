@@ -283,3 +283,9 @@ __pycache__/
 /Appology.MVC/Scripts/dist/fullcalendar/bundle.js
 /Appology.MVC/Scripts/dist/fullcalendar/bundle.js.map
 /Appology.React/FullCalendar/package-lock.json
+/Appology.MVC/Scripts/dist/errandrunner/bundle.js
+/Appology.MVC/Scripts/dist/errandrunner/bundle.js.map
+/Appology.MVC/Scripts/dist/profile/bundle.js
+/Appology.MVC/Scripts/dist/profile/bundle.js.map
+/Appology.React/ErrandRunner/package-lock.json
+/Appology.React/Profile/package-lock.json

@@ -21,6 +21,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.LoginSubmit, "/account/login"),
                 new KeyValuePair<Section, string>(Section.Home, "/home/index"),
                 new KeyValuePair<Section, string>(Section.Profile, "/settings/index"),
+                new KeyValuePair<Section, string>(Section.ProfileApp, "/settings/app"),
                 new KeyValuePair<Section, string>(Section.UpdateTags, "/settings/updatetags"),
                 new KeyValuePair<Section, string>(Section.UpdateAvatar, "/settings/updateavatar"),
                 new KeyValuePair<Section, string>(Section.UpdateType, "/settings/updatetype"),

@@ -18,6 +18,7 @@ namespace Appology.Enums
         CronofyProfiles,
         Document,
         Profile,
+        ProfileApp,
         UpdateTags,
         UpdateAvatar,
         AddType,

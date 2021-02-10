@@ -11,6 +11,8 @@ using Appology.MiCalendar.Model;
 using Appology.MiCalendar.Service;
 using Appology.MiCalendar.Repository;
 using Appology.MiCalendar.Enums;
+using Appology.DTOs;
+using Appology.MiCalendar.DTOs;
 
 namespace Appology.Service
 {
@@ -20,15 +22,18 @@ namespace Appology.Service
         Task<User> GetUser(string email = null, string password = null);
         Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
-        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId);
+        Task<bool> UpdateUserTagsAsync(IList<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
         Task<IList<User>> GetBuddys(Guid userId);
         Task<IEnumerable<Tag>> GetUserTags(Guid userId);
         Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false);
-        Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId);
-        Task<bool> RetainCalendarView(string view, Guid userId);
+        Task<bool> SaveUserInfo(UserInfoDTO dto);
+        Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto);
+        Task<(bool Status, Types UserType)> SaveUserType(UserTypeDTO dto);
+        Task<(bool Status, string Msg)> DeleteUserType(int Id, Guid userId);
+        Task<bool> GroupExistsInTag(int groupId);
     }
-    
+
     public class UserService : IUserService
     {
         private readonly IUserRepository userRepository;
@@ -38,9 +43,9 @@ namespace Appology.Service
         private readonly ITagRepository tagRepository;
 
         public UserService(
-            ITagService tagService, 
-            IUserRepository userRepository, 
-            ICronofyService cronofyService, 
+            ITagService tagService,
+            IUserRepository userRepository,
+            ICronofyService cronofyService,
             ITagRepository tagRepository,
             ITypeService typeService)
         {
@@ -105,7 +110,7 @@ namespace Appology.Service
             return await tagService.GetAsync(tagID);
         }
 
-        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userId)
+        public async Task<bool> UpdateUserTagsAsync(IList<Tag> tags, Guid userId)
         {
             if (tags.Any())
             {
@@ -136,13 +141,18 @@ namespace Appology.Service
             }
         }
 
-        public async Task<bool> RetainCalendarView(string view, Guid userId)
+        public async Task<bool> SaveUserInfo(UserInfoDTO dto)
         {
-            return await userRepository.RetainCalendarView(view, userId);
+            return await userRepository.SaveUserInfo(dto);
+        }
+
+        public async Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto)
+        {
+            return await userRepository.SaveCalendarSettings(dto);
         }
 
         public async Task<User> GetUser(string email = null, string password = null)
-        { 
+        {
             var user = await userRepository.GetAsync(email ?? SessionPersister.Email, password);
 
             if (user != null)
@@ -195,13 +205,47 @@ namespace Appology.Service
 
                 return userTags;
             }
- 
+
             return Enumerable.Empty<Tag>();
         }
 
-        public async Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId)
+        public async Task<(bool Status, Types UserType)> SaveUserType(UserTypeDTO dto)
         {
-            return await userRepository.RetainCalendarSelection(calendarIds, userId);
+            if (dto.Id.HasValue)
+            {
+                var userType = new Types
+                {
+                    Id = dto.Id.Value,
+                    GroupId = dto.GroupId,
+                    Name = dto.Name,
+                    InviteeIds = dto.InviteeIds,
+                    UserCreatedId = dto.UserCreatedId
+                };
+
+                var update = await typeService.UpdateTypeAsync(userType);
+
+                return (update, userType);
+            }
+            else
+            {
+                return await typeService.AddTypeAsync(new TypeDTO
+                {
+                    GroupId = dto.GroupId,
+                    Name = dto.Name,
+                    InviteeIds = dto.InviteeIds,
+                    UserCreatedId = dto.UserCreatedId
+                });
+            }
+        }
+
+        public async Task<(bool Status, string Msg)> DeleteUserType(int Id, Guid userId)
+        {
+            return await typeService.DeleteTypeAsync(Id, userId);
+        }
+
+        public async Task<bool> GroupExistsInTag(int groupId)
+        {
+            return await userRepository.GroupExistsInTag(groupId);
         }
     }
 }

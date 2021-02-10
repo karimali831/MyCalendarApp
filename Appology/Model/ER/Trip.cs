@@ -20,7 +20,8 @@ namespace Appology.ER.Model
         public string Duration { get; set; }
         public string DropOffAddress { get; set; }
         public string DropOffPostcode { get; set; }
-       
+        [DbIgnore]
+        public DateTime Created { get; set; }
         public DateTime? Modified { get; set; }
     }
 

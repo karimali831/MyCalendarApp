@@ -150,7 +150,12 @@
                                 <ul>
                                     <li>
                                         <a style="@(Model.MenuItem.Settings ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Profile)">
-                                            <i class="fas fa-user-edit"></i> Settings
+                                            <i class="fas fa-user-edit"></i> Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.Profile ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.ProfileApp)">
+                                            <i class="fas fa-user-edit"></i> Profile (NEW)
                                         </a>
                                     </li>
                                     <li>
@@ -182,7 +187,7 @@
         <div class="container">
             <hr />
             <footer>
-                <small>&copy; @DateTime.Now.Year - @AppName <a href="/home/changelog" class="float-right">v@(version) BETA</a></small>
+                <small>&copy; @DateTime.Now.Year - @AppName <a href="/home/changelog" class="float-right">v@(version)</a></small>
             </footer>
         </div>
     </div>

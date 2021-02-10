@@ -100,10 +100,6 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
                         }
                     </div>
                 </div>
-                <br />
-                <span style={{ float: "right", fontSize: "small", color: "grey" }}>
-                    Errand Runner Controller Order App <strong>v1.0.1</strong>
-                </span>
             </div>
         );
     }    

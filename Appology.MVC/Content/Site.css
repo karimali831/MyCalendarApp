@@ -198,3 +198,9 @@ textarea {
     border-radius: 3px/6px;
 }
 
+/* react app */
+.react-app-footer {
+    float: right;
+    font-size: small;
+    color: grey;
+}

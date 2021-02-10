@@ -13,7 +13,7 @@ namespace Appology.MiCalendar.Repository
     public interface ITagRepository
     {
         Task<Tag> GetAsync(Guid tagID);
-        Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID);
+        Task<bool> UpdateUserTagsAsync(IList<Tag> tags, Guid userID);
         Task<bool> UserTagExists(Guid Id);
         Task DeleteTagByIdAsync(Guid tagID);
         Task DeleteAllUserTagsAsync(Guid userID);
@@ -67,7 +67,7 @@ namespace Appology.MiCalendar.Repository
             }
         }
 
-        public async Task<bool> UpdateUserTagsAsync(IEnumerable<Tag> tags, Guid userID)
+        public async Task<bool> UpdateUserTagsAsync(IList<Tag> tags, Guid userID)
         {
             using (var sql = dbConnectionFactory())
             {

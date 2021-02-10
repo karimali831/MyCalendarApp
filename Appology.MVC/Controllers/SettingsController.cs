@@ -36,6 +36,12 @@ namespace Appology.Controllers
 
         }
 
+        public async Task<ActionResult> App()
+        {
+            await BaseViewModel(new MenuItem { Profile = true });
+            return View("Profile");
+        }
+
         public async Task<ActionResult> Index(Status? updateResponse = null, string updateMsg = "")
         {
             var menuItem = new MenuItem { Settings = true };
@@ -166,7 +172,8 @@ namespace Appology.Controllers
             }
             else
             {
-                status = await typeService.DeleteTypeAsync(Id)
+  
+                status = (await typeService.DeleteTypeAsync(Id, baseVM.User.UserID)).Status
                     ? (Status.Success, "Successfully deleted")
                     : (Status.Failed, "An error occured");
             }
@@ -189,7 +196,7 @@ namespace Appology.Controllers
                 UserCreatedId = dto.UserCreatedId
             };
 
-            status = await typeService.AddTypeAsync(insert)
+            status = (await typeService.AddTypeAsync(insert)).Status
                 ? (Status.Success, "Successfully added")
                 : (Status.Failed, "An error occured");
 

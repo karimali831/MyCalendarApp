@@ -2,13 +2,14 @@
 using DFM.Utils;
 using Appology.ER.Model;
 using Appology.Helpers;
-using Appology.Model;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Appology.Enums;
+using DFM.ExceptionHandling;
+using DFM.ExceptionHandling.Sentry;
+using System.Configuration;
 
 namespace Appology.ER.Repository
 {
@@ -24,12 +25,14 @@ namespace Appology.ER.Repository
     public class TripRepository : ITripRepository
     {
         private readonly Func<IDbConnection> dbConnectionFactory;
+        private readonly IExceptionHandlerService exceptionHandlerService;
         private static readonly string TABLE = Tables.Name(Table.Trips);
         private static readonly string[] FIELDS = typeof(Trip).DapperFields();
 
         public TripRepository(Func<IDbConnection> dbConnectionFactory)
         {
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
+            this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
         }
 
         public async Task<Trip> GetAsync(Guid tripId)
@@ -52,7 +55,7 @@ namespace Appology.ER.Repository
                 }
                 catch (Exception exp)
                 {
-                    string.IsNullOrEmpty(exp.Message);
+                    exceptionHandlerService.ReportException(exp).Submit();
                     return (null, false);
                 }
             }
@@ -70,7 +73,7 @@ namespace Appology.ER.Repository
             }
             catch (Exception exp)
             {
-                string.IsNullOrEmpty(exp.Message);
+                exceptionHandlerService.ReportException(exp).Submit();
                 return false;
             }
         }
@@ -105,7 +108,7 @@ namespace Appology.ER.Repository
                 }
                 catch (Exception exp)
                 {
-                    string.IsNullOrEmpty(exp.Message);
+                    exceptionHandlerService.ReportException(exp).Submit();
                     return (null, false);
                 }
             }

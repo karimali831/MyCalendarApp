@@ -2,9 +2,8 @@ import { takeLatest, call, select } from "redux-saga/effects";
 import { LOCATION_CHANGE } from "connected-react-router";
 import * as Route from 'route-parser';
 import { getLocation, getHash } from 'src/state/contexts/router/Selectors';
-import { rootUrl } from "src/components/utils/Utils";
-import { getFilter } from "src/state/contexts/landing/Selectors";
-import { loadDummy } from "./loadDummyApiSaga";
+import { appPathUrl, rootUrl } from "src/components/utils/Utils";
+// import { getUser } from "src/state/contexts/profile/Selectors";
 
 interface IRoute {
     route: string,
@@ -18,9 +17,9 @@ interface IIdParam {
 
 const routes: IRoute[] = [
     {
-        route: '/home',
+        route: `${appPathUrl}/profile`,
         action: function* (params: IIdParam) {
-            yield call(loadDummy, yield select(getFilter))
+            // yield call(getUser)
         }
     }
 ];

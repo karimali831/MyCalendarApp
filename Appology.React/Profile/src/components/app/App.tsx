@@ -5,7 +5,8 @@ import { Provider } from 'react-redux';
 import initialiseStore from '../../state/InitialiseStore';
 import { ConnectedRouter } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
-import LandingConnected  from '../roots/landing/LandingConnected';
+import { appPathUrl } from '../utils/Utils';
+import LandingConnected from '../roots/landing/LandingConnected';
 
 class App extends React.Component {
   private appElement: React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
@@ -19,8 +20,8 @@ class App extends React.Component {
             <div className="App" ref={this.appElement}>
               <Switch>
                   <Route exact={true} path="/" component={LandingConnected} />
-                  <Route exact={true} path="" component={LandingConnected} />
-                  <Route path="/home" component={LandingConnected} />
+                  <Route exact={true} path={appPathUrl}  component={LandingConnected} />
+                  <Route path={`${appPathUrl}/profile`} component={LandingConnected} />
               </Switch>
             </div>
         </ConnectedRouter>

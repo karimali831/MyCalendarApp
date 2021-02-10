@@ -379,6 +379,8 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\Calendar\CalendarAreaRegistration.cs" />
     <Compile Include="Areas\Calendar\CalendarModule.cs" />
+    <Compile Include="Controllers\API\ProfileController.cs" />
+    <Compile Include="ViewModels\ReactAppVM.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="Areas\ER\ErAreaRegistration.cs" />
     <Compile Include="Areas\ER\ErModule.cs" />
@@ -722,6 +724,7 @@
     <Content Include="Scripts\dist\errandrunner\bundle.js" />
     <Content Include="Scripts\dist\finance\bundle.js" />
     <Content Include="Scripts\dist\fullcalendar\bundle.js" />
+    <Content Include="Scripts\dist\profile\bundle.js" />
     <Content Include="Scripts\esm\popper-utils.js" />
     <Content Include="Scripts\esm\popper-utils.min.js" />
     <Content Include="Scripts\esm\popper.js" />
@@ -821,6 +824,7 @@
     <Content Include="Scripts\dist\errandrunner\bundle.js.map" />
     <Content Include="Scripts\dist\fullcalendar\bundle.js.map" />
     <Content Include="Scripts\dist\finance\bundle.js.map" />
+    <Content Include="Scripts\dist\profile\bundle.js.map" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
@@ -944,6 +948,7 @@
     <Content Include="Views\Shared\_Status.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Web.config" />
+    <Content Include="Views\Settings\Profile.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

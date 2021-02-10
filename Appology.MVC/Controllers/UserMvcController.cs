@@ -160,7 +160,7 @@ namespace Appology.Controllers
 
         public async Task<bool> UpdateUserTags(IEnumerable<Tag> tags, Guid userID)
         {
-            return await userService.UpdateUserTagsAsync(tags, userID);
+            return await userService.UpdateUserTagsAsync(tags.ToList(), userID);
         }
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)

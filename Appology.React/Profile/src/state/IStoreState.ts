@@ -1,4 +1,4 @@
-import ILandingState, { LandingState } from './contexts/landing/ILandingState';
+import IProfileState, { ProfileState } from './contexts/profile/IState';
 import { IRouteState, RouteState } from './contexts/router/IRouteState';
 
 
@@ -8,13 +8,13 @@ import { IRouteState, RouteState } from './contexts/router/IRouteState';
 
 export default interface IStoreState {
     router: IRouteState,
-    landing: ILandingState,
+    profile: IProfileState,
 }
 
 export class StoreState {
     public static readonly initialState: IStoreState = {
         router: RouteState.initialState,
-        landing: LandingState.intialState
+        profile: ProfileState.intialState
     };
 }
 

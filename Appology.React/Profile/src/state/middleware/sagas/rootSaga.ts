@@ -1,6 +1,6 @@
 
 import { all, fork } from 'redux-saga/effects';
-import loadStakeholdersApiSaga from './loadDummyApiSaga';
+import loadStakeholdersApiSaga from './loadUserApiSaga';
 import locationChangeSaga from './locationChangeSaga';
 
 // We `fork()` these tasks so they execute in the background.

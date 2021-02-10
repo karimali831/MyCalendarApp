@@ -1,4 +1,9 @@
 ﻿@model Appology.Website.ViewModels.ReactAppVM
 
 <div id="root"></div>
+<span class="react-app-footer">
+    @Model.Version
+</span>
+<br />
+
 @Scripts.Render($"~/Scripts/dist/{Model.App}/bundle.js?v={Model.Version}")

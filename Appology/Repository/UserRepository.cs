@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Appology.MiCalendar.Model;
 using Appology.Enums;
+using Appology.DTOs;
 
 namespace Appology.Repository
 {
@@ -21,9 +22,10 @@ namespace Appology.Repository
         Task<User> GetByUserIDAsync(Guid userID);
         User Get(string email);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
-        Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId);
         Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
-        Task<bool> RetainCalendarView(string view, Guid userId);
+        Task<bool> SaveUserInfo(UserInfoDTO dto);
+        Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto);
+        Task<bool> GroupExistsInTag(int groupId);
     }
 
     public class UserRepository : IUserRepository
@@ -31,7 +33,6 @@ namespace Appology.Repository
         private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Users);
         private static readonly string[] FIELDS = typeof(User).DapperFields();
-        private static readonly string[] TAGSFIELDS = typeof(Tag).DapperFields();
 
         public UserRepository(Func<IDbConnection> dbConnectionFactory)
         {
@@ -43,27 +44,62 @@ namespace Appology.Repository
             using (var sql = dbConnectionFactory())
             {
                 return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Email = @email {(password != null ? $"AND Password = '{password}'" : "")} ", new { email } ))
-                        .Select(x => new User
-                         {
-                             UserID = x.UserID,
-                             Password = x.Password,
-                             Name = x.Name,
-                             Email = x.Email,
-                             PhoneNumber = x.PhoneNumber,
-                             CronofyUid = x.CronofyUid,
-                             AccessToken = x.AccessToken,
-                             RefreshToken = x.RefreshToken,
-                             EnableCronofy = x.EnableCronofy,
-                             BuddyIds = x.BuddyIds,
-                             RoleIds = x.RoleIds,
-                             Avatar = x.Avatar,
-                             LastViewedDocId = x.LastViewedDocId,
-                             SelectedCalendars = x.SelectedCalendars,
-                             SelectedCalendarView = x.SelectedCalendarView,
-                             ExtCalendars = x.ExtCalendars,
-                             ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null,
-                         })
-                        .FirstOrDefault();
+                    .Select(x => new User
+                        {
+                            UserID = x.UserID,
+                            Password = x.Password,
+                            Name = x.Name,
+                            Email = x.Email,
+                            PhoneNumber = x.PhoneNumber,
+                            CronofyUid = x.CronofyUid,
+                            AccessToken = x.AccessToken,
+                            RefreshToken = x.RefreshToken,
+                            EnableCronofy = x.EnableCronofy,
+                            BuddyIds = x.BuddyIds,
+                            RoleIds = x.RoleIds,
+                            Avatar = x.Avatar,
+                            LastViewedDocId = x.LastViewedDocId,
+                            SelectedCalendars = x.SelectedCalendars,
+                            DefaultCalendarView = x.DefaultCalendarView,
+                            DefaultNativeCalendarView = x.DefaultNativeCalendarView,
+                            ExtCalendars = x.ExtCalendars,
+                            ExtCalendarRights = x.ExtCalendars != null ? JsonConvert.DeserializeObject<IEnumerable<ExtCalendarRights>>(x.ExtCalendars) : null,
+                        })
+                    .FirstOrDefault();
+            }
+        }
+
+        public async Task<bool> SaveUserInfo(UserInfoDTO dto)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, typeof(UserInfoDTO).DapperFields(), "")} WHERE UserID = @UserID", dto);
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
+            }
+        }
+
+        public async Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, typeof(CalendarSettingsDTO).DapperFields(), "")} WHERE UserID = @UserID", dto);
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
             }
         }
 
@@ -131,8 +167,8 @@ namespace Appology.Repository
                         user.Avatar,
                         user.LastViewedDocId,
                         user.SelectedCalendars,
-                        user.SelectedCalendarView,
-
+                        user.DefaultCalendarView,
+                        user.DefaultNativeCalendarView,
                         ExtCalendars = user.ExtCalendarRights.Any() ? JsonConvert.SerializeObject(user.ExtCalendarRights) : user.ExtCalendars
                     });
 
@@ -169,48 +205,6 @@ namespace Appology.Repository
             }
         }
 
-        public async Task<bool> RetainCalendarSelection(int[] calendarIds, Guid userId)
-        {
-            using var sql = dbConnectionFactory();
-            try
-            {
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET SelectedCalendars = @SelectedCalendars WHERE UserID = @UserId",
-                    new
-                    {
-                        SelectedCalendars = calendarIds != null && calendarIds.Any() ? string.Join(",", calendarIds) : null,
-                        UserId = userId
-                    });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                string.IsNullOrEmpty(exp.Message);
-                return false;
-            }
-        }
-
-        public async Task<bool> RetainCalendarView(string view, Guid userId)
-        {
-            using var sql = dbConnectionFactory();
-            try
-            {
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET SelectedCalendarView = @View WHERE UserID = @UserId",
-                    new
-                    {
-                        View = view,
-                        UserId = userId
-                    });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                string.IsNullOrEmpty(exp.Message);
-                return false;
-            }
-        }
-
         public async Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId)
         {
             using (var sql = dbConnectionFactory())
@@ -227,5 +221,14 @@ namespace Appology.Repository
                 }
             }
         }
+
+        public async Task<bool> GroupExistsInTag(int groupId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {Tables.Name(Table.Tags)} WHERE TypeId = @groupId", new { groupId });
+            }
+        }
+
     }
 }

@@ -27,7 +27,7 @@
                     </div>
                     <div class="form-group">
                         @Html.LabelFor(x => x.User.Password, "Login Password") <font color="red"><small>(changing this will log you out)</small></font>
-                        @Html.TextBoxFor(s => s.User.Password, new { @class = "form-control", @type = "number", @placeholder = "Password", @required = "required" })
+                        @Html.TextBoxFor(s => s.User.Password, new { @class = "form-control", @type = "number", @placeholder = "Password" })
                     </div>
                     <div class="form-group">
                         @Html.LabelFor(x => x.User.Email)
@@ -63,9 +63,9 @@
                             <input class="form-control" id="User_Avatar" name="User.Avatar" type="hidden" value="@Model.User.Avatar">
                         </div>
                         @*<span>Or create your own!</span>
-                            <div>
-                                <iframe src="https://avatares.info/#svga-start-overlay" width="100%" height="470" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
-                            </div>*@
+                <div>
+                    <iframe src="https://avatares.info/#svga-start-overlay" width="100%" height="470" frameborder="0" marginwidth="0" marginheight="0" scrolling="no"></iframe>
+                </div>*@
                     </div>
 
                     @Html.HiddenFor(x => x.User.UserID)
@@ -75,7 +75,8 @@
                     @Html.HiddenFor(x => x.User.ExtCalendars)
                     @Html.HiddenFor(x => x.User.RoleIds)
                     @Html.HiddenFor(x => x.User.SelectedCalendars)
-                    @Html.HiddenFor(x => x.User.SelectedCalendarView)
+                    @Html.HiddenFor(x => x.User.DefaultCalendarView)
+                    @Html.HiddenFor(x => x.User.DefaultNativeCalendarView)
                     @Html.HiddenFor(x => x.User.LastViewedDocId)
                     @Html.HiddenFor(x => x.User.BuddyIds)
                     <button type="submit" class="btn btn-primary">Update</button>

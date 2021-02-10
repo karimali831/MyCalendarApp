@@ -25,7 +25,8 @@ namespace Appology.Model
         public string RoleIds { get; set; }
         public string BuddyIds { get; set; }
         public string SelectedCalendars { get; set; }
-        public string SelectedCalendarView { get; set; }
+        public string DefaultCalendarView { get; set; }
+        public string DefaultNativeCalendarView { get; set; }
         public string Avatar { get; set; }
         public Guid? LastViewedDocId { get; set; }
         [DbIgnore]

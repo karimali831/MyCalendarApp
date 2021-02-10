@@ -17,7 +17,7 @@ namespace Appology.MiCalendar.Repository
         Task<IEnumerable<Types>> GetAllAsync();
         Task<Types> GetAsync(int Id);
         Task<bool> UpdateTypeAsync(Types type);
-        Task<bool> AddTypeAsync(TypeDTO type);
+        Task<(bool Status, Types Calendar)> AddTypeAsync(TypeDTO type);
         Task<bool> DeleteTypeAsync(int Id);
         Task<bool> MoveTypeAsync(int Id, int? moveToId = null);
     }
@@ -75,19 +75,21 @@ namespace Appology.MiCalendar.Repository
             }
         }
 
-        public async Task<bool> AddTypeAsync(TypeDTO type)
+        public async Task<(bool Status, Types Calendar)> AddTypeAsync(TypeDTO type)
         {
             using (var sql = dbConnectionFactory())
             {
                 try
                 {
-                    await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", type);
-                    return true;
+                    var id = await sql.QuerySingleAsync<int>($"{DapperHelper.INSERT(TABLE, DTOFIELDS)}; SELECT CAST(SCOPE_IDENTITY() as int)", type);
+                    var calendar = await GetAsync(id);
+
+                    return (true, await GetAsync(id));
                 }
                 catch (Exception exp)
                 {
                     string.IsNullOrEmpty(exp.Message);
-                    return false;
+                    return (false, null);
                 }
             }
         }
