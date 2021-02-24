@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+
 
 namespace Appology.Website.ViewModels
 {
@@ -9,6 +7,7 @@ namespace Appology.Website.ViewModels
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public string ErrorMsg { get; set; }
         public Guid? InviteeId { get; set; } 
     }
 }

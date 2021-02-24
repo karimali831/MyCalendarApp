@@ -20,14 +20,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.Login, "/account/index"),
                 new KeyValuePair<Section, string>(Section.LoginSubmit, "/account/login"),
                 new KeyValuePair<Section, string>(Section.Home, "/home/index"),
-                new KeyValuePair<Section, string>(Section.Profile, "/settings/index"),
-                new KeyValuePair<Section, string>(Section.ProfileApp, "/settings/app"),
-                new KeyValuePair<Section, string>(Section.UpdateTags, "/settings/updatetags"),
-                new KeyValuePair<Section, string>(Section.UpdateAvatar, "/settings/updateavatar"),
-                new KeyValuePair<Section, string>(Section.UpdateType, "/settings/updatetype"),
-                new KeyValuePair<Section, string>(Section.MoveType, "/settings/movetype"),
-                new KeyValuePair<Section, string>(Section.RemoveType, "/settings/removetype"),
-                new KeyValuePair<Section, string>(Section.AddType, "/settings/addtype"),
+                new KeyValuePair<Section, string>(Section.Profile, "/account/settings"),
                 new KeyValuePair<Section, string>(Section.Logout, "/account/logout"),
                 new KeyValuePair<Section, string>(Section.Invite, "/invite/user"),
                 new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove"),
@@ -37,7 +30,6 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/calendar/cronofy/profiles"),
                 new KeyValuePair<Section, string>(Section.Document, "/calendar/document/index"),
                 new KeyValuePair<Section, string>(Section.MoveDocument, "/calendar/document/move"),
-                new KeyValuePair<Section, string>(Section.DocumentFolderSelection, "/calendar/document/folderselection"),
                 // errand runner app
                 new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/order/new"),
                 // finance app
@@ -45,6 +37,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.FinanceCategories, "/finance/app/categories"),
                 new KeyValuePair<Section, string>(Section.FinanceSettings, "/finance/app/settings"),
                 new KeyValuePair<Section, string>(Section.Monzo, "/finance/Monzo/ApproveDataAccess"),
+                new KeyValuePair<Section, string>(Section.MonzoAuthenticate, "/finance/Monzo/Login")
             };
         }
 
@@ -68,7 +61,12 @@ namespace Appology.Helpers
         public static object Login(this UrlHelper helper, Guid? inviteeId = null)
         {
             var route = MvcRoute(helper, Section.Login);
-            return new { action = route.ActionName, controller = route.ControllerName, inviteeId};
+
+            return new { 
+                action = route.ActionName,
+                controller = route.ControllerName, 
+                inviteeId = inviteeId
+            };
         }
 
         public static object Home(this UrlHelper helper, Status? updateResponse = null, string updateMsg = null)
@@ -117,7 +115,8 @@ namespace Appology.Helpers
         {
             return new { 
                 action = MvcRoute(helper, Section.Invite).ActionName, 
-                controller = MvcRoute(helper, Section.Invite).ControllerName, id = inviteeId 
+                controller = MvcRoute(helper, Section.Invite).ControllerName, 
+                id = inviteeId 
             };
         }
     }

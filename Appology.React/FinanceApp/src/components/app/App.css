@@ -2,6 +2,7 @@
   padding: 6px;
   border-radius: 5px;
   background-image: url(../../assets/bg.jpg);
+  font-size: 14px;
 }
 
 a {
@@ -86,6 +87,10 @@ a {
     float: none;
     display: block;
     text-align: left;
+  }
+
+  .hidden-xs {
+    display: none
   }
 }
 

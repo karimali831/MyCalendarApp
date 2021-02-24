@@ -67,12 +67,12 @@ namespace Appology.MiCalendar.Service
 
         public async Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId)
         {
-            return (await typeService.GetUserTypesAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
+            return await typeService.GetUserTypesAsync(userId, TypeGroup.Calendars);
         }
 
         public async Task<IEnumerable<Types>> GetUserCalendars(Guid userId)
         {
-            return (await typeService.GetAllByUserIdAsync(userId)).Where(x => x.GroupId == TypeGroup.Calendars);
+            return await typeService.GetAllByUserIdAsync(userId, TypeGroup.Calendars);
         }
 
         public async Task<string> GetLastStoredAlarm(Guid tagId)

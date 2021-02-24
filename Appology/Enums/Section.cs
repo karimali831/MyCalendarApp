@@ -18,21 +18,14 @@ namespace Appology.Enums
         CronofyProfiles,
         Document,
         Profile,
-        ProfileApp,
-        UpdateTags,
-        UpdateAvatar,
-        AddType,
-        UpdateType,
-        RemoveType,
-        MoveType,
         MoveDocument,
-        DocumentFolderSelection,
         Logout,
         ErrandRunnerNewOrder,
         // Finance
         FinanceApp,
         FinanceCategories,
         FinanceSettings,
-        Monzo
+        Monzo,
+        MonzoAuthenticate
     }
 }

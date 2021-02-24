@@ -19,6 +19,7 @@ namespace Appology.MiFinance.Enums
         Flex = 1147,
         SavingsPot, // of type income
         Savings, // of type spending,
-        MonzoTransaction = 2151
+        MonzoTransaction = 2151,
+        Deliveroo = 2172
     }
 }

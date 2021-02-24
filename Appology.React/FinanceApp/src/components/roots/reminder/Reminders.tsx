@@ -4,6 +4,7 @@ import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
 import { api } from 'src/Api/Api';
 import { Load } from '@appology/react-components'
+import { TableRef } from 'src/enums/TableRef';
 
 interface IOwnProps {
 }
@@ -16,7 +17,7 @@ export interface IOwnState {
 export interface IPropsFromDispatch {}
 
 export default class Reminders extends React.Component<IOwnProps, IOwnState> {
-    private tableName = "Reminders";
+    private tableName = TableRef.Reminders;
     
     constructor(props: IOwnProps) {
         super(props);

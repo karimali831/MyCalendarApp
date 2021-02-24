@@ -62,13 +62,13 @@ export const defaultNavigator : INavigator[] = [
     }, 
     {
         stepNo: 1,
-        label: 'Service', 
+        label: 'Order', 
         disabledMsg: "Select or register a customer first"
     },
     {
         stepNo: 2,
-        label: 'Order', 
-        disabledMsg: "Select a service and store first"
+        label: 'Items', 
+        disabledMsg: "Select an existing or new order first"
     }, 
     {
         stepNo: 3,

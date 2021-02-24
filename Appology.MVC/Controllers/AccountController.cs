@@ -1,9 +1,7 @@
-﻿using Appology.Controllers;
+﻿using Appology.Enums;
 using Appology.Helpers;
-using Appology.Model;
 using Appology.Security;
 using Appology.Service;
-using Appology.Website.Areas.MiFinance.ViewModels;
 using Appology.Website.ViewModels;
 using System;
 using System.Threading.Tasks;
@@ -20,47 +18,64 @@ namespace Appology.Controllers
         {
         }
 
-        [Route("Account/Index/{inviteeId?}")]
-        public ActionResult Index(Guid? inviteeId = null)
+        [Route("Account/Index/{inviteeId?}/{errorMsg?}")]
+        public ActionResult Index(Guid? inviteeId = null, string errorMsg = null)
         {
-            TempData["InviteeId"] = inviteeId;
-            return View(new LoginViewModel());
+            return View(new LoginViewModel{ 
+                InviteeId = inviteeId, 
+                ErrorMsg = errorMsg 
+            } );
         }
 
-        //[ValidateAntiForgeryToken()]
-        //[HttpPost]
-        //public async Task<ActionResult> Register()
-        //{ 
 
-        //}
-
-
-        [ValidateAntiForgeryToken()]
-        [HttpPost]
-        public async Task<ActionResult> Login(LoginViewModel model)
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(string email, string password, Guid? inviteeId = null)
         {
+            string redirectUrl = "";
 
-            if (string.IsNullOrEmpty(model.Email) ||
-                string.IsNullOrEmpty(model.Password) ||
-                await GetUser(model.Email, model.Password) == null)
+            if (string.IsNullOrEmpty(email) ||
+                string.IsNullOrEmpty(password) ||
+                await GetUser(email, password) == null)
             {
-                TempData["ErrorMsg"] = "Login failed";
-                return Json(new { status = false, url = Url.Login(model.InviteeId) });
+                redirectUrl = Url.MvcRouteUrl(Section.Login) + $"?inviteeId={inviteeId}&errorMsg=Login failed";
             }
-            SessionPersister.Email = model.Email;
-        
-            if (model.InviteeId.HasValue)
+            else
             {
-                return Json(new { status = true, url = Url.Invite(model.InviteeId.Value) });
+                SessionPersister.Email = email;
+
+                if (inviteeId.HasValue)
+                {
+                    var (UpdateResponse, UpdateMsg) = await AddBuddy(email, inviteeId.Value);
+                    redirectUrl = Url.MvcRouteUrl(Section.Home) + $"?updateResponse={UpdateResponse}&updateMsg={UpdateMsg}";
+                }
+                else
+                {
+                    redirectUrl = Url.MvcRouteUrl(Section.Home);
+                }
             }
 
-            return Json(new { status = true, url = Url.Home() });
+            return Json(new { url = redirectUrl });
+
+            //return new JsonResult
+            //{
+            //    Data = new
+            //    {
+            //        status = response.Status,
+            //        url = response.RedirectUrl
+            //    }
+            //};
         }
 
         public ActionResult Logout()
         {
             SessionPersister.Email = string.Empty;
             return RedirectToRoute(Url.Login());
+        }
+
+        public async Task<ActionResult> Settings()
+        {
+            await BaseViewModel(new MenuItem { Settings = true });
+            return View();
         }
     }
 }

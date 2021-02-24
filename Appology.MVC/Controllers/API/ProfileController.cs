@@ -5,10 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
-using System.Web.Http.Cors;
 using Appology.DTOs;
 using Appology.Enums;
+using Appology.Helpers;
 using Appology.MiCalendar.Helpers;
 using Appology.MiCalendar.Model;
 using Appology.MiCalendar.Service;
@@ -18,12 +19,12 @@ using Appology.Service;
 namespace Appology.Controllers.Api
 {
     [RoutePrefix("api/profile")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class ProfileController : ApiController
     {
         private readonly IUserService userService;
         private readonly ITypeService typeService;
+        private readonly IDocumentService documentService;
         private readonly IEventService eventService;
         private readonly IFeatureRoleService featureRoleService;
         private readonly string rootUrl = ConfigurationManager.AppSettings["RootUrl"];
@@ -32,11 +33,13 @@ namespace Appology.Controllers.Api
             IUserService userService, 
             ITypeService typeService, 
             IEventService eventService,
+            IDocumentService documentService,
             IFeatureRoleService featureRoleService)
         {
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
             this.featureRoleService = featureRoleService ?? throw new ArgumentNullException(nameof(featureRoleService));
         }
 
@@ -57,24 +60,15 @@ namespace Appology.Controllers.Api
             var userTypes = await typeService.GetAllByUserIdAsync(user.UserID);
             var groups = await featureRoleService.GetGroupsAsync();
 
-            object types(IEnumerable<Types> t) => t.Select(x => new
-            {
-                x.Id,
-                x.UserCreatedId,
-                x.Name,
-                invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
-                x.InviteeIdsList,
-                selected = user.SelectedCalendarsList.Contains(x.Id),
-                x.GroupId
-            });
-
+            var url = new System.Web.Mvc.UrlHelper(HttpContext.Current.Request.RequestContext);
 
             return Request.CreateResponse(HttpStatusCode.OK, new { 
                 status = user != null,
                 groups = groups.Select(x => new
                 {
                     x.Id,
-                    x.InviteDescription
+                    x.InviteDescription,
+                    x.Nodes
                 }),
                 user = new 
                 {
@@ -86,12 +80,14 @@ namespace Appology.Controllers.Api
                         user.Email
                     },
                     avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
-                    userCalendars = types(userCalendars),
-                    userTypes = types(userTypes),
+                    userCalendars = GetUserTypes(user, userCalendars),
+                    userTypes = GetUserTypes(user, userTypes),
+                    inviterShareLink = url.InviterShareLink(user.UserID),
                     userBuddys = userBuddys.Select(x => new
                     {
                         x.UserID,
-                        x.Name
+                        x.Name,
+                        avatar = CalendarUtils.AvatarSrc(x.UserID, x.Avatar, x.Name)
                     }),
                     userTags = userTags.Select(x => new
                     {
@@ -108,6 +104,86 @@ namespace Appology.Controllers.Api
                         user.SelectedCalendars
                     }
                 }
+            });
+        }
+
+        private object GetUserTypes(User user, IEnumerable<Types> userTypes)
+        {
+            object types(IEnumerable<Types> t) => t.Select(x => new
+            {
+                key = x.Id,
+                x.UserCreatedId,
+                title = x.Name,
+                invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
+                x.InviteeIdsList,
+                selected = user.SelectedCalendarsList.Contains(x.Id),
+                x.GroupId,
+                x.SuperTypeId,
+                isLeaf = x.Children == null || !x.Children.Any(),
+                children = x.Children != null && x.Children.Any() ? types(x.Children) : null
+            });
+
+            return types(userTypes);
+        }
+
+        [Route("removeuserbuddy/{buddyId}/{existConfirm}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> RemoveUserBuddy(Guid buddyId, bool existConfirm)
+        {
+            (Variant Variant, string Message) response = (Variant.Light, "");
+            var user = await GetUser();
+            var removee = await userService.GetByUserIDAsync(buddyId);
+
+            var removeeBuddys = await userService.GetBuddys(removee.UserID);
+            var userBuddys = await userService.GetBuddys(user.UserID);
+
+            var userTypes = (await typeService.GetAllUserTypesAsync(user.UserID)).Where(x => x.InviteeIdsList.Contains(buddyId));
+            var removeeTypes = (await typeService.GetAllUserTypesAsync(removee.UserID)).Where(x => x.InviteeIdsList.Contains(user.UserID));
+
+            if (!existConfirm)
+            {
+                if (userTypes.Any() || removeeTypes.Any())
+                {
+                    response = (Variant.Warning, $"You will no longer be able to participate in the current sharing activities with {removee.Name}. Remove this buddy anyway?");
+                }
+                else
+                {
+                    response = (Variant.Primary, $"Are you sure you want to remove this buddy?");
+                }
+
+            }
+            else if ((!userTypes.Any() && !removeeTypes.Any()) || existConfirm)
+            {
+                var updUserBuddys = string.Join(",", userBuddys
+                    .Where(x => x.UserID != buddyId)
+                    .Select(x => x.UserID)) ?? null;
+
+                var updRemoveBuddys = string.Join(",", removeeBuddys
+                    .Where(x => x.UserID != user.UserID)
+                    .Select(x => x.UserID)) ?? null;
+
+
+                var updateUserTypes = string.Join(",", userTypes
+                    .Where(x => x.UserCreatedId != buddyId)
+                    .Select(x => x.UserCreatedId)) ?? null;
+
+
+                var updateRemoveeTypes = string.Join(",", removeeTypes
+                    .Where(x => x.UserCreatedId != user.UserID)
+                    .Select(x => x.UserCreatedId)) ?? null;
+
+                var updateUserRemovee = await userService.UpdateBuddys(updRemoveBuddys, buddyId);
+                var updateUserRemover = await userService.UpdateBuddys(updUserBuddys, user.UserID);
+                var updateTypesRemovee = await typeService.UpdateInvitees(updateRemoveeTypes, buddyId);
+                var updateTypesRemover = await typeService.UpdateInvitees(updateUserTypes, user.UserID);
+
+                response = (Variant.Success, $"You and {removee.Name} are no longer buddys");
+            }
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                responseVariant = response.Variant,
+                responseMsg = response.Message
             });
         }
 
@@ -144,11 +220,11 @@ namespace Appology.Controllers.Api
             return Request.CreateResponse(HttpStatusCode.OK, status);
         }
 
-        [Route("deleteusertype/{Id}")]
+        [Route("deleteusertype/{Id}/{groupId}")]
         [HttpGet]
-        public async Task<HttpResponseMessage> DeleteUserType(int Id)
+        public async Task<HttpResponseMessage> DeleteUserType(int Id, TypeGroup groupId)
         {
-            (bool status, string Message) response = (false, "");
+            (bool status, string Message) response = (true, "");
             var user = await GetUser();
 
             var type = await typeService.GetAsync(Id);
@@ -159,21 +235,64 @@ namespace Appology.Controllers.Api
             }
             else if (type.GroupId == TypeGroup.Calendars && await eventService.EventExistsInCalendar(Id))
             {
-                response = (false, "Cannot remove because events exist in this Calendar - remove associated events or change the tag in these events");
+                response = (false, "Events exist in this calendar");
             }
             else if (type.GroupId == TypeGroup.TagGroups && await userService.GroupExistsInTag(Id))
             {
-                response = (false, "Cannot remove because this group exists in tags - remove associatd tags or change the group in these tags");
+                response = (false, "Event tags exist in this tag group");
+            }
+            else if (type.GroupId == TypeGroup.DocumentFolders)
+            {
+  
+                if (await documentService.DocumentsExistsInGroup(Id))
+                {
+                    response = (false, "Documents exist in this folder");
+                }
+                else
+                {
+                    var exists = new List<bool>() { false };
+                    var subTypeIds = await typeService.GetAllIdsByParentTypeIdAsync(Id);
+
+                    if (subTypeIds != null && subTypeIds.Any())
+                    {
+                        foreach (var subTypeId in subTypeIds)
+                        {
+                            exists.Add(await documentService.DocumentsExistsInGroup(subTypeId));
+                        }
+
+                    }
+
+                    if (exists.All(x => !x))
+                    {
+                        if (subTypeIds != null && subTypeIds.Any())
+                        {
+                            foreach (var subTypeId in subTypeIds)
+                            {
+                                await userService.DeleteUserType(subTypeId, user.UserID);
+                            }
+                        }
+
+                        response = await userService.DeleteUserType(Id, user.UserID);
+                    }
+                    else
+                    {
+                        response = (false, "Documents exist in sub-folders");
+                    }
+                }
             }
             else
-            {
+            { 
                 response = await userService.DeleteUserType(Id, user.UserID);
             }
+            
 
+            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, groupId);
+    
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
                 response.status,
-                response.Message
+                responseMsg = response.Message,
+                userTypes = GetUserTypes(user, userTypes)
             });
         }
 
@@ -185,19 +304,31 @@ namespace Appology.Controllers.Api
             dto.UserCreatedId= user.UserID;
 
             var response = await userService.SaveUserType(dto);
+            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, dto.GroupId);
 
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
-                type = !response.Status ? null : new 
-                {
-                    response.UserType.Id,
-                    response.UserType.Name,
-                    response.UserType.UserCreatedId,
-                    invitee = user.UserID != response.UserType.UserCreatedId ? response.UserType.InviteeName : null,
-                    response.UserType.InviteeIdsList,
-                    selected = user.SelectedCalendarsList.Contains(response.UserType.Id),
-                    response.UserType.GroupId
-                }
+                status = response.Status,
+                responseMsg = response.Status ? "Successfully saved" : "An error occured",
+                userTypes = GetUserTypes(user, userTypes)
+            });
+        }
+
+        [Route("moveusertype/{id}/{groupId}/{superTypeId?}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> MoveUserType(int id, TypeGroup groupId, int? superTypeId)
+        {
+            var user = await GetUser();
+            var status = await typeService.MoveTypeAsync(id, superTypeId);
+            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, groupId);
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                status,
+                responseMsg = status ? 
+                    "Folder successfully moved" : 
+                    "There was an issue with moving the folder",
+                userTypes = GetUserTypes(user, userTypes)
             });
         }
     }

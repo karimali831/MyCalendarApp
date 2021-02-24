@@ -6,6 +6,7 @@ export default interface IProfileState {
     user?: IUser,
     groups: IGroup[],
     loading: boolean,
+    confirmAction: boolean,
     activeMenuTab: MenuTabs
 }
 
@@ -14,6 +15,7 @@ export class ProfileState {
         user: undefined,
         loading: false,
         activeMenuTab: MenuTabs.ProfileInfo,
-        groups: []
+        groups: [],
+        confirmAction: false
     }
 }

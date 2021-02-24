@@ -169,6 +169,8 @@
     <Compile Include="DTOs\Finance\SpendingDTO.cs" />
     <Compile Include="DTOs\Finance\SpendingSummaryDTO.cs" />
     <Compile Include="DTOs\ProfileDTO.cs" />
+    <Compile Include="Enums\Finance\MonzoTransactionStatus.cs" />
+    <Compile Include="Enums\Variant.cs" />
     <Compile Include="Enums\Tables.cs" />
     <Compile Include="Enums\Category.cs" />
     <Compile Include="Enums\Calendar\CronofyStatus.cs" />

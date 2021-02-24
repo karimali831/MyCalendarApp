@@ -3,6 +3,8 @@ import { ICalendarSettings, IUser, IUserInfo } from 'src/models/IUser';
 import { IUserType, IUserTypeDTO } from 'src/models/IUserType';
 import { IUserTag } from 'src/models/IUserTag';
 import { IGroup } from 'src/models/IGroup';
+import { TypeGroup } from 'src/Enums/TypeGroup';
+import { Variant } from '@appology/react-components';
 
 export class Api {
     public rootUrl: string = `${rootUrl}/api/profile`;
@@ -66,7 +68,7 @@ export class Api {
         .then(data => data as boolean);
     }
 
-    public saveUserType = async (model: IUserTypeDTO): Promise<ISaveTypeResponse> => {
+    public saveUserType = async (model: IUserTypeDTO): Promise<ITypeChangeResponse> => {
         return fetch(`${this.rootUrl}/saveusertype`, {
             method: "POST",
             body: JSON.stringify(model),
@@ -83,7 +85,26 @@ export class Api {
             return response.json();
 
         })
-        .then(data => data as ISaveTypeResponse);
+        .then(data => data as ITypeChangeResponse);
+    }
+
+    public moveUserType = async (id: number, groupId: TypeGroup, superTypeId?: number): Promise<ITypeChangeResponse> => {
+        return fetch(`${this.rootUrl}/moveusertype/${id}/${groupId}/${superTypeId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as ITypeChangeResponse);
     }
 
     public saveUserTags = async (tags: IUserTag[]): Promise<boolean> => {
@@ -106,8 +127,8 @@ export class Api {
         .then(data => data as boolean);
     }
 
-    public deleteUserType = async (id: number): Promise<IDeleteTypeResponse> => {
-        return fetch(`${this.rootUrl}/deleteusertype/${id}`, {
+    public deleteUserType = async (id: number, groupId: TypeGroup): Promise<ITypeChangeResponse> => {
+        return fetch(`${this.rootUrl}/deleteusertype/${id}/${groupId}`, {
             method: "GET",
             headers: {
                 "Accept": "application/json",
@@ -122,7 +143,26 @@ export class Api {
             return response.json();
 
         })
-        .then(data => data as IDeleteTypeResponse);
+        .then(data => data as ITypeChangeResponse);
+    }
+
+    public removeBuddy = async (buddyId: string, existConfirm: boolean): Promise<IRemoveBuddyResponse> => {
+        return fetch(`${this.rootUrl}/removeuserbuddy/${buddyId}/${existConfirm}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as IRemoveBuddyResponse);
     }
 }
 
@@ -134,12 +174,14 @@ export interface IUserResponse {
     groups: IGroup[]
 }
 
-export interface IDeleteTypeResponse{
+
+export interface ITypeChangeResponse {
     status: boolean,
-    message: string
+    responseMsg: string,
+    userTypes: IUserType[]
 }
 
-export interface ISaveTypeResponse {
-    type?: IUserType
+export interface IRemoveBuddyResponse {
+    responseVariant: Variant,
+    responseMsg: string
 }
-

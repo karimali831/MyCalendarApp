@@ -8,12 +8,23 @@ export class ProfileActionTypes {
     public static readonly LoadUserSuccessAction = "@@profile/loadusersuccessaction";
     public static readonly LoadUserFailureAction = "@@profile/loaduserfailureaction";
     public static readonly ActiveMenuTabAction = "@@profile/activemenutabaction"
+    public static readonly ConfirmAction = "@@profile/confirmaction"
 }
 
 export class LoadUser {
     public static readonly creator = () => new LoadUser();
 
     public readonly type = ProfileActionTypes.LoadUser;
+}
+
+export class ConfirmAction {
+    public static readonly creator = (confirm: boolean) => new ConfirmAction(confirm);
+
+    public readonly type = ProfileActionTypes.ConfirmAction
+
+    constructor(
+        public confirm: boolean
+    ) { }
 }
 
 export class LoadUserSuccessAction {
@@ -53,4 +64,5 @@ export type ProfileActions =
     LoadUser |
     LoadUserSuccessAction |
     LoadUserFailureAction |
-    ActiveMenuTabAction
+    ActiveMenuTabAction |
+    ConfirmAction

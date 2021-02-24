@@ -31,6 +31,7 @@ namespace Appology.DTOs
         public TypeGroup GroupId { get; set; }
         public string Name { get; set; }
         public Guid UserCreatedId { get; set; }
+        public int? SuperTypeId { get; set; }
         public string InviteeIds { get; set; }
 
     }

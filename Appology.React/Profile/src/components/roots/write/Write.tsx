@@ -4,7 +4,7 @@ import { MenuTabs } from 'src/Enums/MenuTabs';
 import { Tabs } from '../../utils/Tabs';
 import { MenuSection } from 'src/Enums/MenuSection';
 import { Variant } from '@appology/react-components';
-import { Groups } from '../profile/Groups';
+import { Types } from '../types/Types';
 import { TypeGroup } from 'src/Enums/TypeGroup';
 import { IGroup } from 'src/models/IGroup';
 
@@ -38,7 +38,7 @@ export default class Write extends React.Component<IOwnProps, IOwnState> {
                 {
                     activeTab === MenuTabs.WriteFolders.toString() && folderGroups ?
 
-                    <Groups
+                    <Types
                         group={folderGroups}
                         userId={this.props.user.userInfo.userID}
                         showAlert={this.props.showAlert} 

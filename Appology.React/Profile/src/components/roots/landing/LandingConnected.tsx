@@ -1,7 +1,7 @@
 import IStoreState from '../../../state/IStoreState';
 import { connect } from 'react-redux';
 import Landing, { IPropsFromState, IPropsFromDispatch } from './Landing';
-import { LoadUser } from 'src/state/contexts/profile/Action';
+import {  LoadUser } from 'src/state/contexts/profile/Action';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component

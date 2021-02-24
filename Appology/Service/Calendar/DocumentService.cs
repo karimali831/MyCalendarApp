@@ -22,6 +22,7 @@ namespace Appology.MiCalendar.Service
         Task<bool> MoveAsync(Guid docId, int moveToId);
         Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
         Task<IList<Notification>> DocumentActivity(User user);
+        Task<bool> DocumentsExistsInGroup(int groupId);
     }
 
     public class DocumentService : IDocumentService
@@ -46,14 +47,14 @@ namespace Appology.MiCalendar.Service
         {
             var documentFolders = new List<Types>();
 
-            var documentTypes = (await typeService.GetAllAsync())
-                .Where(x => x.GroupId == TypeGroup.DocumentFolders && (x.UserCreatedId == userId || (x.InviteeIdsList != null && x.InviteeIdsList.Contains(userId))));
+            var documentTypes = (await typeService.GetAllByGroupAsync(TypeGroup.DocumentFolders))
+                .Where(x => x.UserCreatedId == userId || (x.InviteeIdsList != null && x.InviteeIdsList.Contains(userId)));
 
             if (documentTypes != null && documentTypes.Any())
             {
                 foreach (var docType in documentTypes)
                 {
-                    var type = (await typeService.GetAllByUserIdAsync(docType.UserCreatedId)).FirstOrDefault(x => x.Id == docType.Id);
+                    var type = (await typeService.GetAllByUserIdAsync(docType.UserCreatedId, TypeGroup.DocumentFolders)).FirstOrDefault(x => x.Id == docType.Id);
 
                     if (type != null)
                     {
@@ -123,6 +124,12 @@ namespace Appology.MiCalendar.Service
             }
 
             return activity;
+        }
+
+        public async Task<bool> DocumentsExistsInGroup(int groupId)
+
+        {
+            return await documentRepository.DocumentsExistsInGroup(groupId);
         }
     }
 }

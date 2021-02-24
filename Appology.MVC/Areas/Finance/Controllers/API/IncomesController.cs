@@ -17,7 +17,6 @@ using System.Web.Http.Cors;
 namespace Appology.Areas.MiFinance.Controllers.API
 {
     [RoutePrefix("api/incomes")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class IncomesController : ApiController
     {

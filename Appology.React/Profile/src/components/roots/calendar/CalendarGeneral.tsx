@@ -1,10 +1,9 @@
 import { ToggleSwitch, SelectElement, Variant } from '@appology/react-components';
 import IBaseModel from '@appology/react-components/src/SelectionRefinement/IBaseModel';
-// import { InputElement, DateElement, TextAreaElement, SelectElement, ToggleSwitch, intIsNullOrEmpty, objIsNullOrEmpty } from '@appology/react-components';
 import * as React from 'react';
 import Select, { ValueType } from 'react-select';
 import { api } from 'src/Api/Api';
-import { SaveButton } from 'src/components/utils/ActionButtons';
+import { ActionButton } from 'src/components/utils/ActionButtons';
 import { ICalendarSettings } from 'src/models/IUser';
 import { ISelect } from 'src/models/ISelect';
 import { IUserType } from 'src/models/IUserType';
@@ -47,10 +46,10 @@ export class CalendarGeneral extends React.Component<IOwnProps, IOwnState> {
                 <div style={{ marginBottom: 20 }}>
                   <label>Default Selection</label>
                   <Select 
-                      options={this.props.userCalendars.map(o => ({value: o.id.toString(), label: `${o.name} ${(o.invitee ? `(by ${o.invitee})` : "")}`}))}
+                      options={this.props.userCalendars.map(o => ({value: o.key.toString(), label: `${o.title} ${(o.invitee ? `(by ${o.invitee})` : "")}`}))}
                       placeholder="Select Calendars"
                       isMulti={true}
-                      defaultValue={this.props.userCalendars.filter(uc => uc.selected).map(uc => ({ value: uc.id.toString(), label:  `${uc.name} ${(uc.invitee ? `(by ${uc.invitee})` : "")}`}))}
+                      defaultValue={this.props.userCalendars.filter(uc => uc.selected).map(uc => ({ value: uc.key.toString(), label:  `${uc.title} ${(uc.invitee ? `(by ${uc.invitee})` : "")}`}))}
                       onChange={ (value: ValueType<ISelect, true>)  => this.handleCalendarsChange(value)}
                   />
                 </div>
@@ -71,7 +70,7 @@ export class CalendarGeneral extends React.Component<IOwnProps, IOwnState> {
                     onSelectChange={this.defaultNativeCalendarViewChange} 
                 />
                 <div>
-                    <SaveButton saving={this.state.save} />
+                    <ActionButton loading={this.state.save} />
                 </div>
             </form>
         );

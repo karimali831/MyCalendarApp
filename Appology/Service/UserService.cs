@@ -32,6 +32,8 @@ namespace Appology.Service
         Task<(bool Status, Types UserType)> SaveUserType(UserTypeDTO dto);
         Task<(bool Status, string Msg)> DeleteUserType(int Id, Guid userId);
         Task<bool> GroupExistsInTag(int groupId);
+        Task<bool> UpdateBuddys(string buddys, Guid userId);
+        Task<(Status? UpdateResponse, string UpdateMsg)> AddBuddy(string email, Guid id);
     }
 
     public class UserService : IUserService
@@ -83,8 +85,8 @@ namespace Appology.Service
         public async Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false)
         {
             var userCalendars = (
-                await typeService.GetUserTypesAsync(userId))
-                    .Where(x => x.GroupId == TypeGroup.Calendars && (userCreated && x.UserCreatedId == userId || !userCreated));
+                await typeService.GetUserTypesAsync(userId, TypeGroup.Calendars))
+                    .Where(x => userCreated && x.UserCreatedId == userId || !userCreated);
 
             foreach (var calendar in userCalendars)
             {
@@ -211,7 +213,7 @@ namespace Appology.Service
 
         public async Task<(bool Status, Types UserType)> SaveUserType(UserTypeDTO dto)
         {
-            if (dto.Id.HasValue)
+            if (dto.Id != 0)
             {
                 var userType = new Types
                 {
@@ -219,6 +221,7 @@ namespace Appology.Service
                     GroupId = dto.GroupId,
                     Name = dto.Name,
                     InviteeIds = dto.InviteeIds,
+                    SuperTypeId = dto.SuperTypeId,
                     UserCreatedId = dto.UserCreatedId
                 };
 
@@ -233,6 +236,7 @@ namespace Appology.Service
                     GroupId = dto.GroupId,
                     Name = dto.Name,
                     InviteeIds = dto.InviteeIds,
+                    SuperTypeId = dto.SuperTypeId,
                     UserCreatedId = dto.UserCreatedId
                 });
             }
@@ -246,6 +250,88 @@ namespace Appology.Service
         public async Task<bool> GroupExistsInTag(int groupId)
         {
             return await userRepository.GroupExistsInTag(groupId);
+        }
+
+        public async Task<bool> UpdateBuddys(string buddys, Guid userId)
+        {
+            return await userRepository.UpdateBuddys(buddys, userId);
+        }
+
+        public async Task<(Status? UpdateResponse, string UpdateMsg)> AddBuddy(string email, Guid id)
+        {
+            var user = await GetUser(email);
+
+            (Status? UpdateResponse, string UpdateMsg) status = (null, null);
+
+            if (user == null || id == Guid.Empty)
+            {
+                status.UpdateResponse = Status.Failed;
+                status.UpdateMsg = "Invalid request";
+            }
+            else if (user.UserID == id)
+            {
+                status.UpdateResponse = Status.Failed;
+                status.UpdateMsg = "You cannot add yourself as a buddy";
+            }
+            else if (!(await GetAllAsync()).Any(x => x.UserID == id))
+            {
+                status.UpdateResponse = Status.Failed;
+                status.UpdateMsg = "Could not find user";
+            }
+            else
+            {
+                var buddys = await GetBuddys(user.UserID);
+                var inviter = await GetByUserIDAsync(id);
+                var inviterBuddyList = await GetBuddys(id);
+
+                if (buddys != null && buddys.Any(x => x.UserID == id))
+                {
+                    status.UpdateResponse = Status.Failed;
+                    status.UpdateMsg = $"{inviter.Name} is already on your buddy-list";
+                }
+                else if (inviterBuddyList != null && inviterBuddyList.Any(x => x.UserID == id))
+                {
+                    status.UpdateResponse = Status.Failed;
+                    status.UpdateMsg = $"You are already on {inviter.Name}'s buddy-list";
+                }
+                else
+                {
+                    var inviteeBuddyIds = new List<Guid>();
+
+                    // add to invitees buddy list
+                    if (!string.IsNullOrEmpty(user.BuddyIds))
+                    {
+                        inviteeBuddyIds.Add(id);
+                        user.BuddyIds = string.Join(",", inviteeBuddyIds.Concat(buddys.Select(x => x.UserID)));
+                    }
+                    else
+                    {
+                        user.BuddyIds = id.ToString();
+                    }
+
+                    var inviterBuddyIds = new List<Guid>();
+
+                    // to add inviters buddy-list
+                    if (!string.IsNullOrEmpty(inviter.BuddyIds))
+                    {
+                        inviterBuddyIds.Add(user.UserID);
+                        inviter.BuddyIds = string.Join(",", inviterBuddyIds.Concat(inviterBuddyList.Select(x => x.UserID)));
+                    }
+                    else
+                    {
+                        inviter.BuddyIds = user.UserID.ToString();
+                    }
+
+                    var updateInvitee = await UpdateBuddys(user.BuddyIds, user.UserID);
+                    var updateInviter = await UpdateBuddys(inviter.BuddyIds, inviter.UserID);
+
+                    status = (updateInvitee && updateInviter)
+                        ? (Status.Success, $"You and {inviter.Name} are now buddys")
+                        : (Status.Failed, $"There was an issue adding you or {inviter.Name}'s as a buddy");
+                }
+            }
+
+            return status;
         }
     }
 }

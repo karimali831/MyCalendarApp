@@ -5,7 +5,7 @@ import { IUserTag } from 'src/models/IUserTag';
 import Button from 'react-bootstrap/Button'
 import InputGroup from 'react-bootstrap/InputGroup'
 import { FaMinus, FaPlus } from 'react-icons/fa';
-import { SaveButton } from 'src/components/utils/ActionButtons';
+import { ActionButton } from 'src/components/utils/ActionButtons';
 import { api } from 'src/Api/Api';
 import { Variant } from '@appology/react-components';
 import { IUserType } from 'src/models/IUserType';
@@ -50,33 +50,29 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                         return (
                             <>
                                 <tr>
-                                    <td>
+                                    <td width="40%">
                                         <Form.Control 
-                                            htmlSize={2}
-                                            required={true}
                                             name="name"
                                             value={x.name}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
                                     </td>
-                                    <td>
+                                    <td width="20%">
                                         <Form.Control 
-                                        htmlSize={1}
-                                            required={true}
                                             name="themeColor"
                                             type="color"
                                             value={x.themeColor}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
                                     </td>
-                                    <td>
+                                    <td width="40%">
                                         <InputGroup className="mb-2 mr-sm-2">
                                             <Form.Control 
                                                 as="select" 
-                                                required={true}
                                                 name="typeID"
                                                 value={x.typeID}
                                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.handleGroupChange(e, i)}>
+                                                    <option key={0} value={0}>Select Group</option>
                                                     {this.state.userTagGroups.map(g => 
-                                                        <option key={g.id} value={g.id}>{g.name}</option>
+                                                        <option key={g.key} value={g.key}>{g.title}</option>
                                                     )}
                                             </Form.Control>
                                             <InputGroup.Prepend>                 
@@ -100,7 +96,7 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                                                 </Button>
                                             </td>
                                             <td colSpan={2} align="right">
-                                                <SaveButton saving={this.state.saving} onSaveClick={() => this.saveTags()} />
+                                                <ActionButton loading={this.state.saving} onClick={() => this.saveTags()} />
                                             </td>
                                         </>
                                     }
@@ -115,10 +111,17 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
     }
 
     private saveTags = () => {
-        this.setState({ saving: true })
 
-        api.saveUserTags(this.state.userTags)
-            .then(ut => this.saveTagsSuccess(ut))
+        if (this.state.userTags.some(x => x.name === "" || x.typeID === 0 || x.themeColor === "")) {
+            this.props.showAlert("All inputs must be filled", Variant.Danger)
+        }
+        else
+        {
+            this.setState({ saving: true })
+
+            api.saveUserTags(this.state.userTags)
+                .then(ut => this.saveTagsSuccess(ut))
+        }
     }
 
     private saveTagsSuccess = (status: boolean) => {

@@ -5,6 +5,7 @@ import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
 import { LoadIncomesAction } from 'src/state/contexts/income/Actions';
 import { Load } from '@appology/react-components';
+import { TableRef } from 'src/enums/TableRef';
 
 export interface IPropsFromState {
     incomes: IIncome[],
@@ -58,7 +59,7 @@ export const Incomes : React.SFC<AllProps> = (props) => (
           props.loading ?
             <Load withBackground={true} /> :
             <Table 
-                table="Incomes"
+                table={TableRef.Incomes}
                 data={props.incomes}
                 columns={columns}
                 options={options}

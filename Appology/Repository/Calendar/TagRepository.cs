@@ -7,6 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Appology.MiCalendar.Model;
 using Appology.Enums;
+using DFM.ExceptionHandling.Sentry;
+using System.Configuration;
+using DFM.ExceptionHandling;
 
 namespace Appology.MiCalendar.Repository
 {
@@ -23,11 +26,13 @@ namespace Appology.MiCalendar.Repository
     {
         private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Tags);
+        private readonly IExceptionHandlerService exceptionHandlerService;
         private static readonly string[] FIELDS = typeof(Tag).DapperFields();
 
         public TagRepository(Func<IDbConnection> dbConnectionFactory)
         {
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
+            this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
         }
 
         public async Task<Tag> GetAsync(Guid tagID)
@@ -107,7 +112,7 @@ namespace Appology.MiCalendar.Repository
                 }
                 catch (Exception exp)
                 {
-                    string.IsNullOrEmpty(exp.Message);
+                    exceptionHandlerService.ReportException(exp).Submit();
                     return false;
                 }
             }

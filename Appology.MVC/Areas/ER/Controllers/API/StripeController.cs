@@ -16,7 +16,6 @@ using Order = Appology.ER.Model.Order;
 namespace Appology.Areas.ER.Controllers.API
 {
     [RoutePrefix("api/stripe")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class StripeController : ApiController
     {

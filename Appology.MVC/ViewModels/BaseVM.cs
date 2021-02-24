@@ -23,7 +23,6 @@ namespace Appology.Website.ViewModels
     {
         public bool Home { get; set; } 
         public bool Settings { get; set; } 
-        public bool Profile { get; set; }
         // calendar and write
         public bool MultiAdd { get; set; } 
         public bool Cronofy { get; set; } 

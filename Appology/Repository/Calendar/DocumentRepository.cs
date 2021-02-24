@@ -18,6 +18,7 @@ namespace Appology.MiCalendar.Repository
         Task<Document> GetAsync(Guid Id);
         Task<bool> InsertOrUpdateAsync(Document dto);
         Task<bool> MoveAsync(Guid docId, int moveToId);
+        Task<bool> DocumentsExistsInGroup(int groupId);
     }
 
     public class DocumentRepository : IDocumentRepository
@@ -47,6 +48,7 @@ namespace Appology.MiCalendar.Repository
                 return (await sql.QueryAsync<Document>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE TypeId = @typeId", new { typeId })).ToArray();
             }
         }
+
 
         public async Task<Document> GetAsync(Guid Id)
         {
@@ -119,6 +121,14 @@ namespace Appology.MiCalendar.Repository
                     string.IsNullOrEmpty(exp.Message);
                     return false;
                 }
+            }
+        }
+
+        public async Task<bool> DocumentsExistsInGroup(int groupId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {Tables.Name(Table.Documents)} WHERE TypeId = @groupId", new { groupId });
             }
         }
     }

@@ -1,4 +1,4 @@
-import { InputElement, DateElement, TextAreaElement, SelectElement, ToggleSwitch, intIsNullOrEmpty, objIsNullOrEmpty } from '@appology/react-components';
+import { InputElement, DateElement, TextAreaElement, SelectElement, ToggleSwitch, intIsNullOrEmpty } from '@appology/react-components';
 import * as React from 'react'
 import { Modal } from 'react-bootstrap';
 import Button from 'react-bootstrap/Alert';
@@ -14,6 +14,7 @@ interface IOwnState {
     loadingTags: boolean,
     userTags: ITag[],
     cronofyReady: boolean,
+    multiEvents: boolean,
     event: IEventDTO
 }
 
@@ -21,7 +22,7 @@ interface IOwnProps {
     userId: string,
     eventSelect?: IEventSelect,
     userCalendars: IUserCalendar[],
-    onSaveChange: (loading: boolean, event?: IEvent) => void,
+    onSaveChange: (loading: boolean, events?: IEvent[]) => void,
     onCancelChange: () => void
 }
 
@@ -37,6 +38,7 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
             loadingTags: false,
             userTags: [],
             cronofyReady: false,
+            multiEvents: false,
             event: this.props.eventSelect?.event !== undefined ? this.props.eventSelect.event :  {
                 id: "",
                 calendarId: this.props.userCalendars.filter(uc => uc.selected).map(o => o.id)[0],
@@ -59,6 +61,9 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
     }
 
     public render() {
+        const startDate =  new Date(this.state.event.startStr).getDay();
+        const endDate = new Date(this.state.event.endStr).getDay(); 
+
         return (
             <Modal show={this.state.show} onHide={this.handleClose}>
                 <div className="modal-bg">
@@ -79,7 +84,12 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
                             {
                                 !this.state.event.reminder ?
                                     <>
-                                        <ToggleSwitch inline={true} id="allday" name="All day" checked={this.state.event.allDay} onChange={(v: boolean) => this.handleFullDayChange(v)} />
+                                        {   
+                                            startDate === endDate ?
+                                            <ToggleSwitch inline={true} id="allday" name="All day" checked={this.state.event.allDay} onChange={(v: boolean) => this.handleFullDayChange(v)} /> :
+                                            <ToggleSwitch inline={true} id="multiEvents" name="Multi events" checked={this.state.multiEvents} onChange={(v: boolean) => this.multiEventsChange(v)} />
+                                        
+                                        }
                                         <ToggleSwitch inline={true} id="tentative" name="Tentative" checked={this.state.event.tentative} onChange={(v: boolean) => this.handleTentativeChange(v)} />
                                     </>
                                 : null
@@ -188,6 +198,10 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
                 allDay: value    
             }
         })
+    }
+
+    private multiEventsChange = (value: boolean) => {
+        this.setState({ multiEvents: value })
     }
 
     private handleTentativeChange = (value: boolean) => {
@@ -318,17 +332,17 @@ export class SaveEvent extends React.Component<IOwnProps, IOwnState> {
             this.setState({ show: false })
             this.props.onSaveChange(true);
 
-            api.saveEvent(this.state.event)
+            api.saveEvent(this.state.event, this.state.multiEvents)
                 .then(s => this.eventSaveSuccess(s));
         }
     }
 
-    private eventSaveSuccess = (event: IEvent) => {
-        if (objIsNullOrEmpty(event)) {
+    private eventSaveSuccess = (events: IEvent[]) => {
+        if (events === null || events.length === 0) {
             alert("There was an issue saving the event, please try again");
         }
         else{
-            this.props.onSaveChange(false, event);
+            this.props.onSaveChange(false, events);
         }
     }
 }

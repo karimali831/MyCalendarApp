@@ -9,6 +9,7 @@ export interface IUser {
     userTags: IUserTag[],
     userCalendars: IUserType[],
     userTypes: IUserType[],
+    inviterShareLink: string,
     calendarSettings: ICalendarSettings
 }
 
@@ -22,7 +23,8 @@ export interface IUserInfo {
 
 export interface IUserBuddy {
     userID: string,
-    name: string
+    name: string,
+    avatar: string
 }
 
 export interface ICalendarSettings {

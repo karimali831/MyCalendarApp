@@ -29,6 +29,12 @@ namespace Appology.Areas.MiFinance.Controllers
             this.baseService = baseService ?? throw new ArgumentNullException(nameof(baseService));
         }
 
+        public async Task<ActionResult> Home()
+        {
+            await BaseViewModel(new MenuItem { FinanceApp = true });
+            return View();
+        }
+
         public async Task<ActionResult> Index()
         {
             await BaseViewModel(new MenuItem { FinanceApp = true });
@@ -48,6 +54,12 @@ namespace Appology.Areas.MiFinance.Controllers
         }
 
         public async Task<ActionResult> Finance()
+        {
+            await BaseViewModel(new MenuItem { FinanceApp = true });
+            return View("Index");
+        }
+
+        public async Task<ActionResult> Category()
         {
             await BaseViewModel(new MenuItem { FinanceApp = true });
             return View("Index");

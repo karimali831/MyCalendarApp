@@ -1,4 +1,5 @@
-﻿using DFM.Utils;
+﻿using Appology.MiFinance.Enums;
+using DFM.Utils;
 using System;
 using System.Collections.Generic;
 
@@ -30,5 +31,7 @@ namespace Appology.MiFinance.Models
         public string Settled { get; set; }
         public string DeclineReason { get; set; }
         public DateTime Created { get; set; }
+        [DbIgnore]
+        public MonzoTransactionStatus Status { get; set; }
     }
 }

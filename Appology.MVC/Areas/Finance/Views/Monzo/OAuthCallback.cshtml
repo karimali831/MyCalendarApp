@@ -1,157 +1,249 @@
 ﻿
 @model Appology.Website.Areas.MiFinance.ViewModels.MonzoAccountSummaryVM
+@using Appology.Website.ViewModels
+@using Appology.MiFinance.Enums
+@using Appology.MiFinance.Models
 @using Appology.Helpers
+
 @{
     ViewBag.Title = "Account Summary";
-    var SortCodeFormat = string.Join(
-                            "-",
-                            new[] {
-                                Model.SortCode.Substring(0, 2),
-                                Model.SortCode.Substring(2, 2),
-                                Model.SortCode.Substring(4, 2)
-                                            });
-}
+    var SortCodeFormat = string.Join("-",
+        new[] {
+        Model.SortCode.Substring(0, 2),
+        Model.SortCode.Substring(2, 2),
+        Model.SortCode.Substring(4, 2)
+    });
 
-<div class="content-shadow">
-    <div class="content-inner">
-        <h2 class="text-center">Accout No: @Model.AccountNo - Sort Code: @SortCodeFormat</h2>
-        <a href='@Url.Action("Login", "Monzo")'><img src='@Url.Content("~/Content/img/monzo_logo.png")' /></a><br />
-        <div class="col-xs-12 alert alert-warning">
-            <i class="fas fa-exclamation-sign"></i> Last Updated: @Model.LastSynced.ToString("dd/MM/yyyy HH:mm")
-        </div>
-        @if (Model.Modal != null)
-        {
-            @Html.Partial("_BootBox", Model.Modal)
-        }
-        <div class="row">
-            <div class="col-md-2">
-                <h2><small>Balance:</small></h2>
-                <div class="well well-sm">
-                    <span class="h3">@Utils.ToCurrency(Model.Balance)</span>
+    var rowsContent = new List<Func<object, IHtmlString>>()
+    {
+        @<tr>
+            <td colspan="2" style="padding: 0px">
+                <div class="content-shadow">
+                    <div class="content-inner">
+                        <div class="d-flex justify-content-center">
+                            <span class="badge badge-primary bank-details" style="margin-right: 5px">Accout No: @Model.AccountNo</span>
+                            <span class="badge badge-primary bank-details">Sort Code: @SortCodeFormat</span>
+                        </div>
+                        <div class="col-xs-12 alert alert-warning">
+                            <span style="float: right">
+                                <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })"><i class="fas fa-info-circle fa-2x"></i></a>
+                            </span>
+                            <i class="fas fa-exclamation-triangle"></i> Last Updated: @Model.LastSynced.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                        @if (Model.Modal != null)
+                        {
+                            @Html.Partial("_BootBox", Model.Modal)
+                        }
+                        <div style="font-size: 15px" >
+                            <span class="badge badge-warning">Balance: @Utils.ToCurrency(Model.Balance)</span>
+                            <span style="float: right" class="badge badge-success">Spent Today: @Utils.ToCurrency(-Model.SpentToday)</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            @*<div class="col-md-4">
-                <h2><small>Savings:</small></h2>
-                <div class="well well-sm">
-                    <span class="h3">@Utils.ToCurrency(Model.SavingsBalance)</span>
+             </td>
+        </tr>
+    };
+
+    foreach (var entry in Model.Transactions.Keys)
+    {
+        rowsContent.Add(
+                @<tr>
+                    <th colspan="2">@entry Transactions</th>
+                </tr>
+            );
+
+        foreach (var transaction in Model.Transactions.Where(x => x.Key == entry).SelectMany(x => x.Value))
+        {
+            string plus = (transaction.Amount > 0 ? "+" : null);
+            string color = (transaction.Amount > 0 ? "green" : null);
+            string status = "active";
+
+            switch (entry)
+            {
+                case MonzoTransactionStatus.Pending:
+                    status = "waiting";
+                    break;
+                case MonzoTransactionStatus.Unsynced:
+                    status = "danger";
+                    break;
+                case MonzoTransactionStatus.Settled:
+                    status = "active";
+                    break;
+            }
+
+            rowsContent.Add(
+                @<tr class="alert" role="alert">
+                    <td class="d-flex align-items-center">
+                        @if (!Model.ShowPotAndTags) {
+                            <div class="img" style="background-image: url(@transaction.Logo)"></div>
+                        }
+                        <div class="pl-3 email">
+                            <span>
+                                @transaction.Name
+                                @if (transaction.Status == MonzoTransactionStatus.Unsynced)
+                                {
+                                    <small>@Html.ActionLink("(sync)", "AddTransaction", "Monzo", new { monzoTransId = transaction.Id, transaction.Name, transaction.Amount, date = transaction.Created.ToString("yyyy-MM-ddTHH:mm") }, new { target = "_blank" })</small>
+                                    <small>@Html.ActionLink("(void)", "DeleteTransaction", "Monzo", new { monzoTransId = transaction.Id }, new { onclick = "return confirm('Are you sure you wish to delete this unsycned transaction?');" })</small>
+                                }
+                            </span>
+                            <span>@transaction.Created.ToShortDateString() @transaction.Created.ToShortTimeString()</span>
+                            @if (Model.ShowPotAndTags) { 
+                                <small>(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small>
+                            }
+                        </div>
+                    </td>
+                    <td class="status">
+                        <span class="@status">@plus@Utils.ToCurrency(transaction.Amount / 100m)</span>
+                    </td>
+                </tr>
+            );
+        }
+    }
+
+    // TableColumns = new List<string> { "Merchant", "Amount", "Actions" },
+
+    if (rowsContent != null)
+    {
+
+        @Html.Partial("_TableDetail", new TableDetailVM
+        {
+            RowsContent = rowsContent
+        })
+    }
+}
+        @*<div class="content-shadow">
+                <div class="content-inner">
+
+                    <div class="d-flex justify-content-center">
+                        <span class="badge badge-primary" style="font-size: 18px; margin-right: 5px">Accout No: @Model.AccountNo</span>
+                        <span class="badge badge-primary" style="font-size: 18px">Sort Code: @SortCodeFormat</span>
+                    </div>
+                    <div class="col-xs-12 alert alert-warning">
+                        <a href='@Url.Action("Login", "Monzo")'><img src='@Url.Content("~/Content/img/monzo_icon.png")' align="right" /></a>
+                        <i class="fas fa-exclamation-triangle"></i> Last Updated: @Model.LastSynced.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                    @if (Model.Modal != null)
+                    {
+                    @Html.Partial("_BootBox", Model.Modal)
+                    }
+
+                    <div class="float-left">
+                        <span style="font-size: 15px" class="badge badge-warning">Balance: @Utils.ToCurrency(Model.Balance)</span>
+                    </div>
+
+                    <div class="float-right" style="float: right">
+                        <span style="font-size: 15px" class="badge badge-success">Spent Today: @Utils.ToCurrency(-Model.SpentToday)</span>
+                    </div>
+
+                    @if (Model.PendingTransactions.Any())
+                    {
+                        <table class="table table-hover">
+                            <thead class="">
+                                <tr>
+                                    <th scope="col" colspan="4" class="text-warning">
+                                        Pending Transactions
+                                        <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })" class="top-menu pull-right">
+                                            <i class="fas fa-info-sign"></i> @(Model.ShowPotAndTags ? "Hide" : "Show")
+                                        </a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.PendingTransactions)
+                                {
+                    var plus = (transaction.Amount > 0 ? "+" : null);
+                    var color = (transaction.Amount > 0 ? "green" : null);
+                                    <tr>
+                                        <td width="10%"><img src="@(transaction.Logo)" width="32" height="32" class="img-rounded" onerror="this.src='@Url.Content("~/Content/img/myfinanceapp.png")'" /></td>
+                                        <td title="@transaction.Description"> <br />@transaction.Name<small style="display: @(Model.ShowPotAndTags ? "block" : "none")">(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small></td>
+                                        <td>@(transaction.Created.ToShortDateString()) <small>(@(transaction.Created.ToShortTimeString()))</small></td>
+                                        <td class="text-right">
+                                            <font color="@color"><strong>@plus@Utils.ToCurrency(transaction.Amount / 100m)</strong></font>
+                                        </td>
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                {
+                        <div class="col-xs-12 alert alert-success">
+                            <div class="fas fa-ok"></div>
+                            <div>There are no pending transactions</div>
+                        </div>
+                    }
+                    @if (Model.UnsyncedTransactions.Any())
+                    {
+                        <table class="table table-hover">
+                            <thead class="">
+                                <tr>
+                                    <th scope="col" colspan="4" class="text-success">
+                                        Unsynced Transactions
+                                        <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })" class="top-menu pull-right">
+                                            <i class="fas fa-info-sign"></i> @(Model.ShowPotAndTags ? "Hide" : "Show")
+                                        </a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.UnsyncedTransactions.Where(x => x.Name != "ATM").OrderByDescending(x => x.Created))
+                                {
+                    var plus = (transaction.Amount > 0 ? "+" : null);
+                    var color = (transaction.Amount > 0 ? "green" : null);
+                                    <tr>
+                                        <td width="10%"><img src="@(transaction.Logo)" width="32" height="32" class="img-rounded" onerror="this.src='@Url.Content("~/Content/img/myfinanceapp.png")'" /></td>
+                                        <td title="@transaction.Description settled on @transaction.Settled"> <br />@transaction.Name<small style="display: @(Model.ShowPotAndTags ? "block" : "none")">(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small></td>
+                                        <td>@(transaction.Created.ToShortDateString()) <small>(@(transaction.Created.ToShortTimeString()))</small></td>
+                                        <td class="text-right">
+                                            <small>@Html.ActionLink("(sync)", "AddTransaction", "Monzo", new { monzoTransId = transaction.Id, transaction.Name, transaction.Amount, date = transaction.Created.ToString("yyyy-MM-ddTHH:mm") }, new { target = "_blank" })</small>
+                                            <small>@Html.ActionLink("(void)", "DeleteTransaction", "Monzo", new { monzoTransId = transaction.Id }, new { onclick = "return confirm('Are you sure you wish to delete this unsycned transaction?');" })</small>
+
+                                            <font color="@color"><strong>@plus@Utils.ToCurrency(transaction.Amount / 100m)</strong></font>
+                                        </td>
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                {
+                        <div class="col-xs-12 alert alert-success">
+                            <div class="fas fa-ok"></div>
+                            <div>There are no unsycned transactions</div>
+                        </div>
+                    }
+                    @if (Model.SettledTransactions.Any())
+                    {
+                        <table class="table table-hover">
+                            <thead class="">
+                                <tr>
+                                    <th scope="col" colspan="4" class="text-success">
+                                        Settled Transactions
+                                        <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })" class="top-menu pull-right">
+                                            <i class="fas fa-info-sign"></i> @(Model.ShowPotAndTags ? "Hide" : "Show")
+                                        </a>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.SettledTransactions)
+                                {
+                    var plus = (transaction.Amount > 0 ? "+" : null);
+                    var color = (transaction.Amount > 0 ? "green" : null);
+                                    <tr>
+                                        <td width="10%"><img src="@(transaction.Logo)" width="32" height="32" class="img-rounded" onerror="this.src='@Url.Content("~/Content/img/myfinanceapp.png")'" /></td>
+                                        <td title="@transaction.Description settled on @transaction.Settled"> <br />@transaction.Name <small style="display: @(Model.ShowPotAndTags ? "block" : "none")">(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small></td>
+                                        <td>@(transaction.Created.ToShortDateString()) <small>(@(transaction.Created.ToShortTimeString()))</small></td>
+                                        <td class="text-right">
+                                            <font color="@color"><strong>@plus@Utils.ToCurrency(transaction.Amount / 100m)</strong></font>
+                                        </td>
+                                    </tr>
+
+                                }
+                            </tbody>
+                        </table>
+                    }
                 </div>
             </div>*@
-            <div class="col-md-2">
-                <h2><small>Spent Today:</small></h2>
-                <div class="well well-sm">
-                    <span class="h3">@Utils.ToCurrency(-Model.SpentToday)</span>
-                </div>
-            </div>
-        </div>
-        @if (Model.PendingTransactions.Any())
-        {
-            <table class="table table-hover">
-                <thead class="thead-dark">
-                    <tr>
-                        <th scope="col" colspan="4" class="text-warning">
-                            Pending Transactions
-                            <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })" class="top-menu pull-right">
-                                <i class="fas fa-info-sign"></i> @(Model.ShowPotAndTags ? "Hide" : "Show")
-                            </a>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var transaction in Model.PendingTransactions)
-                    {
-                        var plus = (transaction.Amount > 0 ? "+" : null);
-                        var color = (transaction.Amount > 0 ? "green" : null);
-                        <tr>
-                            <td width="10%"><img src="@(transaction.Logo)" width="32" height="32" class="img-rounded" onerror="this.src='@Url.Content("~/Content/img/myfinanceapp.png")'" /></td>
-                            <td title="@transaction.Description"> <br />@transaction.Name<small style="display: @(Model.ShowPotAndTags ? "block" : "none")">(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small></td>
-                            <td>@(transaction.Created.ToShortDateString()) <small>(@(transaction.Created.ToShortTimeString()))</small></td>
-                            <td class="text-right">
-                                <font color="@color"><strong>@plus@Utils.ToCurrency(transaction.Amount / 100m)</strong></font>
-                            </td>
-                        </tr>
-
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="col-xs-12 alert alert-success">
-                <div class="fas fa-ok"></div>
-                <div>There are no pending transactions</div>
-            </div>
-        }
-        @if (Model.UnsyncedTransactions.Any())
-        {
-            <table class="table table-hover">
-                <thead class="thead-dark">
-                    <tr>
-                        <th scope="col" colspan="4" class="text-success">
-                            Unsynced Transactions
-                            <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })" class="top-menu pull-right">
-                                <i class="fas fa-info-sign"></i> @(Model.ShowPotAndTags ? "Hide" : "Show")
-                            </a>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var transaction in Model.UnsyncedTransactions.Where(x => x.Name != "ATM").OrderByDescending(x => x.Created))
-                    {
-                        var plus = (transaction.Amount > 0 ? "+" : null);
-                        var color = (transaction.Amount > 0 ? "green" : null);
-                        <tr>
-                            <td width="10%"><img src="@(transaction.Logo)" width="32" height="32" class="img-rounded" onerror="this.src='@Url.Content("~/Content/img/myfinanceapp.png")'" /></td>
-                            <td title="@transaction.Description settled on @transaction.Settled"> <br />@transaction.Name<small style="display: @(Model.ShowPotAndTags ? "block" : "none")">(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small></td>
-                            <td>@(transaction.Created.ToShortDateString()) <small>(@(transaction.Created.ToShortTimeString()))</small></td>
-                            <td class="text-right">
-                                <small>@Html.ActionLink("(sync)", "AddTransaction", "Monzo", new { monzoTransId = transaction.Id, transaction.Name, transaction.Amount, date = transaction.Created.ToString("yyyy-MM-ddTHH:mm") }, new { target = "_blank" })</small>
-                                <small>@Html.ActionLink("(void)", "DeleteTransaction", "Monzo", new { monzoTransId = transaction.Id }, new { onclick = "return confirm('Are you sure you wish to delete this unsycned transaction?');" })</small>
-
-                                <font color="@color"><strong>@plus@Utils.ToCurrency(transaction.Amount / 100m)</strong></font>
-                            </td>
-                        </tr>
-
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="col-xs-12 alert alert-success">
-                <div class="fas fa-ok"></div>
-                <div>There are no unsycned transactions</div>
-            </div>
-        }
-        @if (Model.SettledTransactions.Any())
-        {
-            <table class="table table-hover">
-                <thead class="thead-dark">
-                    <tr>
-                        <th scope="col" colspan="4" class="text-success">
-                            Settled Transactions
-                            <a href="@Url.Action("ApproveDataAccess", "Monzo", new { showPotAndTags = !Model.ShowPotAndTags })" class="top-menu pull-right">
-                                <i class="fas fa-info-sign"></i> @(Model.ShowPotAndTags ? "Hide" : "Show")
-                            </a>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var transaction in Model.SettledTransactions)
-                    {
-                        var plus = (transaction.Amount > 0 ? "+" : null);
-                        var color = (transaction.Amount > 0 ? "green" : null);
-                        <tr>
-                            <td width="10%"><img src="@(transaction.Logo)" width="32" height="32" class="img-rounded" onerror="this.src='@Url.Content("~/Content/img/myfinanceapp.png")'" /></td>
-                            <td title="@transaction.Description settled on @transaction.Settled"> <br />@transaction.Name <small style="display: @(Model.ShowPotAndTags ? "block" : "none")">(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small></td>
-                            <td>@(transaction.Created.ToShortDateString()) <small>(@(transaction.Created.ToShortTimeString()))</small></td>
-                            <td class="text-right">
-                                <font color="@color"><strong>@plus@Utils.ToCurrency(transaction.Amount / 100m)</strong></font>
-                            </td>
-                        </tr>
-
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
-</div>

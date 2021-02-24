@@ -5,6 +5,7 @@ import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
 import { LoadSpendingsAction } from 'src/state/contexts/spending/Actions';
 import { Load } from '@appology/react-components';
+import { TableRef } from 'src/enums/TableRef';
 
 
 export interface IPropsFromState {
@@ -70,7 +71,7 @@ export const Spendings : React.SFC<AllProps> = (props) => (
           props.loading ?
             <Load withBackground={true} /> :
             <Table 
-                table="Spendings"
+                table={TableRef.Spendings}
                 data={props.spendings}
                 columns={columns}
                 options={options}

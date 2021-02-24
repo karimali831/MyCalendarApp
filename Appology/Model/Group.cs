@@ -16,6 +16,7 @@ namespace Appology.Model
         public string InviteDescription { get; set; }
         public int FeatureId { get; set; }
         public string FaIcon { get; set; }
+        public int Nodes { get; set; }
     }
 
     public class GroupMap : EntityTypeConfiguration<Group>

@@ -2,7 +2,7 @@
 import  { InputElement, Variant } from '@appology/react-components'
 import * as React from 'react';
 import { api } from 'src/Api/Api';
-import { SaveButton } from 'src/components/utils/ActionButtons';
+import { ActionButton } from 'src/components/utils/ActionButtons';
 import { IUserInfo } from 'src/models/IUser';
 
 export interface IOwnState {
@@ -65,7 +65,7 @@ export class ProfileInfo extends React.Component<IOwnProps, IOwnState> {
                     icon="&#xf202;"
                     onInputChange={this.handleInputChange} 
                 />
-                <SaveButton saving={this.state.save} />
+                <ActionButton loading={this.state.save} />
             </form>
         );
     }

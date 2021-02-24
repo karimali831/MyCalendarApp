@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace Appology
 {
@@ -9,12 +10,12 @@ namespace Appology
     {
         public static void Register(HttpConfiguration config)
         {
-            // New code
-            config.EnableCors();
+            EnableCrossSiteRequests(config);
+            AddRoutes(config);
+        }
 
-            // Web API configuration and services
-
-            // Web API routes
+        private static void AddRoutes(HttpConfiguration config)
+        {
             config.MapHttpAttributeRoutes();
 
             config.Routes.MapHttpRoute(
@@ -22,6 +23,15 @@ namespace Appology
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+        }
+
+        private static void EnableCrossSiteRequests(HttpConfiguration config)
+        {
+            var cors = new EnableCorsAttribute(
+                origins: "*",
+                headers: "*",
+                methods: "*");
+            config.EnableCors(cors);
         }
     }
 }

@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Modal } from 'react-bootstrap'
-import { SaveButton, DeleteButton } from './ActionButtons';
+import { ActionButton } from './ActionButtons';
+import Button from 'react-bootstrap/Button'
+import { Variant } from '@appology/react-components';
 
 export interface IOwnState {
-
 }
 
 export interface IOwnProps {
@@ -12,10 +13,11 @@ export interface IOwnProps {
     titleIcon?: JSX.Element
     delete?: boolean,
     save: boolean,
-    onDelete?: React.MouseEventHandler<HTMLButtonElement>,
+    show: boolean, 
+    handleClose: () => void,
+    onDelete: React.MouseEventHandler<HTMLButtonElement>,
     onSave: React.MouseEventHandler<HTMLButtonElement>
 }
-
 
 export class EditModal extends React.Component<IOwnProps, IOwnState> {
 
@@ -23,29 +25,27 @@ export class EditModal extends React.Component<IOwnProps, IOwnState> {
         super(props);
 
         this.state = {
-
         };
     }
+
     public render() {
         return (
-            <Modal.Dialog style={{ position: "relative", left: 0, top: 0 }}>
+            <Modal show={this.props.show} onHide={this.props.handleClose}>
                 {
                     this.props.title !== "" &&
-                    <Modal.Header>
+                    <Modal.Header closeButton={true}>
                         <Modal.Title>{this.props.titleIcon} {this.props.title}</Modal.Title>
                     </Modal.Header>
                 }
-
                 <Modal.Body>
                     {this.props.content}
                 </Modal.Body>
-
                 <Modal.Footer>
-                    {this.props.delete !== undefined && <DeleteButton deleting={this.props.delete} onDeleteClick={this.props.onDelete} />}
-                    <SaveButton saving={this.props.save} onSaveClick={this.props.onSave} />
+                    <Button variant="secondary" onClick={this.props.handleClose}>Close</Button>
+                    {this.props.delete !== undefined && <ActionButton variant={Variant.Danger} loading={this.props.delete} onClick={this.props.onDelete} value="Delete" />}
+                    <ActionButton loading={this.props.save} onClick={this.props.onSave} />
                 </Modal.Footer>
-            </Modal.Dialog>
+            </Modal>
         );
     }
-
 }

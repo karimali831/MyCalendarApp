@@ -1,0 +1,26 @@
+/* antd tree */
+.ant-tree.ant-tree-directory .ant-tree-treenode {
+    padding-bottom: 10px;
+    padding-top: 10px;
+    margin-left: -20px;
+}
+
+.ant-tree-list {
+    width: 100%;
+}
+
+.buddy-remove {
+    position: absolute;
+    right: 2px;
+    top: 0px;
+    color: #dc3545;
+}
+
+/* react bootstrap overrides */
+
+@media (max-width: 800px) {
+    .table td, .table th {
+        border: none;
+        padding: 0.25rem;
+    }
+}

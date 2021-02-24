@@ -129,7 +129,12 @@
                                         </li>
                                         <li>
                                             <a style="@(Model.MenuItem.Monzo ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Monzo)">
-                                                <i class="fas fa-wallet"></i> Monzo
+                                                <i class="fas fa-wallet"></i> Monzo Transactions
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a href="@Url.MvcRouteUrl(Section.MonzoAuthenticate)">
+                                                <i class="fas fa-external-link-alt"></i> Monzo Authenticate
                                             </a>
                                         </li>
                                         <li>
@@ -148,14 +153,14 @@
                             <li class="submenu-right @(Model.MenuItem.Settings ? "current-menu" : "")">
                                 <a href="#">@Model.User.Name</a>
                                 <ul>
-                                    <li>
+                                    @*<li>
                                         <a style="@(Model.MenuItem.Settings ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Profile)">
                                             <i class="fas fa-user-edit"></i> Profile
                                         </a>
-                                    </li>
+                                    </li>*@
                                     <li>
-                                        <a style="@(Model.MenuItem.Profile ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.ProfileApp)">
-                                            <i class="fas fa-user-edit"></i> Profile (NEW)
+                                        <a style="@(Model.MenuItem.Settings ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Profile)">
+                                            <i class="fas fa-user-edit"></i> Profile
                                         </a>
                                     </li>
                                     <li>

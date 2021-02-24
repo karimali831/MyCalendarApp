@@ -5,7 +5,7 @@ import { Tabs } from '../../utils/Tabs';
 import { MenuSection } from 'src/Enums/MenuSection';
 import { CalendarGeneral } from './CalendarGeneral';
 import { Variant } from '@appology/react-components';
-import { Groups } from '../profile/Groups';
+import { Types } from '../types/Types';
 import { CalendarTags } from './CalendarTags';
 import { TypeGroup } from 'src/Enums/TypeGroup';
 import { IGroup } from 'src/models/IGroup';
@@ -48,7 +48,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                         />
                     : activeTab === MenuTabs.Calendars.toString() && calendarGroups ? 
                     
-                        <Groups
+                        <Types
                             group={calendarGroups}
                             userId={this.props.user.userInfo.userID}
                             showAlert={this.props.showAlert} 
@@ -64,13 +64,13 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                         />
                     : activeTab === MenuTabs.CalendarGroups.toString() && tagGroups ?
 
-                    <Groups
-                        group={tagGroups}
-                        userId={this.props.user.userInfo.userID}
-                        showAlert={this.props.showAlert} 
-                        userTypes={this.props.user.userTypes.filter(x => x.groupId === TypeGroup.TagGroups)}
-                        userBuddys={this.props.user.userBuddys} 
-                    />    
+                        <Types
+                            group={tagGroups}
+                            userId={this.props.user.userInfo.userID}
+                            showAlert={this.props.showAlert} 
+                            userTypes={this.props.user.userTypes.filter(x => x.groupId === TypeGroup.TagGroups)}
+                            userBuddys={this.props.user.userBuddys} 
+                        />    
                     : null
                 }
 

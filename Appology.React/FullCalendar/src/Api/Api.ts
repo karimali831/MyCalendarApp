@@ -45,8 +45,8 @@ export class Api {
         .then(data => data as IUserTagResponse);
     }
 
-    public saveEvent = async (event: IEventDTO): Promise<IEvent> => {
-        return fetch(`${this.rootUrl}/save`, {
+    public saveEvent = async (event: IEventDTO, multiEvents: boolean): Promise<IEvent[]> => {
+        return fetch(`${this.rootUrl}/save/${multiEvents}`, {
             method: "POST",
             body: JSON.stringify(event),
             headers: {
@@ -62,7 +62,7 @@ export class Api {
             return response.json();
 
         })
-        .then(data => data as IEvent);
+        .then(data => data as IEvent[]);
     }
 
     public alarmInfo = async (tagId: string): Promise<string> => {

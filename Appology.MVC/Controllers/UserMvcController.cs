@@ -41,14 +41,16 @@ namespace Appology.Controllers
         {
             var user = await userService.GetUser();
             var buddys = await userService.GetBuddys(user.UserID);
+            var accessibleFeatures = await featureRoleService.AccessibleFeatures(user.RoleIdsList);
+            var accessibleGroups = await featureRoleService.AccessibleGroups(user.RoleIdsList);
 
             return new BaseVM
             {
                 User = user,
                 Notifications = await Notifications(),
                 Buddys = buddys,
-                AccessibleGroups = await AccessibleGroups(user.RoleIdsList),
-                AccessibleFeatures = await AccessibleFeatures(user.RoleIdsList),
+                AccessibleGroups = accessibleGroups,
+                AccessibleFeatures = accessibleFeatures,
                 UpdateStatus = (updateResponse, updateMsg),
                 MenuItem = menuItem
             };
@@ -128,39 +130,14 @@ namespace Appology.Controllers
             return await userService.GetUser();
         }
 
-        public async Task<IEnumerable<User>> GetUsers()
+        public async Task<(Status? UpdateResponse, string UpdateMsg)> AddBuddy(string email, Guid id)
         {
-            return await userService.GetAllAsync();
-        }
-
-        public async Task<IEnumerable<User>> GetBuddys(Guid userId)
-        {
-            return await userService.GetBuddys(userId);
-        }
-
-        public async Task<User> GetUserById(Guid userId)
-        {
-            return await userService.GetByUserIDAsync(userId);
-        }
-
-        public async Task<IEnumerable<Group>> AccessibleGroups(IEnumerable<Guid> roleIds)
-        {
-            return await featureRoleService.AccessibleGroups(roleIds);
-        }
-
-        public async Task<IEnumerable<Feature>> AccessibleFeatures(IEnumerable<Guid> roleIds)
-        {
-            return await featureRoleService.AccessibleFeatures(roleIds);
+            return await userService.AddBuddy(email, id);
         }
 
         public async Task<bool> UpdateUser(User user)
         {
             return await userService.UpdateAsync(user);
-        }
-
-        public async Task<bool> UpdateUserTags(IEnumerable<Tag> tags, Guid userID)
-        {
-            return await userService.UpdateUserTagsAsync(tags.ToList(), userID);
         }
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
@@ -172,6 +149,8 @@ namespace Appology.Controllers
         {
             var appCookie = SessionPersister.Email;
             var loginRoute = Url.MvcRoute(Section.Login);
+            var loginPostRoute = Url.MvcRoute(Section.LoginSubmit);
+
 
             if (string.IsNullOrEmpty(appCookie))
             {
@@ -181,22 +160,19 @@ namespace Appology.Controllers
 
                 if (!controller.UnstrictCompare(loginRoute.ControllerName) || !action.UnstrictCompare(loginRoute.ActionName))
                 {
-                    string invitee = null;
                     var inviteRoute = Url.MvcRoute(Section.Invite);
 
-                    if (controller.UnstrictCompare(inviteRoute.ControllerName) && action.UnstrictCompare(inviteRoute.ActionName))
+                    if (id != null)
                     {
-                        invitee = $"?inviteeId={id}";
+                        if (controller.UnstrictCompare(inviteRoute.ControllerName) && action.UnstrictCompare(inviteRoute.ActionName))
+                        {
+                            HttpContext.Response.Redirect(loginRoute.RouteUrl + $"?inviteeId={id}");
+                        }
                     }
-
-                    HttpContext.Response.Redirect(loginRoute.RouteUrl + invitee);
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(HttpContext.Request.RawUrl) && (HttpContext.Request.RawUrl.Equals(loginRoute.RouteUrl, StringComparison.InvariantCultureIgnoreCase) || HttpContext.Request.RawUrl == "/"))
-                {
-                    HttpContext.Response.Redirect(Url.MvcRoute(Section.Home).RouteUrl);
+                    else if (!controller.UnstrictCompare(loginPostRoute.ControllerName) && !action.UnstrictCompare(loginPostRoute.ActionName))
+                    {
+                        HttpContext.Response.Redirect(loginRoute.RouteUrl);
+                    }
                 }
             }
 

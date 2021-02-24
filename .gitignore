@@ -289,3 +289,8 @@ __pycache__/
 /Appology.MVC/Scripts/dist/profile/bundle.js.map
 /Appology.React/ErrandRunner/package-lock.json
 /Appology.React/Profile/package-lock.json
+/Appology.MVC/Scripts/dist/finance/bundle.js
+/Appology.MVC/Scripts/dist/finance/bundle.js.map
+/Appology.React/FinanceApp/package-lock.json
+/Appology.React/FinanceApp/package-lock.json
+/Appology.React/Profile/package-lock.json

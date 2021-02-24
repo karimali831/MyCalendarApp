@@ -13,13 +13,15 @@ namespace Appology.MiCalendar.Repository
 {
     public interface ITypeRepository
     {
-        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId);
-        Task<IEnumerable<Types>> GetAllAsync();
+        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null);
+        Task<IEnumerable<Types>> GetAllByGroupAsync(TypeGroup groupId);
         Task<Types> GetAsync(int Id);
         Task<bool> UpdateTypeAsync(Types type);
         Task<(bool Status, Types Calendar)> AddTypeAsync(TypeDTO type);
         Task<bool> DeleteTypeAsync(int Id);
         Task<bool> MoveTypeAsync(int Id, int? moveToId = null);
+        Task<int[]> GetAllIdsByParentTypeIdAsync(int superTypeId);
+        Task<bool> UpdateInvitees(string invitees, Guid userId);
     }
 
     public class TypeRepository : ITypeRepository
@@ -34,19 +36,25 @@ namespace Appology.MiCalendar.Repository
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
         }
 
-        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE UserCreatedId = @userId ORDER BY SuperTypeId, Name ASC", new { userId })).ToArray();
+                string sqlTxt = @$"
+                    {DapperHelper.SELECT(TABLE, FIELDS)}
+                    WHERE UserCreatedId = '{userId}'
+                    {(groupId.HasValue ? $"AND GroupId = {(int)groupId.Value}" : "")}
+                    ORDER BY SuperTypeId, Name ASC";
+
+                return (await sql.QueryAsync<Types>(sqlTxt)).ToArray();
             }
         }
 
-        public async Task<IEnumerable<Types>> GetAllAsync()
+        public async Task<IEnumerable<Types>> GetAllByGroupAsync(TypeGroup groupId)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)} ORDER BY SuperTypeId, Name ASC")).ToArray();
+                return (await sql.QueryAsync<Types>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE GroupID = @groupId ORDER BY SuperTypeId, Name ASC", new { groupId })).ToArray();
             }
         }
 
@@ -118,6 +126,31 @@ namespace Appology.MiCalendar.Repository
                 try
                 {
                     await sql.ExecuteAsync($"UPDATE {TABLE} SET SuperTypeId = {(moveToId.HasValue ? moveToId : "null")} WHERE Id = @Id", new { Id });
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
+            }
+        }
+
+        public async Task<int[]> GetAllIdsByParentTypeIdAsync(int superTypeId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<int>($"SELECT Id FROM {TABLE} WHERE SuperTypeId = @superTypeId", new { superTypeId })).ToArray();
+            }
+        }
+
+        public async Task<bool> UpdateInvitees(string invitees, Guid userId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET InviteeIds = @invitees WHERE UserCreatedId = @userId", new { invitees, userId });
                     return true;
                 }
                 catch (Exception exp)

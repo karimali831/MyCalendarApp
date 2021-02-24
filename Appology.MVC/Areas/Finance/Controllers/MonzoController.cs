@@ -55,12 +55,10 @@ namespace Appology.Areas.MiFinance.Controllers
         public ActionResult Login()
         {
             string state = Utils.GenerateRandomString(64);
-
             Session["state"] = state;
 
             // send user to Monzo's login page
             return Redirect(_monzoAuthorizationClient.GetAuthorizeUrl(state, Url.Action("OAuthCallback", "Monzo", null, Request.Url.Scheme)));
-
         }
 
         [HttpPost]
@@ -305,20 +303,25 @@ namespace Appology.Areas.MiFinance.Controllers
                 }
             }
 
-            viewModel.PendingTransactions = potlessTrans.Where(x => string.IsNullOrEmpty(x.Settled) && x.Amount != 0).ToList();
+            var pendingTransactions = potlessTrans
+                .Select(c => { c.Status = MonzoTransactionStatus.Pending; return c; })
+                .Where(x => string.IsNullOrEmpty(x.Settled) && x.Amount != 0).ToList();
 
             var settledTransactions = new List<MonzoTransaction>();
             var unsycnedTransactions = new List<MonzoTransaction>();
 
             foreach (var tran in potlessTrans.Where(x => !string.IsNullOrEmpty(x.Settled)))
             {
+                
+
                 if (tran.Category.Equals("cash", StringComparison.InvariantCultureIgnoreCase) && !settledTransactions.Contains(tran))
                 {
                     await monzoService.UpdateCashBalanceAsync(-tran.Amount);
+                    tran.Status = MonzoTransactionStatus.Settled;
                     settledTransactions.Add(tran);
                 }
 
-                var sync = (!viewModel.SyncedTransactions.SelectMany(x => x.Value.Transactions).Contains(tran.Id) && !tran.Name.StartsWith("pot_") && tran.Amount != 0 && !string.IsNullOrEmpty(tran.Settled) && tran.Notes != "!") ? true : false;
+                var sync = (!viewModel.SyncedTransactions.SelectMany(x => x.Value.Transactions).Contains(tran.Id) && !tran.Name.StartsWith("pot_") && tran.Amount != 0 && !string.IsNullOrEmpty(tran.Settled) && tran.Notes != "!");
 
                 if (sync)
                 {
@@ -327,6 +330,7 @@ namespace Appology.Areas.MiFinance.Controllers
                         await monzoService.InsertMonzoTransaction(tran);
                     }
 
+                    tran.Status = MonzoTransactionStatus.Unsynced;
                     unsycnedTransactions.Add(tran);
                 }
                 else
@@ -336,15 +340,17 @@ namespace Appology.Areas.MiFinance.Controllers
                         await monzoService.DeleteMonzoTransaction(tran.Id);
                     }
 
+                    tran.Status = MonzoTransactionStatus.Settled;
                     settledTransactions.Add(tran);
                 }
             }
 
             var monzoTransactions = await monzoService.MonzoTransactions();
      
-            viewModel.SettledTransactions = settledTransactions;
-            viewModel.UnsyncedTransactions = monzoTransactions
+            var unsyncedTransactions = monzoTransactions
+                    .Select(c => { c.Status = MonzoTransactionStatus.Unsynced; return c; })
                     .Concat(unsycnedTransactions)
+                    .Where(x => x.Name != "ATM").OrderByDescending(x => x.Created)
                     .DistinctBy(x => x.Id)
                     .ToList();
 
@@ -374,6 +380,12 @@ namespace Appology.Areas.MiFinance.Controllers
                 }
             }
 
+            viewModel.Transactions = new Dictionary<MonzoTransactionStatus, IList<MonzoTransaction>>
+            {
+                { MonzoTransactionStatus.Pending, pendingTransactions },
+                { MonzoTransactionStatus.Unsynced, unsyncedTransactions },
+                { MonzoTransactionStatus.Settled, settledTransactions }
+            };
 
             return View("OAuthCallback", viewModel);
         }

@@ -21,7 +21,6 @@ using System.Configuration;
 namespace Appology.Areas.MiCalendar.Controllers.API
 {
     [RoutePrefix("api/calendar")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class EventController : ApiController
     {
@@ -106,9 +105,9 @@ namespace Appology.Areas.MiCalendar.Controllers.API
             }
         }
 
-        [Route("save")]
+        [Route("save/{multiEvents}")]
         [HttpPost]
-        public async Task<HttpResponseMessage> SaveEvent(EventDTO dto)
+        public async Task<HttpResponseMessage> SaveEvent(EventDTO dto, bool multiEvents)
         {
             var e = EventDTO.MapFrom(dto);
             var user = await GetUser();
@@ -117,7 +116,7 @@ namespace Appology.Areas.MiCalendar.Controllers.API
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, false);
             }
-   
+
             if (dto.Id != null && dto.Id != Guid.Empty && user.UserID != dto.UserID)
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, false);
@@ -133,17 +132,49 @@ namespace Appology.Areas.MiCalendar.Controllers.API
             }
 
             e.UserID = user.UserID;
-            var save = await eventService.SaveGetEvent(e);
+            var daysBetweenDays = e.EndDate.HasValue ? (e.EndDate.Value.Date - e.StartDate.Date).Days : 0;
 
-            if (save != null)
+            var addedEvents = new List<Event>();
+
+            if (multiEvents && daysBetweenDays != 0)
             {
-                var getEvent = MapDTO(new List<Event> { save }, user.UserID).FirstOrDefault();
-                return Request.CreateResponse(HttpStatusCode.OK, getEvent);
+
+                for (var date = e.StartDate; date <= e.EndDate; date = date.AddDays(1))
+                {
+                    var newEvent = new Event
+                    {
+                        EventID = e.EventID,
+                        StartDate = date,
+                        EndDate = new DateTime(date.Year, date.Month, date.Day, e.EndDate.Value.Hour, e.EndDate.Value.Minute, 0),
+                        Description = e.Description,
+                        IsFullDay = false,
+                        CalendarId = e.CalendarId,
+                        Reminder = false,
+                        TagID = e.TagID,
+                        Tentative = e.Tentative,
+                        EventUid = e.EventUid,
+                        UserID = e.UserID,
+                        Alarm = e.Alarm
+                    };
+
+                    addedEvents.Add(await eventService.SaveGetEvent(newEvent));
+                }
+            }
+            else
+            {
+                addedEvents.Add(await eventService.SaveGetEvent(e));
+            }
+
+            if (addedEvents.Any())
+            {
+                var getEvents = MapDTO(addedEvents, user.UserID).ToList();
+                return Request.CreateResponse(HttpStatusCode.OK, getEvents);
             }
             else
             {
                 return Request.CreateResponse(HttpStatusCode.BadRequest, false);
             }
+            
         }
 
         private IEnumerable<object> MapDTO(IEnumerable<Event> events, Guid userId)

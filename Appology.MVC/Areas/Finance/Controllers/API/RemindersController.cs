@@ -7,12 +7,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Cors;
 
 namespace Appology.Areas.MiFinance.Controllers.API
 {
     [RoutePrefix("api/reminders")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class RemindersCommonController : ApiController
     {

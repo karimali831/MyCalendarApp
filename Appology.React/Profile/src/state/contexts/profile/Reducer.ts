@@ -28,6 +28,12 @@ const ProfileReducer: Reducer<IProfilesState, ProfileActions> =
                     ...{ loading: false }
                 }    
 
+            case ProfileActionTypes.ConfirmAction:
+                return {
+                    ...state,
+                    ...{ confirmAction: action.confirm }
+                }  
+
             case ProfileActionTypes.ActiveMenuTabAction:
                 return {
                     ...state,

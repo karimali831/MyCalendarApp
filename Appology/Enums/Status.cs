@@ -1,5 +1,6 @@
 ﻿namespace Appology.Enums
 {
+    // replace this with variant!
     public enum Status
     {
         Failed,

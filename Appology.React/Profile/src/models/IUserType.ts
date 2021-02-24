@@ -1,18 +1,21 @@
 import { TypeGroup } from "src/Enums/TypeGroup";
 
 export interface IUserType {
-    id: number,
-    name: string,
-    userCreatedId: string,
+    key: number,
+    title: string,
     invitee: string,
     selected: boolean,
     inviteeIdsList: string[],
-    groupId: TypeGroup
+    groupId: TypeGroup,
+    superTypeId?: number,
+    isLeaf: boolean,
+    children: IUserType[]
 }
 
 export interface IUserTypeDTO {
     id?: number,
     name: string,
     inviteeIds: string,
-    groupId: TypeGroup
+    groupId: TypeGroup,
+    superTypeId?: number
 }

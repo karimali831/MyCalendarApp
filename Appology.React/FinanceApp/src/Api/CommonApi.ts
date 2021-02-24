@@ -1,7 +1,7 @@
 import { ICategoryResponse } from './Api';
 import { CategoryType } from '../enums/CategoryType';
 import { rootUrl } from '../components/utils/Utils';
-
+import { TableRef } from 'src/enums/TableRef';
 
 export class CommonFinanceApi {
 
@@ -41,7 +41,7 @@ export class CommonFinanceApi {
         })
     }
 
-    public remove = async (id: number, table: string) => {
+    public remove = async (id: number, table: TableRef) => {
         return fetch(`${this.rootUrl}/delete/${id}/${table}`, {
             method: "POST",
             headers: {
@@ -77,7 +77,7 @@ export class CommonFinanceApi {
 }
 
 export interface IUpdateRequest {
-    table: string, 
+    table: TableRef, 
     field: string, 
     value: any, 
     id: number

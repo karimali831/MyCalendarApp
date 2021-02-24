@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using Appology.MiCalendar.Model;
 using Appology.Enums;
 using Appology.DTOs;
+using DFM.ExceptionHandling;
+using DFM.ExceptionHandling.Sentry;
+using System.Configuration;
 
 namespace Appology.Repository
 {
@@ -20,23 +23,26 @@ namespace Appology.Repository
         Task<bool> UpdateAsync(User user);
         Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
         Task<User> GetByUserIDAsync(Guid userID);
-        User Get(string email);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
         Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
         Task<bool> SaveUserInfo(UserInfoDTO dto);
         Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto);
         Task<bool> GroupExistsInTag(int groupId);
+        Task<bool> UpdateBuddys(string buddys, Guid userId);
     }
 
     public class UserRepository : IUserRepository
     {
         private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Users);
+        private readonly IExceptionHandlerService exceptionHandlerService;
         private static readonly string[] FIELDS = typeof(User).DapperFields();
+
 
         public UserRepository(Func<IDbConnection> dbConnectionFactory)
         {
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
+            this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
         }
 
         public async Task<User> GetAsync(string email, string password = null)
@@ -80,7 +86,7 @@ namespace Appology.Repository
                 }
                 catch (Exception exp)
                 {
-                    string.IsNullOrEmpty(exp.Message);
+                    exceptionHandlerService.ReportException(exp).Submit();
                     return false;
                 }
             }
@@ -97,7 +103,7 @@ namespace Appology.Repository
                 }
                 catch (Exception exp)
                 {
-                    string.IsNullOrEmpty(exp.Message);
+                    exceptionHandlerService.ReportException(exp).Submit();
                     return false;
                 }
             }
@@ -110,15 +116,6 @@ namespace Appology.Repository
                 return (await sql.QueryAsync<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE UserID = @userID", new { userID })).FirstOrDefault();
             }
         }
-
-        public User Get(string email)
-        {
-            using (var sql = dbConnectionFactory())
-            {
-                return (sql.Query<User>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Email = @email", new { email })).FirstOrDefault();
-            }
-        }
-
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
@@ -143,7 +140,6 @@ namespace Appology.Repository
             using var sql = dbConnectionFactory();
             return (await sql.QueryAsync<Tag>(sqlTxt)).ToArray();
         }
-
 
         public async Task<bool> UpdateAsync(User user)
         {
@@ -176,7 +172,7 @@ namespace Appology.Repository
             }
             catch (Exception exp)
             {
-                string.IsNullOrEmpty(exp.Message);
+                exceptionHandlerService.ReportException(exp).Submit();
                 return false;
             }
         }
@@ -199,7 +195,7 @@ namespace Appology.Repository
                 }
                 catch (Exception exp)
                 {
-                    string.IsNullOrEmpty(exp.Message);
+                    exceptionHandlerService.ReportException(exp).Submit();
                     return false;
                 }
             }
@@ -209,16 +205,9 @@ namespace Appology.Repository
         {
             using (var sql = dbConnectionFactory())
             {
-                try
-                {
-                    await sql.ExecuteAsync($"UPDATE {TABLE} SET LastViewedDocId = @docId WHERE UserID = @userId", new { docId,userId });
-                    return true;
-                }
-                catch (Exception exp)
-                {
-                    string.IsNullOrEmpty(exp.Message);
-                    return false;
-                }
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET LastViewedDocId = @docId WHERE UserID = @userId", new { docId,userId });
+                return true;
+
             }
         }
 
@@ -230,5 +219,21 @@ namespace Appology.Repository
             }
         }
 
+        public async Task<bool> UpdateBuddys(string buddys, Guid userId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET BuddyIds = @buddys WHERE UserID = @userId", new { buddys, userId });
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    exceptionHandlerService.ReportException(exp).Submit();
+                    return false;
+                }
+            }
+        }
     }
 }

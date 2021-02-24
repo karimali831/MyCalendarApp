@@ -87,7 +87,7 @@
         if (confirm('Move "' + moveStr + '" to "' + moveToStr + '" folder?')) {
             $("#move-folder").show();
             $.ajax({
-                url: '@(Url.MvcRoute(Model.IsDocument ? Section.MoveDocument : Section.MoveType).RouteUrl)',
+                url: '@(Url.MvcRoute(Section.MoveDocument).RouteUrl)',
                 type: "GET",
                 data: { Id: id, moveToId: moveToId },
                 contentType: "application/json; charset=utf-8",

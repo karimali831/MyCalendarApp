@@ -15,7 +15,6 @@ using Appology.Controllers.Api;
 namespace Appology.Areas.MiFinance.Controllers.API
 {
     [RoutePrefix("api")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class BaseCommonController : ApiController
     {

@@ -9,6 +9,7 @@ import { IReminder, IReminderNotification } from 'src/models/IReminder';
 import { ReminderType } from 'src/enums/ReminderType';
 import Button from 'react-bootstrap/Button'
 import Badge from 'react-bootstrap/Badge'
+import { TableRef } from 'src/enums/TableRef';
 
 export interface IPropsFromState {
     notifications?: IReminderNotification,
@@ -204,7 +205,7 @@ export default class Notifications extends React.Component<AllProps, IOwnState> 
     private deleteReminder = (id: number) => {
         this.setState({ ...this.state, loadingDeleted: true, deletedReminderId: id })
   
-        commonApi.remove(id, "Reminders")
+        commonApi.remove(id, TableRef.Reminders)
           .then(() => this.deleteReminderSuccess());
     }
 

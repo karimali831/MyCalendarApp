@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Badge from 'react-bootstrap/Badge'
+import { TableRef } from 'src/enums/TableRef';
 
 interface IOwnProps {
 }
@@ -24,7 +25,7 @@ export interface IOwnState {
 }
 
 export default class Finances extends React.Component<IOwnProps, IOwnState> {
-    private tableName = "Finances";
+    private tableName = TableRef.Finances;
     
     constructor(props: IOwnProps) {
         super(props);

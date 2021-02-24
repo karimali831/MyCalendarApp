@@ -174,7 +174,17 @@ textarea {
     .body-container {
         padding: 0px !important;
         margin: 0px !important;
+    
     }
+
+    table, #root {
+        font-size: 13px;
+    }
+
+    .bank-details {
+        font-size: 75% !important;
+    }
+
 }
 
 .pull-right {
@@ -204,3 +214,8 @@ textarea {
     font-size: small;
     color: grey;
 }
+
+.bank-details {
+    font-size: 18px;
+}
+

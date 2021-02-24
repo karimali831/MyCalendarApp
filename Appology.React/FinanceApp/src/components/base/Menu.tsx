@@ -19,7 +19,7 @@ export const Menu: React.FC<IPropsFromState> = (props) => {
             <Navbar.Collapse id="responsive-navbar-nav">
                 <Nav className="mr-auto">
                     <Nav.Item>
-                        <Nav.Link eventKey="/" active={!props.location || props.location === "/" || props.location === "/home"} as={Link} to={`/`}>Home</Nav.Link>
+                        <Nav.Link eventKey="/" active={!props.location || props.location === "/" || props.location === "/home"} as={Link} to={`${appPathUrl}/home`}>Home</Nav.Link>
                     </Nav.Item>
                     <NavDropdown title="Add" id="nav-dropdown" active={props.location === "addspending" || props.location === "addincome" || props.location === "addexpense" || props.location === "addcategory" || props.location === "addreminder"}>
                         <NavDropdown.Item eventKey="addspending" active={props.location === "addspending"} as={Link} to={`${appPathUrl}/addspending`}>Spending</NavDropdown.Item>

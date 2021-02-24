@@ -4,6 +4,7 @@ import { commonApi } from '../../../Api/CommonApi';
 import { ICategory } from '../../../models/ICategory';
 import Table from '../../base/CommonTable';
 import { ITableProps, ITableOptions } from 'react-bootstrap-table-next';
+import { TableRef } from 'src/enums/TableRef';
 
 interface IOwnProps {
 }
@@ -14,7 +15,7 @@ export interface IOwnState {
 }
 
 export default class Categories extends React.Component<IOwnProps, IOwnState> {
-    private tableName = "Categories";
+    private tableRef = TableRef.FinanceCategories;
     
     constructor(props: IOwnProps) {
         super(props);
@@ -71,7 +72,7 @@ export default class Categories extends React.Component<IOwnProps, IOwnState> {
         return (
             <div>
                 <Table 
-                    table={this.tableName}
+                    table={this.tableRef}
                     data={this.state.categories}
                     columns={columns}
                     options={options}

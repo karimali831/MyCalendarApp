@@ -49,6 +49,7 @@
 }
 
 .navik-menu > ul {
+    list-style-type: none;
     display: none;
     padding: 0 0 20px;
 }

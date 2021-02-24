@@ -17,7 +17,6 @@ using System.Web.Http.Cors;
 namespace Appology.Areas.ER.Controllers.API
 {
     [RoutePrefix("api/errandrunner")]
-    [EnableCors(origins: "http://localhost:3000", headers: "*", methods: "*")]
     [CamelCaseControllerConfig]
     public class ErrandRunnerController : ApiController
     {

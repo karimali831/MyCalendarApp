@@ -151,7 +151,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
                                 eventSelect={this.state.eventSelect}
                                 userCalendars={userCalendars} 
                                 userId={this.state.userId} 
-                                onSaveChange={(loading: boolean, event: IEvent) => this.saveEventChange(loading, event)}
+                                onSaveChange={(loading: boolean, events: IEvent[]) => this.saveEventChange(loading, events)}
                                 onCancelChange={() => this.resetSelect()} /> 
                             : null
                     }
@@ -390,7 +390,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             userCalendars: calendar.userCalendars,
             selectedCalendarIds: calendar.userCalendars.filter(o => o.selected).map(c=> c.id),
             userId: calendar.userId,
-            showAvatars: !isMobile ? true : (view === "listWeek" || view === "dayGrid") ? true : false,
+            showAvatars: !isMobile ? true : (view === "listWeek" || view === "dayGrid" || nativeView === "listWeek" || view === "dayGrid") ? true : false,
             userSelectedView: calendar.defaultView,
             userSelectedNativeView: calendar.defaultNativeView,
             initialView: view,
@@ -399,7 +399,7 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
 
     }
    
-    private saveEventChange = (loading: boolean, event: IEvent) => {
+    private saveEventChange = (loading: boolean, events: IEvent[]) => {
         this.resetSelect()
         this.setState({ loading: loading})
 
@@ -407,16 +407,16 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
             this.showAlert("Event successfully saved");
 
             // update event
-            if (this.state.events.some(el => el.id === event.id)) {
+            if (events.length === 1 && this.state.events.some(el => el.id === events[0].id)) {
                 this.setState(prevState => ({       
                     events: prevState.events.map(el => 
-                        (el.id === event.id ? event : el)
+                        (el.id === events[0].id ? events[0] : el)
                     ) 
                 }))
             }
-            // new event
+            // new events
             else{
-                this.setState({ events: [...this.state.events, event] })
+                this.setState({ events: [...this.state.events, ...events] })
             }
         }
     } 
