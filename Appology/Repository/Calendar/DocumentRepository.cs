@@ -13,12 +13,13 @@ namespace Appology.MiCalendar.Repository
 {
     public interface IDocumentRepository
     {
-        Task<IEnumerable<Document>> GetAllByUserIdAsync(Guid userId);
+        Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId);
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
-        Task<Document> GetAsync(Guid Id);
+        Task<Document> GetAsync(Guid Id, Guid userId);
         Task<bool> InsertOrUpdateAsync(Document dto);
         Task<bool> MoveAsync(Guid docId, int moveToId);
         Task<bool> DocumentsExistsInGroup(int groupId);
+        Task<bool> DeleteDocument(Guid docId); 
     }
 
     public class DocumentRepository : IDocumentRepository
@@ -33,11 +34,20 @@ namespace Appology.MiCalendar.Repository
         }
 
 
-        public async Task<IEnumerable<Document>> GetAllByUserIdAsync(Guid userId)
+        public async Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Document>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE UserCreatedId = @userId", new { userId })).ToArray();
+                string sqlTxt = $@"
+                    SELECT d.Id, d.Title
+                    FROM {TABLE} AS d
+                    LEFT JOIN {Tables.Name(Table.Types)} AS t
+                    ON d.TypeId = t.Id
+                    WHERE d.TypeId = {typeId}
+                    AND (t.UserCreatedId = '{userId}'
+                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')";
+
+                return (await sql.QueryAsync<(Guid, string)>(sqlTxt)).ToArray();
             }
         }
 
@@ -49,12 +59,37 @@ namespace Appology.MiCalendar.Repository
             }
         }
 
-
-        public async Task<Document> GetAsync(Guid Id)
+        public async Task<bool> DeleteDocument(Guid docId)
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Document>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id", new { Id })).FirstOrDefault();
+                try
+                {
+                    await sql.ExecuteAsync($"{DapperHelper.DELETE(TABLE)} WHERE Id = @docId", new { docId });
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    string.IsNullOrEmpty(exp.Message);
+                    return false;
+                }
+            }
+        }
+
+        public async Task<Document> GetAsync(Guid Id, Guid userId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                string sqlTxt = $@"
+                    SELECT d.Id, d.TypeId, d.Title, d.Text, d.CreatedDate, d.EditedDate, d.UserCreatedId, d.EditedById, t.InviteeIds
+                    FROM {TABLE} AS d
+                    LEFT JOIN {Tables.Name(Table.Types)} AS t
+                    ON d.TypeId = t.Id
+                    WHERE d.Id = '{Id}'
+                    AND (t.UserCreatedId = '{userId}'
+                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')";
+
+                return (await sql.QueryAsync<Document>(sqlTxt)).FirstOrDefault();
             }
         }
 

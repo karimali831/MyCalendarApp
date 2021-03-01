@@ -49,6 +49,16 @@ namespace Appology.Controllers.Api
             return await userService.GetUser(isLocal ? "karimali831@googlemail.com" : null);
         }
 
+        [Route("usertypes/{typeGroup}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> UserTypes(TypeGroup typeGroup)
+        {
+            var user = await GetUser();
+            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, typeGroup);
+
+            return Request.CreateResponse(HttpStatusCode.OK, userService.GetUserTypes(user, userTypes));
+        }
+
         [Route("user")]
         [HttpGet]
         public async Task<HttpResponseMessage> LoadUser()
@@ -80,8 +90,8 @@ namespace Appology.Controllers.Api
                         user.Email
                     },
                     avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
-                    userCalendars = GetUserTypes(user, userCalendars),
-                    userTypes = GetUserTypes(user, userTypes),
+                    userCalendars = userService.GetUserTypes(user, userCalendars),
+                    userTypes = userService.GetUserTypes(user, userTypes),
                     inviterShareLink = url.InviterShareLink(user.UserID),
                     userBuddys = userBuddys.Select(x => new
                     {
@@ -105,25 +115,6 @@ namespace Appology.Controllers.Api
                     }
                 }
             });
-        }
-
-        private object GetUserTypes(User user, IEnumerable<Types> userTypes)
-        {
-            object types(IEnumerable<Types> t) => t.Select(x => new
-            {
-                key = x.Id,
-                x.UserCreatedId,
-                title = x.Name,
-                invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
-                x.InviteeIdsList,
-                selected = user.SelectedCalendarsList.Contains(x.Id),
-                x.GroupId,
-                x.SuperTypeId,
-                isLeaf = x.Children == null || !x.Children.Any(),
-                children = x.Children != null && x.Children.Any() ? types(x.Children) : null
-            });
-
-            return types(userTypes);
         }
 
         [Route("removeuserbuddy/{buddyId}/{existConfirm}")]
@@ -292,7 +283,7 @@ namespace Appology.Controllers.Api
             {
                 response.status,
                 responseMsg = response.Message,
-                userTypes = GetUserTypes(user, userTypes)
+                userTypes = userService.GetUserTypes(user, userTypes)
             });
         }
 
@@ -310,7 +301,7 @@ namespace Appology.Controllers.Api
             {
                 status = response.Status,
                 responseMsg = response.Status ? "Successfully saved" : "An error occured",
-                userTypes = GetUserTypes(user, userTypes)
+                userTypes = userService.GetUserTypes(user, userTypes)
             });
         }
 
@@ -328,7 +319,7 @@ namespace Appology.Controllers.Api
                 responseMsg = status ? 
                     "Folder successfully moved" : 
                     "There was an issue with moving the folder",
-                userTypes = GetUserTypes(user, userTypes)
+                userTypes = userService.GetUserTypes(user, userTypes)
             });
         }
     }

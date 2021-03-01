@@ -8,7 +8,7 @@ import { FaMinus, FaPlus } from 'react-icons/fa';
 import { ActionButton } from 'src/components/utils/ActionButtons';
 import { api } from 'src/Api/Api';
 import { Variant } from '@appology/react-components';
-import { IUserType } from 'src/models/IUserType';
+import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
 
 export interface IOwnState {
     userTags: IUserTag[],

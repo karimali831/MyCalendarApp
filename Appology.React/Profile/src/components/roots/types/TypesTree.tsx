@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { IGroup } from 'src/models/IGroup';
-import { IUserType } from 'src/models/IUserType';
-import Tree from 'antd/lib/tree';
+import DirectoryTree from 'antd/lib/tree/DirectoryTree';
 import 'antd/dist/antd.css'
 import { FaPlus, FaUserFriends } from 'react-icons/fa';
+import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
+import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
 
-const { DirectoryTree } = Tree;
 
 export interface IOwnState {
     userTypes: IUserType[],
@@ -20,7 +19,7 @@ export interface IOwnProps {
 }
 
 
-export class TypesTree extends React.Component<IOwnProps, IOwnState> {
+export default class TypesTree extends React.Component<IOwnProps, IOwnState> {
 
     constructor(props: IOwnProps) {
         super(props);

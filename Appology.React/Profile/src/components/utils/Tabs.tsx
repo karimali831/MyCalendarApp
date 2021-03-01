@@ -63,7 +63,7 @@ export const Tabs: React.FC<IOwnProps> = (props) => {
                 }
     
             </Nav>
-            <hr />
+            <br />
         </>
     )
 }

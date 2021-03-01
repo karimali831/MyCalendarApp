@@ -33,6 +33,7 @@ namespace Appology.Service
         Task<(bool Status, string Msg)> DeleteUserType(int Id, Guid userId);
         Task<bool> GroupExistsInTag(int groupId);
         Task<bool> UpdateBuddys(string buddys, Guid userId);
+        object GetUserTypes(User user, IEnumerable<Types> userTypes);
         Task<(Status? UpdateResponse, string UpdateMsg)> AddBuddy(string email, Guid id);
     }
 
@@ -100,6 +101,25 @@ namespace Appology.Service
         {
             user.ExtCalendarRights ??= Enumerable.Empty<ExtCalendarRights>();
             return await userRepository.UpdateAsync(user);
+        }
+
+        public object GetUserTypes(User user, IEnumerable<Types> userTypes)
+        {
+            object types(IEnumerable<Types> t) => t.Select(x => new
+            {
+                key = x.Id,
+                x.UserCreatedId,
+                title = x.Name,
+                invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
+                x.InviteeIdsList,
+                selected = user.SelectedCalendarsList.Contains(x.Id),
+                x.GroupId,
+                x.SuperTypeId,
+                isLeaf = x.Children == null || !x.Children.Any(),
+                children = x.Children != null && x.Children.Any() ? types(x.Children) : null
+            });
+
+            return types(userTypes);
         }
 
         public async Task<User> GetByUserIDAsync(Guid userID)

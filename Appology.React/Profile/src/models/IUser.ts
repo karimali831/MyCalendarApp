@@ -1,6 +1,7 @@
-import IBaseModel from "@appology/react-components/src/SelectionRefinement/IBaseModel";
+import IUserBuddy from "@appology/react-components/dist/UserTypes/IUserBuddy";
+import IUserType from "@appology/react-components/dist/UserTypes/IUserType";
+import IBaseModel from "@appology/react-components/dist/SelectionRefinement/IBaseModel";
 import { IUserTag } from "./IUserTag";
-import { IUserType } from "./IUserType";
 
 export interface IUser {
     userInfo: IUserInfo,
@@ -19,12 +20,6 @@ export interface IUserInfo {
     password: string,
     email: string,
     phoneNumber: string
-}
-
-export interface IUserBuddy {
-    userID: string,
-    name: string,
-    avatar: string
 }
 
 export interface ICalendarSettings {

@@ -1,7 +1,10 @@
-﻿using Appology.Enums;
+﻿using Appology.DTOs.Calendar;
+using Appology.Enums;
 using DFM.Utils;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
+using System.Linq;
 
 namespace Appology.MiCalendar.Model
 {
@@ -19,6 +22,12 @@ namespace Appology.MiCalendar.Model
         public string UserCreatedName { get; set; }
         [DbIgnore]
         public string EditedByName { get; set; }
+        [DbIgnore]
+        public IList<Collaborator> Collaborators { get; set; }
+        [DbIgnore]
+        public string InviteeIds { get; set; }
+        [DbIgnore]
+        public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
     }
 
     public class DocumentMap : EntityTypeConfiguration<Document>

@@ -1,10 +1,10 @@
 import { Load, UserAvatar, Variant } from '@appology/react-components';
+import IUserBuddy from '@appology/react-components/dist/UserTypes/IUserBuddy';
 import * as React from 'react';
 import ListGroup from 'react-bootstrap/ListGroup'
 import { FaShare, FaTimes } from 'react-icons/fa';
 import { api, IRemoveBuddyResponse } from 'src/Api/Api';
 import { rootUrl } from 'src/components/utils/Utils';
-import { IUserBuddy } from 'src/models/IUser';
 import { BuddyInvite } from './BuddyInvite';
 
 export interface IOwnState {
@@ -59,7 +59,7 @@ export class Buddys extends React.Component<IOwnProps, IOwnState> {
                     {
                         this.state.buddys.map(b => 
                             <ListGroup.Item key={b.userID} style={{ width: 130, paddingTop: 10, paddingLeft: 5 }}>
-                                <UserAvatar rootUrl={rootUrl} width={30} height={30} avatar={b.avatar} content={<strong>{b.name}</strong>} />
+                                <UserAvatar rootUrl={rootUrl} size="small" avatar={b.avatar} content={<strong>{b.name}</strong>} />
                                 <div className="buddy-remove">
                                     {
                                         this.state.removeeId === b.userID ? 

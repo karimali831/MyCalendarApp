@@ -78,7 +78,7 @@ namespace Appology.MiFinance.Helpers
 
             string appendCurrency = showCurrency ? Utils.ToCurrency(difference) : difference.ToString();
             string formatAmount = string.Format("{0}{1}", appendText, appendCurrency);
-            return highlight == false ? formatAmount : $"<span class='label label-{label}'>{formatAmount}</span>";
+            return highlight == false ? formatAmount : $"<span class='badge badge-{label}'>{formatAmount}</span>";
         }
 
         public static T ToEnum<T>(this string value) where T : struct, IConvertible

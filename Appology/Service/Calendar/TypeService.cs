@@ -13,8 +13,8 @@ namespace Appology.MiCalendar.Service
     public interface ITypeService
     {
         Task<IEnumerable<Types>> GetAllByGroupAsync(TypeGroup groupId);
-        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null);
-        Task<IEnumerable<Types>> UserTagsTree(Guid userId, Types element, TypeGroup? groupId);
+        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null, bool userCreatedOnly = true);
+        Task<IEnumerable<Types>> UserTagsTree(Guid userId, Types element, TypeGroup? groupId, bool userCreatedOnly = true);
         Task<IEnumerable<Types>> GetUserTypesAsync(Guid userId, TypeGroup groupId);
         Task<Types> GetAsync(int Id);
         Task<bool> UpdateTypeAsync(Types type);
@@ -35,15 +35,15 @@ namespace Appology.MiCalendar.Service
             this.typeRepository = typeRepository ?? throw new ArgumentNullException(nameof(TypeRepository));
         }
 
-        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId)
+        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId, bool userCreatedOnly = true)
         {
             var result = new List<Types>();
-            var userTypes = (await typeRepository.GetAllByUserIdAsync(userId, groupId))
+            var userTypes = (await typeRepository.GetAllByUserIdAsync(userId, groupId, userCreatedOnly))
                 .Where(x => x.SuperTypeId == null);
             
             foreach (var userType in userTypes)
             {
-                userType.Children = await UserTagsTree(userId, userType, groupId);
+                userType.Children = await UserTagsTree(userId, userType, groupId, userCreatedOnly);
                 result.Add(userType);
             }
 
@@ -55,10 +55,10 @@ namespace Appology.MiCalendar.Service
             return await typeRepository.GetAllByGroupAsync(groupId);
         }
 
-        public async Task<IEnumerable<Types>> UserTagsTree(Guid userId, Types element, TypeGroup? groupId)
+        public async Task<IEnumerable<Types>> UserTagsTree(Guid userId, Types element, TypeGroup? groupId, bool userCreatedOnly = true)
         {
             var childUserTypes = new List<Types>();
-            var children = (await typeRepository.GetAllByUserIdAsync(userId, groupId))
+            var children = (await typeRepository.GetAllByUserIdAsync(userId, groupId, userCreatedOnly))
                 .Where(x => x.SuperTypeId == element.Id);
 
             element.Children = children;

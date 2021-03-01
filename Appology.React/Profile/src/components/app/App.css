@@ -16,6 +16,10 @@
     color: #dc3545;
 }
 
+.nav-tabs {
+    border-bottom: 1px solid #dee2e6 !important
+}
+
 /* react bootstrap overrides */
 
 @media (max-width: 800px) {

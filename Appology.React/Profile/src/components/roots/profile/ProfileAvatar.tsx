@@ -22,7 +22,7 @@ export class ProfileAvatar extends React.Component<IOwnProps, IOwnState> {
 
     public render() {
         return (
-            <UserAvatar rootUrl={rootUrl} width={120} height={120} avatar={this.props.avatar} />
+            <UserAvatar rootUrl={rootUrl} size="large" avatar={this.props.avatar} />
             // <Avatar
             //     avatarStyle='Circle'
             //     topType='Hijab'

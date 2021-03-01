@@ -13,7 +13,7 @@ namespace Appology.MiCalendar.Repository
 {
     public interface ITypeRepository
     {
-        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null);
+        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null, bool userCreatedOnly = true);
         Task<IEnumerable<Types>> GetAllByGroupAsync(TypeGroup groupId);
         Task<Types> GetAsync(int Id);
         Task<bool> UpdateTypeAsync(Types type);
@@ -36,13 +36,14 @@ namespace Appology.MiCalendar.Repository
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
         }
 
-        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId)
+        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId, bool userCreatedOnly = true)
         {
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = @$"
                     {DapperHelper.SELECT(TABLE, FIELDS)}
-                    WHERE UserCreatedId = '{userId}'
+                    WHERE (UserCreatedId = '{userId}'
+                    {(!userCreatedOnly ? $"OR (',' + RTRIM(InviteeIds) + ',') LIKE '%,{userId},%')" : ")")}
                     {(groupId.HasValue ? $"AND GroupId = {(int)groupId.Value}" : "")}
                     ORDER BY SuperTypeId, Name ASC";
 

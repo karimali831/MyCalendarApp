@@ -9,20 +9,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Appology.MiCalendar.Helpers;
+using Appology.DTOs.Calendar;
 
 namespace Appology.MiCalendar.Service
 {
     public interface IDocumentService
     {
-        Task<IEnumerable<Document>> GetAllByUserIdAsync(Guid userId);
-        Task<Document> GetAsync(Guid Id);
+        //Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId);
+        Task<Document> LoadDocument(Guid docId, Guid userId);
+        Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId);
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
-        Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId);
         Task<bool> InsertOrUpdateAsync(Document doc);
         Task<bool> MoveAsync(Guid docId, int moveToId);
         Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
         Task<IList<Notification>> DocumentActivity(User user);
         Task<bool> DocumentsExistsInGroup(int groupId);
+        Task<bool> DeleteDocument(Guid docId);
     }
 
     public class DocumentService : IDocumentService
@@ -38,59 +40,93 @@ namespace Appology.MiCalendar.Service
             this.userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
         }
 
-        public async Task<IEnumerable<Document>> GetAllByUserIdAsync(Guid userId)
-        {
-            return await documentRepository.GetAllByUserIdAsync(userId);
-        }
+        //public async Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId)
+        //{
+        //    var documentFolders = new List<Types>();
 
-        public async Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId)
-        {
-            var documentFolders = new List<Types>();
+        //    var documentTypes = (await typeService.GetAllByGroupAsync(TypeGroup.DocumentFolders))
+        //        .Where(x => x.UserCreatedId == userId || (x.InviteeIdsList != null && x.InviteeIdsList.Contains(userId)));
 
-            var documentTypes = (await typeService.GetAllByGroupAsync(TypeGroup.DocumentFolders))
-                .Where(x => x.UserCreatedId == userId || (x.InviteeIdsList != null && x.InviteeIdsList.Contains(userId)));
+        //    if (documentTypes != null && documentTypes.Any())
+        //    {
+        //        foreach (var docType in documentTypes)
+        //        {
+        //            var type = (await typeService.GetAllByUserIdAsync(docType.UserCreatedId)).FirstOrDefault(x => x.Id == docType.Id);
 
-            if (documentTypes != null && documentTypes.Any())
-            {
-                foreach (var docType in documentTypes)
-                {
-                    var type = (await typeService.GetAllByUserIdAsync(docType.UserCreatedId, TypeGroup.DocumentFolders)).FirstOrDefault(x => x.Id == docType.Id);
+        //            if (type != null)
+        //            {
+        //                type.InviteeName = (await userRepo.GetByUserIDAsync(type.UserCreatedId))?.Name ?? "buddy";
+        //                documentFolders.Add(type);
+        //            }
+        //        }
+        //    }
 
-                    if (type != null)
-                    {
-                        type.InviteeName = (await userRepo.GetByUserIDAsync(type.UserCreatedId))?.Name ?? "buddy";
-                        documentFolders.Add(type);
-                    }
-                }
-            }
+        //    return documentFolders;
+        //}
 
-            return documentFolders;
-        }
 
         public async Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId)
         {
-            var docs =  await documentRepository.GetAllByTypeIdAsync(typeId);
+            return await documentRepository.GetAllByTypeIdAsync(typeId);
+        }
 
-            if (docs != null && docs.Any())
+
+        public async Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId)
+        {
+            return await documentRepository.GetDocTitlesByFolderId(typeId, userId);
+        }
+
+        public async Task<Document> LoadDocument(Guid docId, Guid userId)
+        {
+            var doc = await documentRepository.GetAsync(docId, userId);
+
+            if (doc == null)
             {
-                foreach (var doc in docs)
-                {
-                    doc.UserCreatedName = (await userRepo.GetByUserIDAsync(doc.UserCreatedId)).Name;
+                return null;
+            }
 
-                    if (doc.EditedById.HasValue)
-                    {
-                        string editedByName = (await userRepo.GetByUserIDAsync(doc.EditedById.Value)).Name;
-                        doc.EditedByName = $"{editedByName} on {DateUtils.FromUtcToTimeZone(doc.EditedDate.Value):dd-MM-yy HH:mm}";
-                    }
+            var docCreator = await userRepo.GetByUserIDAsync(doc.UserCreatedId);
+            doc.UserCreatedName = docCreator.Name;
+
+            if (doc.EditedById.HasValue)
+            {
+                var collaborator = await userRepo.GetByUserIDAsync(doc.EditedById.Value);
+                doc.EditedByName = $"{collaborator.Name} on {DateUtils.FromUtcToTimeZone(doc.EditedDate.Value):dd-MM-yy HH:mm}";
+            }
+
+            var collaborators = new List<Collaborator>() { 
+                new Collaborator
+                {
+                    Name = docCreator.Name,
+                    Avatar = CalendarUtils.AvatarSrc(docCreator.UserID, docCreator.Avatar, docCreator.Name),
+                    Title = "Creator"
+                }
+            };
+
+            if (doc.InviteeIdsList.Any() && !doc.InviteeIdsList.Contains(docCreator.UserID))
+            {
+                foreach (var invitee in doc.InviteeIdsList)
+                {
+                    var collaborator = await userRepo.GetByUserIDAsync(invitee);
+
+                    collaborators.Add(
+                        new Collaborator
+                        {
+                            Name = collaborator.Name,
+                            Avatar = CalendarUtils.AvatarSrc(invitee, collaborator.Avatar, collaborator.Name),
+                            Title = "Invitee"
+                        }
+                    );
                 }
             }
 
-            return docs;
+            doc.Collaborators = collaborators;
+            return doc;
         }
 
-        public async Task<Document> GetAsync(Guid Id)
+        public async Task<bool> DeleteDocument(Guid docId)
         {
-            return await documentRepository.GetAsync(Id);
+            return await documentRepository.DeleteDocument(docId);
         }
 
         public async Task<bool> InsertOrUpdateAsync(Document doc)
@@ -113,14 +149,17 @@ namespace Appology.MiCalendar.Service
 
             if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
             {
-                var doc = await GetAsync(user.LastViewedDocId.Value);
+                var doc = await LoadDocument(user.LastViewedDocId.Value, user.UserID);
 
-                activity.Add(new Notification
+                if (doc != null)
                 {
-                    Avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
-                    Text = $"You recently viewed a document: {doc.Title}",
-                    Feature = Features.Write
-                });
+                    activity.Add(new Notification
+                    {
+                        Avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
+                        Text = $"You recently viewed a document: {doc.Title}",
+                        Feature = Features.Write
+                    });
+                }
             }
 
             return activity;

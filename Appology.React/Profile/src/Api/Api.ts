@@ -1,10 +1,10 @@
 import { rootUrl } from 'src/components/utils/Utils';
 import { ICalendarSettings, IUser, IUserInfo } from 'src/models/IUser';
-import { IUserType, IUserTypeDTO } from 'src/models/IUserType';
 import { IUserTag } from 'src/models/IUserTag';
-import { IGroup } from 'src/models/IGroup';
-import { TypeGroup } from 'src/Enums/TypeGroup';
-import { Variant } from '@appology/react-components';
+import { Variant, TypeGroup } from '@appology/react-components';
+import IUserTypeDTO from '@appology/react-components/dist/UserTypes/IUserTypeDTO'
+import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
+import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
 
 export class Api {
     public rootUrl: string = `${rootUrl}/api/profile`;

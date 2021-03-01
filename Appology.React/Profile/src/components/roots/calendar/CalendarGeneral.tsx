@@ -1,12 +1,12 @@
 import { ToggleSwitch, SelectElement, Variant } from '@appology/react-components';
-import IBaseModel from '@appology/react-components/src/SelectionRefinement/IBaseModel';
+import IBaseModel from '@appology/react-components/dist/SelectionRefinement/IBaseModel';
 import * as React from 'react';
 import Select, { ValueType } from 'react-select';
 import { api } from 'src/Api/Api';
 import { ActionButton } from 'src/components/utils/ActionButtons';
 import { ICalendarSettings } from 'src/models/IUser';
 import { ISelect } from 'src/models/ISelect';
-import { IUserType } from 'src/models/IUserType';
+import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
 
 export interface IOwnProps {
     settings: ICalendarSettings,

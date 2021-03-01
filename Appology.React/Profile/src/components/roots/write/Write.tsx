@@ -3,10 +3,9 @@ import { IUser } from 'src/models/IUser';
 import { MenuTabs } from 'src/Enums/MenuTabs';
 import { Tabs } from '../../utils/Tabs';
 import { MenuSection } from 'src/Enums/MenuSection';
-import { Variant } from '@appology/react-components';
+import { TypeGroup, Variant } from '@appology/react-components';
 import { Types } from '../types/Types';
-import { TypeGroup } from 'src/Enums/TypeGroup';
-import { IGroup } from 'src/models/IGroup';
+import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
 
 export interface IOwnProps {
     user: IUser,

@@ -154,6 +154,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\BaseDateFilter.cs" />
+    <Compile Include="DTOs\Calendar\Collaborator.cs" />
     <Compile Include="DTOs\Calendar\DateFilter.cs" />
     <Compile Include="DTOs\Calendar\Document.cs" />
     <Compile Include="DTOs\Calendar\Event.cs" />

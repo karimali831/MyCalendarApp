@@ -39,6 +39,8 @@ namespace Appology.Controllers
         public async Task<ActionResult> ChangeLog()
         {
             await BaseViewModel(new MenuItem { None = true });
+            var baseVM = ViewData["BaseVM"] as BaseVM;
+
             var changeLogDocs = await documentService.GetAllByTypeIdAsync((int)TypeIdentifier.ChangeLog);
             return View(changeLogDocs);
         }

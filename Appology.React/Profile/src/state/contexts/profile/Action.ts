@@ -1,5 +1,5 @@
+import IGroup from "@appology/react-components/dist/UserTypes/IGroup";
 import { MenuTabs } from "src/Enums/MenuTabs";
-import { IGroup } from "src/models/IGroup";
 import { IUser } from "src/models/IUser";
 
 // action types

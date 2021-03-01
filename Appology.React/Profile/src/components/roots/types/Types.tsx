@@ -4,11 +4,12 @@ import ListGroup from 'react-bootstrap/ListGroup'
 import { Tab } from 'react-bootstrap'
 import { FaPlus, FaUserFriends } from 'react-icons/fa';
 import { EditModal } from 'src/components/utils/EditModal';
-import { IUserBuddy } from 'src/models/IUser';
 import { api, ITypeChangeResponse } from 'src/Api/Api';
-import { IUserType, IUserTypeDTO } from 'src/models/IUserType';
-import { IGroup } from 'src/models/IGroup';
-import { TypesTree } from './TypesTree';
+import IUserBuddy from '@appology/react-components/dist/UserTypes/IUserBuddy';
+import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
+import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
+import IUserTypeDTO from '@appology/react-components/dist/UserTypes/IUserTypeDTO';
+import TypesTree from './TypesTree';
 
 export interface IOwnState {
     userTypes: IUserType[],
