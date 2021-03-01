@@ -24,12 +24,12 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.Logout, "/account/logout"),
                 new KeyValuePair<Section, string>(Section.Invite, "/invite/user"),
                 new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove"),
-                // calendar and write app
+                // calendar app
                 new KeyValuePair<Section, string>(Section.Overview, "/calendar/event/overview"),
                 new KeyValuePair<Section, string>(Section.Scheduler, "/calendar/event/multiadd"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/calendar/cronofy/profiles"),
-                new KeyValuePair<Section, string>(Section.Document, "/calendar/document/index"),
-                new KeyValuePair<Section, string>(Section.MoveDocument, "/calendar/document/move"),
+                // write app
+                new KeyValuePair<Section, string>(Section.Document, "/write/index"),
                 // errand runner app
                 new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/order/new"),
                 // finance app

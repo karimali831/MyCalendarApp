@@ -5,7 +5,7 @@ using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using Appology.Enums;
 
-namespace Appology.MiCalendar.Model
+namespace Appology.Model
 {
     public class Types
     {

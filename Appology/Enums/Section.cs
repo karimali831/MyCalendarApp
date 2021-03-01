@@ -18,7 +18,6 @@ namespace Appology.Enums
         CronofyProfiles,
         Document,
         Profile,
-        MoveDocument,
         Logout,
         ErrandRunnerNewOrder,
         // Finance

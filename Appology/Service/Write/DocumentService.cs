@@ -1,6 +1,4 @@
-﻿using Appology.MiCalendar.Model;
-using Appology.MiCalendar.Repository;
-using Appology.Enums;
+﻿using Appology.Enums;
 using Appology.Helpers;
 using Appology.Model;
 using Appology.Repository;
@@ -9,13 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Appology.MiCalendar.Helpers;
-using Appology.DTOs.Calendar;
+using Appology.Write.Model;
+using Appology.Write.Repository;
+using Appology.Write.DTOs;
+using Appology.Service;
 
-namespace Appology.MiCalendar.Service
+namespace Appology.Write.Service
 {
     public interface IDocumentService
     {
-        //Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId);
         Task<Document> LoadDocument(Guid docId, Guid userId);
         Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId);
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
@@ -39,31 +39,6 @@ namespace Appology.MiCalendar.Service
             this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
             this.userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
         }
-
-        //public async Task<IEnumerable<Types>> GetDocumentFoldersByUserIdAsync(Guid userId)
-        //{
-        //    var documentFolders = new List<Types>();
-
-        //    var documentTypes = (await typeService.GetAllByGroupAsync(TypeGroup.DocumentFolders))
-        //        .Where(x => x.UserCreatedId == userId || (x.InviteeIdsList != null && x.InviteeIdsList.Contains(userId)));
-
-        //    if (documentTypes != null && documentTypes.Any())
-        //    {
-        //        foreach (var docType in documentTypes)
-        //        {
-        //            var type = (await typeService.GetAllByUserIdAsync(docType.UserCreatedId)).FirstOrDefault(x => x.Id == docType.Id);
-
-        //            if (type != null)
-        //            {
-        //                type.InviteeName = (await userRepo.GetByUserIDAsync(type.UserCreatedId))?.Name ?? "buddy";
-        //                documentFolders.Add(type);
-        //            }
-        //        }
-        //    }
-
-        //    return documentFolders;
-        //}
-
 
         public async Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId)
         {

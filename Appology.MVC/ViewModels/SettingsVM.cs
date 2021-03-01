@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Appology.MiCalendar.Model;
+using Appology.Model;
 
 namespace Appology.Website.ViewModels
 {

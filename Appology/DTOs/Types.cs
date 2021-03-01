@@ -5,7 +5,7 @@ using Appology.Model;
 using System;
 using System.Collections.Generic;
 
-namespace Appology.MiCalendar.DTOs
+namespace Appology.DTOs
 {
     public class TypesDTO
     {

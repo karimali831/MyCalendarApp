@@ -1,14 +1,13 @@
 ﻿using Appology.DTOs;
 using Appology.Enums;
-using Appology.MiCalendar.DTOs;
-using Appology.MiCalendar.Model;
-using Appology.MiCalendar.Repository;
+using Appology.Model;
+using Appology.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Appology.MiCalendar.Service
+namespace Appology.Service
 {
     public interface ITypeService
     {

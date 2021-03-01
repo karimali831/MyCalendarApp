@@ -1,4 +1,4 @@
-﻿using Appology.MiCalendar.Model;
+﻿using Appology.Model;
 using System.Collections.Generic;
 
 namespace Appology.Website.Areas.MiCalendar.ViewModels

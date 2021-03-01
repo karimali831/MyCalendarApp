@@ -1,4 +1,4 @@
-﻿using Appology.MiCalendar.Model;
+﻿using Appology.Model;
 using Cronofy;
 using System.Collections.Generic;
 

@@ -1,25 +1,20 @@
 ﻿using Appology.Helpers;
 using Appology.Service;
-using System.Collections.Generic;
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Cors;
 using Appology.Model;
-using Appology.MiCalendar.Service;
-using Appology.MiCalendar.Enums;
-using Appology.MiCalendar.DTOs;
-using Appology.MiCalendar.Helpers;
-using Appology.MiCalendar.Model;
 using Appology.Controllers.Api;
 using System.Configuration;
 using Appology.Enums;
+using Appology.Write.Model;
+using Appology.Write.Service;
+using Appology.Write.DTOs;
 
-namespace Appology.Areas.MiCalendar.Controllers.API
+namespace Appology.Areas.Write.Controllers.API
 {
     [RoutePrefix("api/document")]
     [CamelCaseControllerConfig]

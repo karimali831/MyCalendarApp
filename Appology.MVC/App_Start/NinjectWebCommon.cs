@@ -40,6 +40,7 @@ namespace Appology.Website.App_Start
             kernel.Load<Ninject.CalendarModule>();
             kernel.Load<Ninject.FinanceModule>();
             kernel.Load<Ninject.ErModule>();
+            kernel.Load<Ninject.WriteModule>();
         }
 
         /// <summary>

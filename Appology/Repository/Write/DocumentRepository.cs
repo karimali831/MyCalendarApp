@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using Appology.MiCalendar.Model;
 using Appology.Enums;
+using Appology.Write.Model;
 
-namespace Appology.MiCalendar.Repository
+namespace Appology.Write.Repository
 {
     public interface IDocumentRepository
     {

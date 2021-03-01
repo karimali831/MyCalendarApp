@@ -1,12 +1,12 @@
-﻿using Appology.DTOs.Calendar;
-using Appology.Enums;
+﻿using Appology.Enums;
+using Appology.Write.DTOs;
 using DFM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 
-namespace Appology.MiCalendar.Model
+namespace Appology.Write.Model
 {
     public class Document
     {

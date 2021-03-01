@@ -1,6 +1,6 @@
-﻿using Appology.Enums;
-using Appology.MiCalendar.DTOs;
-using Appology.MiCalendar.Model;
+﻿using Appology.DTOs;
+using Appology.Enums;
+using Appology.Model;
 using Dapper;
 using DFM.Utils;
 using System;
@@ -9,7 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Appology.MiCalendar.Repository
+namespace Appology.Repository
 {
     public interface ITypeRepository
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Web.Mvc;
 
-namespace Appology.MiCalendar.DTOs
+namespace Appology.Write.DTOs
 {
     public class DocumentDTO
     {
