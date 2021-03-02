@@ -151,7 +151,6 @@ namespace Appology.Controllers
             var loginRoute = Url.MvcRoute(Section.Login);
             var loginPostRoute = Url.MvcRoute(Section.LoginSubmit);
 
-
             if (string.IsNullOrEmpty(appCookie))
             {
                 string controller = RouteData.Values["controller"].ToString();
@@ -160,13 +159,20 @@ namespace Appology.Controllers
 
                 if (!controller.UnstrictCompare(loginRoute.ControllerName) || !action.UnstrictCompare(loginRoute.ActionName))
                 {
-                    var inviteRoute = Url.MvcRoute(Section.Invite);
-
                     if (id != null)
                     {
+                        var inviteRoute = Url.MvcRoute(Section.Invite);
+                        var docRoute = Url.MvcRoute(Section.DocLink);
+
+
                         if (controller.UnstrictCompare(inviteRoute.ControllerName) && action.UnstrictCompare(inviteRoute.ActionName))
                         {
                             HttpContext.Response.Redirect(loginRoute.RouteUrl + $"?inviteeId={id}");
+                        }
+
+                        if (controller.UnstrictCompare(docRoute.ControllerName) && action.UnstrictCompare(docRoute.ActionName))
+                        {
+                            HttpContext.Response.Redirect(loginRoute.RouteUrl + $"?docId={id}");
                         }
                     }
                     else if (!controller.UnstrictCompare(loginPostRoute.ControllerName) && !action.UnstrictCompare(loginPostRoute.ActionName))

@@ -11,7 +11,7 @@ namespace Appology.Helpers
     {
         public static string GetActionName(string url) => url.Split('/').Last();
         public static string GetControllerName(string url) => url.Split('/').Reverse().Skip(1).First();
-        public static string GetAreaName(string url) => url.Split('/').Length == 2 ? url.Split('/')[0] : null;
+        public static string GetAreaName(string url) => url.Split('/').Reverse().Skip(2).First();
 
         public static IList<KeyValuePair<Section, string>> MvcRoutes()
         {
@@ -29,7 +29,8 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.Scheduler, "/calendar/event/multiadd"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/calendar/cronofy/profiles"),
                 // write app
-                new KeyValuePair<Section, string>(Section.Document, "/write/index"),
+                new KeyValuePair<Section, string>(Section.Document, "/write/document"),
+                new KeyValuePair<Section, string>(Section.DocLink, "/write/document/id"),
                 // errand runner app
                 new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/order/new"),
                 // finance app
@@ -47,25 +48,32 @@ namespace Appology.Helpers
             return $"{ConfigurationManager.AppSettings["RootUrl"]}/{inviteRoute.ControllerName}/{inviteRoute.ActionName}/{userId}";
         }
 
+        public static string DocumentShareLink(this UrlHelper helper, Guid docId)
+        {
+            var documentRoute = MvcRoute(helper, Section.DocLink);
+            return $"{ConfigurationManager.AppSettings["RootUrl"]}/{documentRoute.AreaName}/{documentRoute.ControllerName}/{documentRoute.ActionName}/{docId}";
+        }
+
         public static string MvcRouteUrl(this UrlHelper helper, Section route)
         {
             return MvcRoutes().First(x => x.Key == route).Value;
         }
 
-        public static (string ActionName, string ControllerName, string RouteUrl) MvcRoute(this UrlHelper helper, Section route)
+        public static (string AreaName, string ActionName, string ControllerName, string RouteUrl) MvcRoute(this UrlHelper helper, Section route)
         {
             var getSection = MvcRoutes().First(x => x.Key == route);
-            return (GetActionName(getSection.Value), GetControllerName(getSection.Value), getSection.Value);
+            return (GetAreaName(getSection.Value), GetActionName(getSection.Value), GetControllerName(getSection.Value), getSection.Value);
         }
 
-        public static object Login(this UrlHelper helper, Guid? inviteeId = null)
+        public static object Login(this UrlHelper helper, Guid? inviteeId = null, Guid? docId = null)
         {
             var route = MvcRoute(helper, Section.Login);
 
             return new { 
                 action = route.ActionName,
                 controller = route.ControllerName, 
-                inviteeId = inviteeId
+                inviteeId = inviteeId,
+                docId = docId
             };
         }
 

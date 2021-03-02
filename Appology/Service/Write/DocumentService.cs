@@ -11,6 +11,8 @@ using Appology.Write.Model;
 using Appology.Write.Repository;
 using Appology.Write.DTOs;
 using Appology.Service;
+using System.Web;
+using System.Web.Mvc;
 
 namespace Appology.Write.Service
 {
@@ -113,6 +115,7 @@ namespace Appology.Write.Service
         {
             return await documentRepository.MoveAsync(docId, moveToId);
         }
+
         public async Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId)
         {
             return await userRepo.UpdateLastViewedDoc(userId, docId);
@@ -125,13 +128,14 @@ namespace Appology.Write.Service
             if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
             {
                 var doc = await LoadDocument(user.LastViewedDocId.Value, user.UserID);
+                var url = new UrlHelper(HttpContext.Current.Request.RequestContext);
 
                 if (doc != null)
                 {
                     activity.Add(new Notification
                     {
                         Avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
-                        Text = $"You recently viewed a document: {doc.Title}",
+                        Text = $"You recently viewed a document: <a href='{url.DocumentShareLink(doc.Id)}'>{doc.Title}</a>",
                         Feature = Features.Write
                     });
                 }

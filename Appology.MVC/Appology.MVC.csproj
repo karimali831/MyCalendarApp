@@ -379,8 +379,8 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\Write\WriteAreaRegistration.cs" />
     <Compile Include="Areas\Write\WriteModule.cs" />
-    <Compile Include="Areas\Write\Controllers\API\WriteController.cs" />
-    <Compile Include="Areas\Write\Controllers\WriteController.cs" />
+    <Compile Include="Areas\Write\Controllers\API\DocumentController.cs" />
+    <Compile Include="Areas\Write\Controllers\DocumentController.cs" />
     <Compile Include="Areas\Calendar\CalendarAreaRegistration.cs" />
     <Compile Include="Areas\Calendar\CalendarModule.cs" />
     <Compile Include="Controllers\API\ProfileController.cs" />
@@ -830,7 +830,7 @@
     <Content Include="Content\table-detail\css\.DS_Store" />
     <Content Include="Areas\Finance\Views\Monzo\Close.cshtml" />
     <Content Include="Areas\Write\Views\_ViewStart.cshtml" />
-    <Content Include="Areas\Write\Views\Write\Index.cshtml" />
+    <Content Include="Areas\Write\Views\Document\Index.cshtml" />
     <Content Include="Areas\Write\Views\Web.config" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />

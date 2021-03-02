@@ -1,0 +1,15 @@
+﻿@using Appology.Website.ViewModels
+
+
+<div class="content-shadow" >
+    <div class="content-inner" style="background: #fff">
+        <h4><i class="fas fa-pen-alt"></i> Write</h4>
+        @Html.Partial("_ReactApp", new ReactAppVM
+        {
+            App = "write",
+            Desc = "Write App ©",
+            Version = "2.0.1"
+        })
+    </div>
+</div>
+

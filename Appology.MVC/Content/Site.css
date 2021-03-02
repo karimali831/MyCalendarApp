@@ -164,34 +164,6 @@ textarea {
     margin-left: auto;
 }
 
-@media (max-width: 800px) {
-    .notification-alerts {
-        position: absolute;
-        top: 25px;
-        left: 0px
-    }
-
-    .body-container {
-        padding: 0px !important;
-        margin: 0px !important;
-    
-    }
-
-    table, #root {
-        font-size: 13px;
-    }
-
-    .bank-details {
-        font-size: 75% !important;
-    }
-
-}
-
-.pull-right {
-    float: right;
-}
-
-
 /* content boxes */
 .content-shadow {
     -webkit-border-radius: 0% 0% 100% 100% / 0% 0% 8px 8px;
@@ -218,4 +190,37 @@ textarea {
 .bank-details {
     font-size: 18px;
 }
+
+
+@media (max-width: 800px) {
+    .notification-alerts {
+        position: absolute;
+        top: 25px;
+        left: 0px
+    }
+
+    .body-container {
+        padding: 0px !important;
+        margin: 0px !important;
+    
+    }
+
+    table, #root {
+        font-size: 13px;
+    }
+
+    .bank-details {
+        font-size: 75% !important;
+    }
+
+    .content-inner {
+        padding: 5px;
+    }
+
+}
+
+.pull-right {
+    float: right;
+}
+
 

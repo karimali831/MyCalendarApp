@@ -16,15 +16,18 @@ namespace Appology.Enums
         Overview,
         Scheduler,
         CronofyProfiles,
-        Document,
         Profile,
         Logout,
+        // ER
         ErrandRunnerNewOrder,
         // Finance
         FinanceApp,
         FinanceCategories,
         FinanceSettings,
         Monzo,
-        MonzoAuthenticate
+        MonzoAuthenticate,
+        // Write
+        Document,
+        DocLink
     }
 }

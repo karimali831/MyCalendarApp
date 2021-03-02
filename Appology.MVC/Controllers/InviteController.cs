@@ -26,15 +26,8 @@ namespace Appology.Controllers
         {
             var user = await GetUser();
 
-            if (user == null)
-            {
-                return RedirectToRoute(Url.Login(id));
-            }
-            else
-            {
-                var (UpdateResponse, UpdateMsg) = await AddBuddy(user.Email, id);
-                return RedirectToRoute(Url.Home(UpdateResponse, UpdateMsg));
-            }
+            var (UpdateResponse, UpdateMsg) = await AddBuddy(user.Email, id);
+            return RedirectToRoute(Url.Home(UpdateResponse, UpdateMsg));
         }
     }
 }

@@ -18,26 +18,28 @@ namespace Appology.Controllers
         {
         }
 
-        [Route("Account/Index/{inviteeId?}/{errorMsg?}")]
-        public ActionResult Index(Guid? inviteeId = null, string errorMsg = null)
+        public ActionResult Index(Guid? inviteeId = null, string errorMsg = null, Guid? docId = null)
         {
             return View(new LoginViewModel{ 
                 InviteeId = inviteeId, 
+                DocId = docId,
                 ErrorMsg = errorMsg 
             } );
         }
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<ActionResult> Login(string email, string password, Guid? inviteeId = null)
+        public async Task<ActionResult> Login(string email, string password, Guid? inviteeId = null, Guid? docId = null)
         {
             string redirectUrl = "";
+            string invitee = inviteeId.HasValue ? $"&inviteeId={inviteeId}" : "";
+            string doc = docId.HasValue ? $"&docId={docId}" : "";
 
             if (string.IsNullOrEmpty(email) ||
                 string.IsNullOrEmpty(password) ||
                 await GetUser(email, password) == null)
             {
-                redirectUrl = Url.MvcRouteUrl(Section.Login) + $"?inviteeId={inviteeId}&errorMsg=Login failed";
+                redirectUrl = Url.MvcRouteUrl(Section.Login) + $"?errorMsg=Login failed{invitee}{doc}";
             }
             else
             {
@@ -48,6 +50,10 @@ namespace Appology.Controllers
                     var (UpdateResponse, UpdateMsg) = await AddBuddy(email, inviteeId.Value);
                     redirectUrl = Url.MvcRouteUrl(Section.Home) + $"?updateResponse={UpdateResponse}&updateMsg={UpdateMsg}";
                 }
+                else if (docId.HasValue)
+                {
+                    redirectUrl = Url.MvcRouteUrl(Section.DocLink) + $"/{docId.Value}";
+                }
                 else
                 {
                     redirectUrl = Url.MvcRouteUrl(Section.Home);
@@ -55,15 +61,6 @@ namespace Appology.Controllers
             }
 
             return Json(new { url = redirectUrl });
-
-            //return new JsonResult
-            //{
-            //    Data = new
-            //    {
-            //        status = response.Status,
-            //        url = response.RedirectUrl
-            //    }
-            //};
         }
 
         public ActionResult Logout()

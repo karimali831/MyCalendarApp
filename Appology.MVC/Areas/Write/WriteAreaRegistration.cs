@@ -24,7 +24,7 @@ namespace Appology.Website.Areas.Write
                 "write_default",
                 "Write/{controller}/{action}/{id}",
                 new { action = "Index", id = UrlParameter.Optional },
-                new { controller = "Write" },
+                new { controller = "Document" },
                 new[] { "Appology.Areas.Write.Controllers" }
             );
         }
