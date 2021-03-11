@@ -129,7 +129,7 @@ export class Types extends React.Component<IOwnProps, IOwnState> {
                 id: type.key,
                 name: type.title,
                 groupId: type.groupId,
-                inviteeIds: type.inviteeIdsList.join(','),
+                inviteeIds: type.collaborators.map(x => x.collaboratorId).join(','),
                 superTypeId: type.superTypeId
             }
         }

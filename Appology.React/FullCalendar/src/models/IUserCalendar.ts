@@ -2,7 +2,7 @@ export interface IUserCalendar {
     id: number,
     name: string,
     userCreatedId: string,
-    invitee: string,
+    creatorName: string,
     selected: boolean
 }
 

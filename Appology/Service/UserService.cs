@@ -13,6 +13,8 @@ using Appology.MiCalendar.Repository;
 using Appology.MiCalendar.Enums;
 using Appology.DTOs;
 using Appology.MiCalendar.DTOs;
+using Appology.MiCalendar.Helpers;
+using Appology.Write.DTOs;
 
 namespace Appology.Service
 {
@@ -91,7 +93,7 @@ namespace Appology.Service
 
             foreach (var calendar in userCalendars)
             {
-                calendar.InviteeName = (await GetByUserIDAsync(calendar.UserCreatedId)).Name;
+                calendar.CreatorName = (await GetByUserIDAsync(calendar.UserCreatedId)).Name;
             }
 
             return userCalendars;
@@ -103,16 +105,16 @@ namespace Appology.Service
             return await userRepository.UpdateAsync(user);
         }
 
+
         public object GetUserTypes(User user, IEnumerable<Types> userTypes)
         {
             object types(IEnumerable<Types> t) => t.Select(x => new
             {
                 key = x.Id,
-                x.UserCreatedId,
+                creatorName = user.UserID != x.UserCreatedId ? x.CreatorName : null,
                 title = x.Name,
-                invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
-                x.InviteeIdsList,
                 selected = user.SelectedCalendarsList.Contains(x.Id),
+                collaborators = x.Collaborators,
                 x.GroupId,
                 x.SuperTypeId,
                 isLeaf = x.Children == null || !x.Children.Any(),

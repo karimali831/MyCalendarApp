@@ -1,7 +1,9 @@
 ﻿using Appology.DTOs;
 using Appology.Enums;
+using Appology.MiCalendar.Helpers;
 using Appology.Model;
 using Appology.Repository;
+using Appology.Write.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +30,12 @@ namespace Appology.Service
     public class TypeService : ITypeService
     {
         private readonly ITypeRepository typeRepository;
+        private readonly IUserRepository userRepo;
 
-        public TypeService(ITypeRepository typeRepository)
+        public TypeService(ITypeRepository typeRepository, IUserRepository userRepo)
         {
             this.typeRepository = typeRepository ?? throw new ArgumentNullException(nameof(TypeRepository));
+            this.userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
         }
 
         public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId, bool userCreatedOnly = true)
@@ -43,10 +47,27 @@ namespace Appology.Service
             foreach (var userType in userTypes)
             {
                 userType.Children = await UserTagsTree(userId, userType, groupId, userCreatedOnly);
+                userType.Collaborators = await GetCollaborators(userId, userType.UserCreatedId, userType.InviteeIdsList.ToList());
+                
                 result.Add(userType);
             }
 
             return result;
+        }
+
+        private async Task<IList<Collaborator>> GetCollaborators(Guid userId, Guid creatorId, IList<Guid> inviteeIds)
+        {
+            inviteeIds.Add(creatorId);
+
+            return (await userRepo.GetCollaboratorsAsync(inviteeIds))
+                .Select(x =>
+                {
+                    x.Title = x.CollaboratorId == creatorId ? "Creator" : "Invitee";
+                    x.Avatar = CalendarUtils.AvatarSrc(x.CollaboratorId, x.Avatar, x.Name);
+                    x.ShowOnTree = x.CollaboratorId != userId;
+                    return x;
+                })
+                .ToList();
         }
 
         public async Task<IEnumerable<Types>> GetAllByGroupAsync(TypeGroup groupId)
@@ -65,6 +86,8 @@ namespace Appology.Service
             foreach (var child in element.Children)
             {
                 await UserTagsTree(userId, child, groupId);
+
+                child.Collaborators = await GetCollaborators(userId, child.UserCreatedId, child.InviteeIdsList.ToList());
                 childUserTypes.Add(child);
             }
 

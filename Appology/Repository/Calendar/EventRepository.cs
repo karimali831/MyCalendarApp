@@ -106,7 +106,7 @@ namespace Appology.MiCalendar.Repository
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT e.CalendarId, e.UserID, e.TagID, e.Description, e.StartDate, e.EndDate, t.Name AS Subject, ty.InviteeIds
+                    SELECT e.EventID, e.CalendarId, e.UserID, e.TagID, e.Description, e.StartDate, e.EndDate, t.Name AS Subject, ty.InviteeIds
                     FROM {TABLE} e
                     LEFT JOIN {Tables.Name(Table.Tags)} t
                     ON e.TagID = t.Id

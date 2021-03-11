@@ -225,9 +225,9 @@ export default class Calendar extends React.Component<IOwnProps, IOwnState> {
 
         if(this.state.showAvatars && event) {
             if (isMobile) {
-                return <UserAvatar rootUrl={rootUrl} width={30} height={30} avatar={event.avatar} content={this.state.initialView === "dayGrid" ? maxContent : minContent} />
+                return <UserAvatar rootUrl={rootUrl} size="x-small" avatar={event.avatar} content={this.state.initialView === "dayGrid" ? maxContent : minContent} />
             } else {
-                return <UserAvatar rootUrl={rootUrl} width={30} height={30} avatar={event.avatar} content={maxContent} />
+                return <UserAvatar rootUrl={rootUrl} size="x-small" avatar={event.avatar} content={maxContent} />
             }
         } else {
             return maxContent;

@@ -293,7 +293,7 @@ namespace Appology.Controllers.Api
         public async Task<HttpResponseMessage> SaveUserType(UserTypeDTO dto)
         {
             var user = await GetUser();
-            dto.UserCreatedId= user.UserID;
+            dto.UserCreatedId = user.UserID;
 
             var response = await userService.SaveUserType(dto);
             var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, dto.GroupId);

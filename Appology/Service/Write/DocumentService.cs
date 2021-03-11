@@ -4,29 +4,33 @@ using Appology.Model;
 using Appology.Repository;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Appology.MiCalendar.Helpers;
 using Appology.Write.Model;
 using Appology.Write.Repository;
-using Appology.Write.DTOs;
 using Appology.Service;
 using System.Web;
 using System.Web.Mvc;
+using System.Linq;
+using Appology.Write.ViewModels;
 
 namespace Appology.Write.Service
 {
     public interface IDocumentService
     {
-        Task<Document> LoadDocument(Guid docId, Guid userId);
-        Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId);
+        Task<Document> LoadDocument(Guid docId, User user);
+        Task<IList<DocumentTitles>> GetDocTitlesByFolderId(int typeId, Guid userId);
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
         Task<bool> InsertOrUpdateAsync(Document doc);
         Task<bool> MoveAsync(Guid docId, int moveToId);
-        Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
+        Task<bool> UpdateRecentOpenedDocs(Guid userId, string docIds);
         Task<IList<Notification>> DocumentActivity(User user);
         Task<bool> DocumentsExistsInGroup(int groupId);
         Task<bool> DeleteDocument(Guid docId);
+        Task<bool> PinDoc(Guid userId, string docIds);
+        Task<IList<DocumentTitles>> GetDocTitlesByDocIds(IEnumerable<Guid> docIds);
+        string LastViewedDocIds(IEnumerable<Guid> docIds, int take = 5);
+        Task<IList<DocumentTitles>> SearchDocuments(string filter, Guid userId);
     }
 
     public class DocumentService : IDocumentService
@@ -48,14 +52,41 @@ namespace Appology.Write.Service
         }
 
 
-        public async Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId)
+        public async Task<IList<DocumentTitles>> GetDocTitlesByFolderId(int typeId, Guid userId)
         {
-            return await documentRepository.GetDocTitlesByFolderId(typeId, userId);
+            return await DocTitles(await documentRepository.GetDocTitlesByFolderId(typeId, userId));
         }
 
-        public async Task<Document> LoadDocument(Guid docId, Guid userId)
+        public async Task<IList<DocumentTitles>> GetDocTitlesByDocIds(IEnumerable<Guid> docIds)
         {
-            var doc = await documentRepository.GetAsync(docId, userId);
+            return await DocTitles(await documentRepository.GetDocTitlesByDocIds(docIds));
+        }
+
+        public async Task<IList<DocumentTitles>> SearchDocuments(string filter, Guid userId)
+        {
+            return await documentRepository.SearchDocuments(filter, userId);
+        }
+
+        private async Task<IList<DocumentTitles>> DocTitles(IList<DocumentTitles> titles)
+        {
+            var collaborators = await userRepo.GetCollaboratorsAsync(titles.Select(x => x.EditedById));
+
+            return titles
+                .Select(x => {
+                    var editedBy = collaborators.FirstOrDefault(c => c.CollaboratorId == x.EditedById);
+
+                    x.LastedEditedDuration = DateUtils.Duration(DateUtils.DateTime(), x.EditedDate, incFollowingMeasures: false);
+                    x.LastedEditedByUserAvatar =  CalendarUtils.AvatarSrc(editedBy.CollaboratorId, editedBy.Avatar, editedBy.Name);
+                    
+                    return x;
+                })
+                .OrderByDescending(x => x.EditedDate)
+                .ToList();
+        }
+
+        public async Task<Document> LoadDocument(Guid docId, User user)
+        {
+            var doc = await documentRepository.GetAsync(docId, user.UserID);
 
             if (doc == null)
             {
@@ -67,37 +98,17 @@ namespace Appology.Write.Service
 
             if (doc.EditedById.HasValue)
             {
-                var collaborator = await userRepo.GetByUserIDAsync(doc.EditedById.Value);
-                doc.EditedByName = $"{collaborator.Name} on {DateUtils.FromUtcToTimeZone(doc.EditedDate.Value):dd-MM-yy HH:mm}";
+                var editor = await userRepo.GetByUserIDAsync(doc.EditedById.Value);
+                var duration = DateUtils.Duration(DateUtils.DateTime(), doc.EditedDate.Value, incFollowingMeasures: false);
+
+                doc.EditedBy = $"Last edited {(duration != "just now" ? "ago" : "")} by {editor.Name}";
             }
 
-            var collaborators = new List<Collaborator>() { 
-                new Collaborator
-                {
-                    Name = docCreator.Name,
-                    Avatar = CalendarUtils.AvatarSrc(docCreator.UserID, docCreator.Avatar, docCreator.Name),
-                    Title = "Creator"
-                }
-            };
-
-            if (doc.InviteeIdsList.Any() && !doc.InviteeIdsList.Contains(docCreator.UserID))
+            if (user.PinnedDocIdsList.Any())
             {
-                foreach (var invitee in doc.InviteeIdsList)
-                {
-                    var collaborator = await userRepo.GetByUserIDAsync(invitee);
-
-                    collaborators.Add(
-                        new Collaborator
-                        {
-                            Name = collaborator.Name,
-                            Avatar = CalendarUtils.AvatarSrc(invitee, collaborator.Avatar, collaborator.Name),
-                            Title = "Invitee"
-                        }
-                    );
-                }
+                doc.Pinned = user.PinnedDocIdsList.Contains(docId);
             }
 
-            doc.Collaborators = collaborators;
             return doc;
         }
 
@@ -116,30 +127,69 @@ namespace Appology.Write.Service
             return await documentRepository.MoveAsync(docId, moveToId);
         }
 
-        public async Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId)
+        public async Task<bool> UpdateRecentOpenedDocs(Guid userId, string docIds)
         {
-            return await userRepo.UpdateLastViewedDoc(userId, docId);
+            return await userRepo.UpdateRecentOpenedDocs(userId, docIds);
+        }
+
+        public async Task<bool> PinDoc(Guid userId, string docIds)
+        {
+            return await userRepo.PinDoc(userId, docIds);
+        }
+
+        public string LastViewedDocIds(IEnumerable<Guid> docIds, int take = 5)
+        {
+            return string.Join(",", docIds
+                .Skip(Math.Max(0, docIds.Count() - take))
+                .Distinct());
         }
 
         public async Task<IList<Notification>> DocumentActivity(User user)
         {
             var activity = new List<Notification>();
 
-            if (user.LastViewedDocId != null && user.LastViewedDocId != Guid.Empty)
+            // last viewed doc
+            if (user.RecentOpenedDocIdsList.Any())
             {
-                var doc = await LoadDocument(user.LastViewedDocId.Value, user.UserID);
-                var url = new UrlHelper(HttpContext.Current.Request.RequestContext);
+                var lastViewedDocId = LastViewedDocIds(user.RecentOpenedDocIdsList, take: 1);
 
-                if (doc != null)
+                if (Guid.TryParse(lastViewedDocId, out Guid docId))
                 {
-                    activity.Add(new Notification
+                    var url = new UrlHelper(HttpContext.Current.Request.RequestContext);
+                    var doc = await LoadDocument(docId, user);
+
+                    if (doc != null)
                     {
-                        Avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
-                        Text = $"You recently viewed a document: <a href='{url.DocumentShareLink(doc.Id)}'>{doc.Title}</a>",
-                        Feature = Features.Write
-                    });
+                        activity.Add(new Notification
+                        {
+                            Id = docId,
+                            UserId = user.UserID,
+                            Avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
+                            Text = $"You last viewed: <a href='{url.DocumentShareLink(doc.Id)}'>{doc.Title}</a>",
+                            FeatureId = Features.Write
+                        });
+                    }
                 }
             }
+
+            // pinned docs
+            //if (user.PinnedDocIdsList != null && user.PinnedDocIdsList.Any())
+            //{
+            //    var url = new UrlHelper(HttpContext.Current.Request.RequestContext);
+
+            //    var pinnedDocs = await GetDocTitlesByDocIds(user.PinnedDocIdsList);
+
+            //    foreach (var doc in pinnedDocs)
+            //    {
+            //        activity.Add(new Notification
+            //        {
+            //            Id = doc.Id,
+            //            Avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name),
+            //            Text = $"Pinned document: <a href='{url.DocumentShareLink(doc.Id)}'>{doc.Title}</a> document.",
+            //            FeatureId = Features.Write
+            //        });
+            //    }
+            //}
 
             return activity;
         }

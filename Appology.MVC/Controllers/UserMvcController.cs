@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Appology.MiCalendar.Model;
 using Appology.MiCalendar.Service;
+using Appology.Write.Service;
 
 namespace Appology.Controllers
 {
@@ -63,7 +64,10 @@ namespace Appology.Controllers
                 .Select(x => x.Id)
                 .ToArray();
 
-            var getNotifications = await notificationService.GetNotifications(user, userCalendars);
+           var documentNotifications = await notificationService.DocumentNotifications(user);
+            var eventNotifications = await notificationService.EventNotifications(user.UserID, userCalendars);
+            var getNotifications = documentNotifications.Concat(eventNotifications);
+
             string notifications = "";
 
             if (getNotifications != null && getNotifications.Any())
@@ -73,7 +77,7 @@ namespace Appology.Controllers
                 {
                     string icon = "";
 
-                    switch (n.Feature)
+                    switch (n.FeatureId)
                     {
                         case Features.Calendar:
                             icon = "<i class='fas fa-calendar-day'></i>";
@@ -90,15 +94,28 @@ namespace Appology.Controllers
                     {
                         notifications += "<hr />";
                     }
-                    if (n.Avatar.Length == 2)
+
+                    if (n.UserId != user.UserID || n.Avatar.Length == 2)
                     {
-                        //notifications += $"<p class='pull-right' default-avatar='{n.Avatar}'> {icon} {n.Text}</p>";
                         notifications += $"{icon} {n.Text}";
                     }
                     else
                     {
                         notifications += $"{icon} <img class='pull-right' width='30' height='30' src='{n.Avatar}'> {n.Text}";
+    
                     }
+
+
+                    //if (n.Avatar.Length == 2)
+                    //{
+                    //    //notifications += $"<p class='pull-right' default-avatar='{n.Avatar}'> {icon} {n.Text}</p>";
+                    //    notifications += $"{icon} {n.Text} <span class='pull-right'><p default-avatar='{n.Avatar}'></span>";
+                    //}
+                    //else
+                    //{
+                    //    notifications += $"{icon} {n.Text} <span class='pull-right'>{(n.UserId != user.UserID ? "<img width='30' height='30' src='{n.Avatar}'>" : "")}</span>";
+                    //}
+
                     i++;
                 }
             }

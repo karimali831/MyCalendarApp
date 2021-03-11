@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
 using Appology.Enums;
+using Appology.Write.DTOs;
 
 namespace Appology.Model
 {
@@ -16,9 +17,11 @@ namespace Appology.Model
         public string InviteeIds { get; set; }
         public int? SuperTypeId { get; set; }
         [DbIgnore]
+        public IList<Collaborator> Collaborators { get; set; } = new List<Collaborator>();
+        [DbIgnore]
         public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
         [DbIgnore]
-        public string InviteeName { get; set; }
+        public string CreatorName { get; set; }
         [DbIgnore]
         public IEnumerable<Types> Children { get; set; }
     }

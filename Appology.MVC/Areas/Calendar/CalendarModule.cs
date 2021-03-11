@@ -1,6 +1,7 @@
 ﻿using Ninject.Modules;
 using Appology.MiCalendar.Service;
 using Appology.MiCalendar.Repository;
+using Appology.Service;
 
 namespace Appology.Ninject
 {

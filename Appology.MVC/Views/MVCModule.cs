@@ -1,4 +1,5 @@
-﻿using Appology.Repository;
+﻿using Appology.MiCalendar.Service;
+using Appology.Repository;
 using Appology.Service;
 using Ninject.Modules;
 
@@ -12,8 +13,8 @@ namespace Appology.Ninject
             Bind<IUserService>().To<UserService>();
             Bind<IFeatureRoleService>().To<FeatureRoleService>();
             Bind<ICategoryService>().To<CategoryService>();
-            Bind<INotificationService>().To<NotificationService>();
             Bind<ITypeService>().To<TypeService>();
+            Bind<INotificationService>().To<NotificationService>();
 
             // Repositories
             Bind<IUserRepository>().To<UserRepository>();
@@ -23,6 +24,7 @@ namespace Appology.Ninject
             Bind<IFeatureRoleRepository>().To<FeatureRoleRepository>();
             Bind<ICategoryRepository>().To<CategoryRepository>();
             Bind<ITypeRepository>().To<TypeRepository>();
+            Bind<INotificationRepository>().To<NotificationRepository>();
         }
     }
 }

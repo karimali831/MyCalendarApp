@@ -13,6 +13,7 @@ using Appology.DTOs;
 using DFM.ExceptionHandling;
 using DFM.ExceptionHandling.Sentry;
 using System.Configuration;
+using Appology.Write.DTOs;
 
 namespace Appology.Repository
 {
@@ -24,11 +25,13 @@ namespace Appology.Repository
         Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
-        Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId);
+        Task<bool> UpdateRecentOpenedDocs(Guid userId, string docIds);
+        Task<bool> PinDoc(Guid userId, string docIds);
         Task<bool> SaveUserInfo(UserInfoDTO dto);
         Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto);
         Task<bool> GroupExistsInTag(int groupId);
         Task<bool> UpdateBuddys(string buddys, Guid userId);
+        Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds);
     }
 
     public class UserRepository : IUserRepository
@@ -64,7 +67,8 @@ namespace Appology.Repository
                             BuddyIds = x.BuddyIds,
                             RoleIds = x.RoleIds,
                             Avatar = x.Avatar,
-                            LastViewedDocId = x.LastViewedDocId,
+                            RecentOpenedDocIds = x.RecentOpenedDocIds,
+                            PinnedDocIds = x.PinnedDocIds,
                             SelectedCalendars = x.SelectedCalendars,
                             DefaultCalendarView = x.DefaultCalendarView,
                             DefaultNativeCalendarView = x.DefaultNativeCalendarView,
@@ -117,6 +121,14 @@ namespace Appology.Repository
             }
         }
 
+        public async Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<Collaborator>($"SELECT UserId AS CollaboratorId, Avatar, Name FROM {TABLE} WHERE UserID IN @inviteeIds", new { inviteeIds })).ToList();
+            }
+        }
+
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             using (var sql = dbConnectionFactory())
@@ -161,7 +173,7 @@ namespace Appology.Repository
                         user.RoleIds,
                         user.BuddyIds,
                         user.Avatar,
-                        user.LastViewedDocId,
+                        user.RecentOpenedDocIds,
                         user.SelectedCalendars,
                         user.DefaultCalendarView,
                         user.DefaultNativeCalendarView,
@@ -201,13 +213,22 @@ namespace Appology.Repository
             }
         }
 
-        public async Task<bool> UpdateLastViewedDoc(Guid userId, Guid docId)
+        public async Task<bool> UpdateRecentOpenedDocs(Guid userId, string docIds)
         {
             using (var sql = dbConnectionFactory())
             {
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET LastViewedDocId = @docId WHERE UserID = @userId", new { docId,userId });
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET RecentOpenedDocIds = @docIds WHERE UserID = @userId", new { docIds ,userId });
                 return true;
 
+            }
+        }
+
+        public async Task<bool> PinDoc(Guid userId, string docIds)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET PinnedDocIds = @docIds WHERE UserID = @userId", new { docIds, userId });
+                return true;
             }
         }
 

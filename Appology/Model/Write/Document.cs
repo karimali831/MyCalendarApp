@@ -21,13 +21,9 @@ namespace Appology.Write.Model
         [DbIgnore]
         public string UserCreatedName { get; set; }
         [DbIgnore]
-        public string EditedByName { get; set; }
+        public string EditedBy { get; set; }
         [DbIgnore]
-        public IList<Collaborator> Collaborators { get; set; }
-        [DbIgnore]
-        public string InviteeIds { get; set; }
-        [DbIgnore]
-        public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
+        public bool Pinned { get; set; } = false;
     }
 
     public class DocumentMap : EntityTypeConfiguration<Document>

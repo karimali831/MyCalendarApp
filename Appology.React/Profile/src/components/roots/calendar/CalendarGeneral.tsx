@@ -39,6 +39,8 @@ export class CalendarGeneral extends React.Component<IOwnProps, IOwnState> {
             {id: "listWeek", name: "Agenda"}
         ]
 
+        
+
         return (
             <form onSubmit={this.handleSubmit}>
                 <ToggleSwitch id="EnableCronofy" name="Enable Appology Calendar sync" checked={this.state.settings.enableCronofy} onChange={this.enableCronofyChange} />
@@ -46,10 +48,14 @@ export class CalendarGeneral extends React.Component<IOwnProps, IOwnState> {
                 <div style={{ marginBottom: 20 }}>
                   <label>Default Selection</label>
                   <Select 
-                      options={this.props.userCalendars.map(o => ({value: o.key.toString(), label: `${o.title} ${(o.invitee ? `(by ${o.invitee})` : "")}`}))}
+                      options={this.props.userCalendars
+                        .map(o => ({
+                            value: o.key.toString(), 
+                            label: `${o.title} ${(o.creatorName ? `(by ${o.creatorName})` : "")}`}
+                        ))}
                       placeholder="Select Calendars"
                       isMulti={true}
-                      defaultValue={this.props.userCalendars.filter(uc => uc.selected).map(uc => ({ value: uc.key.toString(), label:  `${uc.title} ${(uc.invitee ? `(by ${uc.invitee})` : "")}`}))}
+                      defaultValue={this.props.userCalendars.filter(uc => uc.selected).map(uc => ({ value: uc.key.toString(), label:  `${uc.title} ${(uc.creatorName ? `(by ${uc.creatorName})` : "")}`}))}
                       onChange={ (value: ValueType<ISelect, true>)  => this.handleCalendarsChange(value)}
                   />
                 </div>

@@ -11,7 +11,7 @@
 @if (Model.UserCalendars == null || !Model.UserCalendars.Any())
 {
     <div class="alert alert-info alert-dismissible fade show">
-        <h4 class="alert-heading"><i class="fa fa-info-circle"></i> No calendars added</h4>
+        <h5 class="alert-heading"><i class="fa fa-info-circle"></i> No calendars added</h5>
         <p>Add at least one Calendar in <a href="@Url.MvcRouteUrl(Section.Profile)">Settings</a>.</p>
     </div>
 }

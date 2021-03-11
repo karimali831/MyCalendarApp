@@ -244,7 +244,7 @@ namespace Appology.Areas.MiCalendar.Controllers.API
                     id = x.Id,
                     name = x.Name,
                     userCreatedId = x.UserCreatedId,
-                    invitee = user.UserID != x.UserCreatedId ? x.InviteeName : null,
+                    creatorName = user.UserID != x.UserCreatedId ? x.CreatorName : null,
                     selected = request.CalendarIds.Contains(x.Id)
                 }),
                 defaultView = user.DefaultCalendarView,

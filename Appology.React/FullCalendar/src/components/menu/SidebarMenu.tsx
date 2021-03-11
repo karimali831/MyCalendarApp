@@ -99,7 +99,7 @@ export class SidebarMenu extends React.Component<IOwnProps, IOwnState> {
                                 {this.props.userCalendars.map(uc => 
                                     <NavItem key={uc.id} eventKey={uc.id} style={{color: '#222'}} >
                                         <NavText>
-                                            <label><input disabled={this.props.loading} type="checkbox" name="id" checked={uc.selected} onChange={() => this.props.calendarSelected(uc)} /> {uc.name} {uc.invitee !== null ? <span className="badge badge-info text-small">shared by {uc.invitee}</span> : ""}</label>
+                                            <label><input disabled={this.props.loading} type="checkbox" name="id" checked={uc.selected} onChange={() => this.props.calendarSelected(uc)} /> {uc.name} {uc.creatorName !== null ? <span className="badge badge-info text-small">shared by {uc.creatorName}</span> : ""}</label>
                                         </NavText>
                                     </NavItem>
                                 )}

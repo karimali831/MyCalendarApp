@@ -123,12 +123,17 @@ namespace Appology.MiCalendar.Service
                     if (DateUtils.DateTime() >= DateUtils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && DateUtils.DateTime() < DateUtils.FromUtcToTimeZone(activity.StartDate))
                     {
                         string pronoun = getName.StartsWith("You") ? "have" : "has";
+                        string reminderOrEvent = activity.Reminder ?
+                            string.Format("You have an upcoming reminder - {0} at {1}", label, starting) :
+                            string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun);
 
                         currentActivity.Add(new Notification
                         {
+                            Id = activity.EventID,
+                            UserId = activity.UserID,
                             Avatar = avatar,
-                            Text = string.Format("{0} {3} an upcoming event today - {1} starting {2}", getName, label, starting, pronoun),
-                            Feature = Features.Calendar
+                            Text = reminderOrEvent,
+                            FeatureId = Features.Calendar
                         });
                     }
                     else
@@ -137,9 +142,11 @@ namespace Appology.MiCalendar.Service
 
                         currentActivity.Add(new Notification
                         {
+                            Id = activity.EventID,
+                            UserId = activity.UserID,
                             Avatar = avatar,
                             Text = string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun),
-                            Feature = Features.Calendar
+                            FeatureId = Features.Calendar
                         });
                     }
                 }

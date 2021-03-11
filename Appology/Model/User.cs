@@ -1,7 +1,6 @@
 ﻿using DFM.Utils;
 using Appology.Enums;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity.ModelConfiguration;
 using System.Linq;
@@ -28,11 +27,16 @@ namespace Appology.Model
         public string DefaultCalendarView { get; set; }
         public string DefaultNativeCalendarView { get; set; }
         public string Avatar { get; set; }
-        public Guid? LastViewedDocId { get; set; }
+        public string RecentOpenedDocIds { get; set; }
+        public string PinnedDocIds { get; set; }
         [DbIgnore]
-        public IEnumerable<int> SelectedCalendarsList => (SelectedCalendars != null && SelectedCalendars.Any() ? SelectedCalendars.Split(',').Select(x => int.Parse(x)) : Enumerable.Empty<int>());
+        public IEnumerable<int> SelectedCalendarsList => !string.IsNullOrEmpty(SelectedCalendars) ? SelectedCalendars.Split(',').Select(x => int.Parse(x)) : Enumerable.Empty<int>();
         [DbIgnore]
-        public IEnumerable<Guid> RoleIdsList => (RoleIds != null && RoleIds.Any() ? RoleIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());
+        public IEnumerable<Guid> RoleIdsList => !string.IsNullOrEmpty(RoleIds) ? RoleIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>();
+        [DbIgnore]
+        public IEnumerable<Guid> RecentOpenedDocIdsList => !string.IsNullOrEmpty(RecentOpenedDocIds) ? RecentOpenedDocIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>();
+        [DbIgnore]
+        public IEnumerable<Guid> PinnedDocIdsList => !string.IsNullOrEmpty(PinnedDocIds) ? PinnedDocIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>();
         [DbIgnore]
         public IEnumerable<ExtCalendarRights> ExtCalendarRights { get; set; } = Enumerable.Empty<ExtCalendarRights>();
         [DbIgnore]

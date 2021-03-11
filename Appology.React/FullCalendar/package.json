@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/karimali831/MyCalendarApp#readme",
   "dependencies": {
-    "@appology/react-components": "^1.4.1",
+    "@appology/react-components": "^1.4.3",
     "@fullcalendar/bootstrap": "^5.4.0",
     "@fullcalendar/daygrid": "^5.4.0",
     "@fullcalendar/interaction": "^5.4.0",

@@ -1,9 +1,11 @@
 import * as React from 'react';
 import DirectoryTree from 'antd/lib/tree/DirectoryTree';
 import 'antd/dist/antd.css'
-import { FaPlus, FaUserFriends } from 'react-icons/fa';
+import { FaPlus } from 'react-icons/fa';
 import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
 import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
+import { UserAvatar } from '@appology/react-components';
+import { rootUrl } from 'src/components/utils/Utils';
 
 
 export interface IOwnState {
@@ -56,7 +58,19 @@ export default class TypesTree extends React.Component<IOwnProps, IOwnState> {
         return <>
             {node.title} 
             <span className="float-right">
-                {node.inviteeIdsList.length > 0 && <FaUserFriends style={{ marginRight: 5 }} />}
+                {
+                    node.collaborators.length > 0 &&
+                        node.collaborators.filter(x => x.showOnTree).map((c, idx) => 
+                            <UserAvatar 
+                                key={idx} 
+                                margin={-3}
+                                styles={{ display: "inline" }} 
+                                rootUrl={rootUrl} 
+                                size="xx-small" 
+                                avatar={c.avatar} 
+                            />
+                    )
+                }
                 {
                     this.props.group.nodes > 0 && 
                     <FaPlus onClick={(e) => this.addToParentClick(e, Number(node.key))} />

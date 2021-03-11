@@ -1,15 +1,24 @@
 ﻿@using Appology.Website.ViewModels
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.4.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.3.0/codemirror.min.css">
 
-<div class="content-shadow" >
+<div class="content-shadow">
     <div class="content-inner" style="background: #fff">
-        <h4><i class="fas fa-pen-alt"></i> Write</h4>
+        <h4 class="write-header">
+            <i class="fas fa-pen-alt"></i> Write
+        </h4>
         @Html.Partial("_ReactApp", new ReactAppVM
         {
             App = "write",
             Desc = "Write App ©",
-            Version = "2.0.1"
+            Version = "2.1"
         })
     </div>
 </div>
 
+@section Scripts{
+    <script type="text/javascript" src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.3.0/codemirror.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.3.0/mode/xml/xml.min.js"></script>
+}

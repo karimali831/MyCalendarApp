@@ -8,18 +8,21 @@ using System.Linq;
 using System.Threading.Tasks;
 using Appology.Enums;
 using Appology.Write.Model;
+using Appology.Write.ViewModels;
 
 namespace Appology.Write.Repository
 {
     public interface IDocumentRepository
     {
-        Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId);
+        Task<IList<DocumentTitles>> GetDocTitlesByFolderId(int typeId, Guid userId);
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
         Task<Document> GetAsync(Guid Id, Guid userId);
         Task<bool> InsertOrUpdateAsync(Document dto);
         Task<bool> MoveAsync(Guid docId, int moveToId);
         Task<bool> DocumentsExistsInGroup(int groupId);
-        Task<bool> DeleteDocument(Guid docId); 
+        Task<bool> DeleteDocument(Guid docId);
+        Task<IList<DocumentTitles>> GetDocTitlesByDocIds(IEnumerable<Guid> docIds);
+        Task<IList<DocumentTitles>> SearchDocuments(string filter, Guid userId);
     }
 
     public class DocumentRepository : IDocumentRepository
@@ -34,7 +37,33 @@ namespace Appology.Write.Repository
         }
 
 
-        public async Task<IList<(Guid Id, string Title)>> GetDocTitlesByFolderId(int typeId, Guid userId)
+        public async Task<IList<DocumentTitles>> GetDocTitlesByFolderId(int typeId, Guid userId)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                string sqlTxt = $@"
+                    SELECT d.Id, d.Title, d.EditedDate, EditedById
+                    FROM {TABLE} AS d
+                    LEFT JOIN {Tables.Name(Table.Types)} AS t
+                    ON d.TypeId = t.Id
+                    WHERE d.TypeId = {typeId}
+                    AND (t.UserCreatedId = '{userId}'
+                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')
+                    ORDER BY EditedDate DESC";
+
+                return (await sql.QueryAsync<DocumentTitles>(sqlTxt)).ToArray();
+            }
+        }
+
+        public async Task<IList<DocumentTitles>> GetDocTitlesByDocIds(IEnumerable<Guid> docIds)
+        {
+            using (var sql = dbConnectionFactory())
+            {
+                return (await sql.QueryAsync<DocumentTitles>($"SELECT Id, Title, EditedDate, EditedById FROM {TABLE} WHERE Id IN @docIds", new { docIds })).ToList();
+            }
+        }
+
+        public async Task<IList<DocumentTitles>> SearchDocuments(string filter, Guid userId)
         {
             using (var sql = dbConnectionFactory())
             {
@@ -43,13 +72,15 @@ namespace Appology.Write.Repository
                     FROM {TABLE} AS d
                     LEFT JOIN {Tables.Name(Table.Types)} AS t
                     ON d.TypeId = t.Id
-                    WHERE d.TypeId = {typeId}
+                    WHERE Title LIKE '%{filter}%'
                     AND (t.UserCreatedId = '{userId}'
-                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')";
+                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')
+                    ORDER BY EditedDate DESC";
 
-                return (await sql.QueryAsync<(Guid, string)>(sqlTxt)).ToArray();
+                return (await sql.QueryAsync<DocumentTitles>(sqlTxt)).ToList();
             }
         }
+
 
         public async Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId)
         {
@@ -81,7 +112,7 @@ namespace Appology.Write.Repository
             using (var sql = dbConnectionFactory())
             {
                 string sqlTxt = $@"
-                    SELECT d.Id, d.TypeId, d.Title, d.Text, d.CreatedDate, d.EditedDate, d.UserCreatedId, d.EditedById, t.InviteeIds
+                    SELECT d.Id, d.TypeId, d.Title, d.Text, d.CreatedDate, d.EditedDate, d.UserCreatedId, d.EditedById
                     FROM {TABLE} AS d
                     LEFT JOIN {Tables.Name(Table.Types)} AS t
                     ON d.TypeId = t.Id
