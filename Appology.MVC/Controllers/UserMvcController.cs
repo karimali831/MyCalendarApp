@@ -105,17 +105,6 @@ namespace Appology.Controllers
     
                     }
 
-
-                    //if (n.Avatar.Length == 2)
-                    //{
-                    //    //notifications += $"<p class='pull-right' default-avatar='{n.Avatar}'> {icon} {n.Text}</p>";
-                    //    notifications += $"{icon} {n.Text} <span class='pull-right'><p default-avatar='{n.Avatar}'></span>";
-                    //}
-                    //else
-                    //{
-                    //    notifications += $"{icon} {n.Text} <span class='pull-right'>{(n.UserId != user.UserID ? "<img width='30' height='30' src='{n.Avatar}'>" : "")}</span>";
-                    //}
-
                     i++;
                 }
             }
@@ -152,10 +141,6 @@ namespace Appology.Controllers
             return await userService.AddBuddy(email, id);
         }
 
-        public async Task<bool> UpdateUser(User user)
-        {
-            return await userService.UpdateAsync(user);
-        }
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {

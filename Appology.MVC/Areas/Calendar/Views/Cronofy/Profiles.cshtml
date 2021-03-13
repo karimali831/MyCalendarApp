@@ -9,130 +9,131 @@
 
 @Html.Partial("_Status", baseModel)
 
-<div>
-    <div class="list-group">
-        @if (baseModel.User.CronofyReady == CronofyStatus.Disabled)
-        {
-            <a class="list-group-item list-group-item-danger active">
-                <i class="fas fa-exclamation-triangle"></i> Appology Calendar sync not ready - not enabled
-            </a>
-            <a href="@Url.Action(Url.MvcRoute(Section.Profile).ControllerName, Url.MvcRoute(Section.Profile).ActionName)" class="list-group-item list-group-item-action">
-                <i class="id-card"></i> Enable Appology Calendar sync in Profile
-            </a>
-        }
-        else if (baseModel.User.CronofyReady == CronofyStatus.NotAuthenticated)
-        {
-            <a class="list-group-item list-group-item-danger active">
-                <i class="fas fa-exclamation-triangle"></i> Appology Calendar sync not ready - not authenticated
-            </a>
-            <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
-                <i class="fas fa-external-link-alt"></i> Authenticate
-            </a>
-        }
-        else
-        {
-            if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+<div class="content-shadow">
+    <div class="content-inner" style="background: white">
+        <div class="list-group">
+            @if (baseModel.User.CronofyReady == CronofyStatus.Disabled)
             {
-                <a href="#calendars" class="list-group-item list-group-item-success active">
-                    <i class="fas fa-check-circle"></i> Appology Calendar sync ready
+                <a class="list-group-item list-group-item-danger active">
+                    <i class="fas fa-exclamation-triangle"></i> Appology Calendar sync not ready - not enabled
+                </a>
+                <a href="@Url.Action(Url.MvcRoute(Section.Profile).ControllerName, Url.MvcRoute(Section.Profile).ActionName)" class="list-group-item list-group-item-action">
+                    <i class="id-card"></i> Enable Appology Calendar sync in Profile
                 </a>
             }
-            else if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedNoRightsSet)
+            else if (baseModel.User.CronofyReady == CronofyStatus.NotAuthenticated)
             {
-                <a href="#calendars" class="list-group-item list-group-item-danger active">
-                    <i class="fas fa-exclamation-triangle"></i> Appology Calendar sync not ready - set rights for at least one Calendar
+                <a class="list-group-item list-group-item-danger active">
+                    <i class="fas fa-exclamation-triangle"></i> Appology Calendar sync not ready - not authenticated
+                </a>
+                <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
+                    <i class="fas fa-external-link-alt"></i> Authenticate
                 </a>
             }
-            <a href="@Url.Action("UnlinkCalendar")" class="list-group-item list-group-item-action">
-                <i class="fas fa-link"></i> Unlink Calendars
-            </a>
-            <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
-                <i class="fas fa-external-link-alt"></i> Authenticate Another
-            </a>
-        }
-    </div>
-    @if (Model.Profiles != null && Model.Profiles.Any())
-    { 
-        <a name="calendars"></a>
-        using (Html.BeginForm())
-        {
-            foreach (var profile in Model.Profiles)
+            else
             {
-                <hr />
-                <div class="card">
-                    <div class="card-header">
-                        <button class="btn btn-link collapsed">
-                            <h5 class="fas fa-calendar-alt"> @Utils.UppercaseFirst(profile.Key.ProviderName)</h5>
-                        </button>
-                    </div>
-                    <div class="card-body">
-                        <span class="badge badge-info">Linked account: @profile.Key.Name</span>
-                        <div class="border">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr class="table-info">
-                                        <th width="35%" scope="col">Name</th>
-                                        <th width="20%" scope="col">Sync In Calendar</th>
-                                        <th width="15%" scope="col">
-                                            <span data-toggle="tooltip" title="Pull events created/deleted from @Utils.UppercaseFirst(profile.Key.ProviderName) Calendar to @baseModel.AppName">Read</span>
-                                        </th>
-                                        <th width="15%" scope="col">
-                                            <span data-toggle="tooltip" title="Events created/updated in @baseModel.AppName are also created/updated in @Utils.UppercaseFirst(@profile.Key.ProviderName) Calendar">Save</span>
-                                        </th>
-                                        <th width="15%" scope="col">
-                                            <span data-toggle="tooltip" title="Events deleted in @baseModel.AppName are also deleted in @Utils.UppercaseFirst(@profile.Key.ProviderName) Calendar">Delete</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var calendar in profile.Value)
-                                    {
-                                        var linkedCal = baseModel.User.ExtCalendarRights?.FirstOrDefault(x => x.SyncFromCalendarId == calendar.CalendarId) ?? null;
-                                        <tr>
-                                            <td scope="row">
-                                                <a href="/cronofy/calendar/@calendar.CalendarId">@calendar.Name</a>
-                                                <input type="hidden" value="@calendar.CalendarId" name="SyncFromCalendarId[]" />
-                                            </td>
-                                            <td scope="row">
-                                                <select name="SyncToCalendarId[]" required>
-                                                    @foreach (var userCalendar in Model.UserCalendars.Where(x => x.UserCreatedId == baseModel.User.UserID))
-                                                    {
-                                                        <option value="@userCalendar.Id" selected="@(linkedCal != null && linkedCal.SyncToCalendarId == userCalendar.Id ? true : false)">@userCalendar.Name</option>
-                                                    }
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="Read[]" @(linkedCal != null && linkedCal.Read ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
-                                                    <input type="hidden" value="@calendar.CalendarId" name="Read[]" />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="Save[]" @(linkedCal != null && linkedCal.Save ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
-                                                    <input type="hidden" value="@calendar.CalendarId" name="Save[]" />
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="Delete[]" @(linkedCal != null && linkedCal.Delete ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
-                                                    <input type="hidden" value="@calendar.CalendarId" name="Delete[]" />
-                                                </div>
-                                            </td>
+                if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
+                {
+                    <a href="#calendars" class="list-group-item list-group-item-success active">
+                        <i class="fas fa-check-circle"></i> Appology Calendar sync ready
+                    </a>
+                }
+                else if (baseModel.User.CronofyReady == CronofyStatus.AuthenticatedNoRightsSet)
+                {
+                    <a href="#calendars" class="list-group-item list-group-item-danger active">
+                        <i class="fas fa-exclamation-triangle"></i> Appology Calendar sync not ready - set rights for at least one Calendar
+                    </a>
+                }
+                <a href="@Url.Action("UnlinkCalendar")" class="list-group-item list-group-item-action">
+                    <i class="fas fa-link"></i> Unlink Calendars
+                </a>
+                <a href="@Model.CronofyCalendarAuthUrl" class="list-group-item list-group-item-action">
+                    <i class="fas fa-external-link-alt"></i> Authenticate Another
+                </a>
+            }
+        </div>
+        @if (Model.Profiles != null && Model.Profiles.Any())
+        {
+            <a name="calendars"></a>
+            using (Html.BeginForm())
+            {
+                foreach (var profile in Model.Profiles)
+                {
+                    <hr />
+                    <div class="card">
+                        <div class="card-header">
+                            <button class="btn btn-link collapsed">
+                                <h5 class="fas fa-calendar-alt"> @Utils.UppercaseFirst(profile.Key.ProviderName)</h5>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <span class="badge badge-info">Linked account: @profile.Key.Name</span>
+                            <div class="border">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr class="table-info">
+                                            <th width="35%" scope="col">Name</th>
+                                            <th width="20%" scope="col">Sync In Calendar</th>
+                                            <th width="15%" scope="col">
+                                                <span data-toggle="tooltip" title="Pull events created/deleted from @Utils.UppercaseFirst(profile.Key.ProviderName) Calendar to @baseModel.AppName">Read</span>
+                                            </th>
+                                            <th width="15%" scope="col">
+                                                <span data-toggle="tooltip" title="Events created/updated in @baseModel.AppName are also created/updated in @Utils.UppercaseFirst(@profile.Key.ProviderName) Calendar">Save</span>
+                                            </th>
+                                            <th width="15%" scope="col">
+                                                <span data-toggle="tooltip" title="Events deleted in @baseModel.AppName are also deleted in @Utils.UppercaseFirst(@profile.Key.ProviderName) Calendar">Delete</span>
+                                            </th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var calendar in profile.Value)
+                                        {
+                                            var linkedCal = baseModel.User.ExtCalendarRights?.FirstOrDefault(x => x.SyncFromCalendarId == calendar.CalendarId) ?? null;
+                                            <tr>
+                                                <td scope="row">
+                                                    <a href="/calendar/cronofy/calendar/@calendar.CalendarId">@calendar.Name</a>
+                                                    <input type="hidden" value="@calendar.CalendarId" name="SyncFromCalendarId[]" />
+                                                </td>
+                                                <td scope="row">
+                                                    <select name="SyncToCalendarId[]" required>
+                                                        @foreach (var userCalendar in Model.UserCalendars.Where(x => x.UserCreatedId == baseModel.User.UserID))
+                                                        {
+                                                            <option value="@userCalendar.Id" selected="@(linkedCal != null && linkedCal.SyncToCalendarId == userCalendar.Id ? true : false)">@userCalendar.Name</option>
+                                                        }
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="Read[]" @(linkedCal != null && linkedCal.Read ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
+                                                        <input type="hidden" value="@calendar.CalendarId" name="Read[]" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="Save[]" @(linkedCal != null && linkedCal.Save ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
+                                                        <input type="hidden" value="@calendar.CalendarId" name="Save[]" />
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="Delete[]" @(linkedCal != null && linkedCal.Delete ? "checked=\"checked\"" : "") value="@calendar.CalendarId" />
+                                                        <input type="hidden" value="@calendar.CalendarId" name="Delete[]" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
+                <button type="submit" class="btn btn-primary float-right">Update</button>
+                <br />
             }
-            <button type="submit" class="btn btn-primary float-right">Update</button>
-            <br />
         }
-    }
+    </div>
 </div>
-
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>

@@ -22,6 +22,7 @@ namespace Appology.Areas.MiCalendar.Controllers
     public class CronofyController : UserMvcController
     {
         private readonly ICronofyService cronofyService;
+        private readonly IUserService userService;
 
         public CronofyController(
             ICronofyService cronofyService,
@@ -30,6 +31,7 @@ namespace Appology.Areas.MiCalendar.Controllers
             INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
+            this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             
         }
 
@@ -58,11 +60,18 @@ namespace Appology.Areas.MiCalendar.Controllers
             }
             else
             {
-                user.CronofyUid = account.Id;
-                user.AccessToken = token.AccessToken;
-                user.RefreshToken = token.RefreshToken;
+                var status = await userService.UpdateCronofyUserCredentials(account.Id, token.AccessToken, token.RefreshToken, user.UserID);
 
-                await UpdateUser(user);
+                if (status)
+                {
+                    updateResponse = Status.Success;
+                    updateMsg = "External calendars successfully linked to Appology Calendar";
+                }
+                else
+                {
+                    updateResponse = Status.Failed;
+                    updateMsg = "An error occured linking account to Appology Calendar";
+                }
             }
 
             return RedirectToRoute(Url.CronofyProfiles(updateResponse, updateMsg));
@@ -119,9 +128,8 @@ namespace Appology.Areas.MiCalendar.Controllers
 
             await BaseViewModel(new MenuItem { Cronofy = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
-            baseVM.User.ExtCalendarRights = rights.Values;
 
-            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
+            (Status? UpdateResponse, string UpdateMsg) = await userService.UpdateCronofyCalendarRights(rights.Values, baseVM.User.UserID) == true
                 ? (Status.Success, "Calendar rights has been set successfully")
                 : (Status.Failed, "There was an issue with updating the Calendar rights");
 
@@ -157,14 +165,11 @@ namespace Appology.Areas.MiCalendar.Controllers
             await BaseViewModel(new MenuItem { Cronofy = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            baseVM.User.CronofyUid = null;
-            baseVM.User.AccessToken = null;
-            baseVM.User.RefreshToken = null;
-            baseVM.User.ExtCalendars = null;
-            baseVM.User.ExtCalendarRights = null;
+            var unsetExtCalendars = await userService.UpdateCronofyUserCredentials(null, null, null, baseVM.User.UserID);
+            var unsetExtCalendarRights = await userService.UpdateCronofyCalendarRights(null, baseVM.User.UserID);
 
-            (Status? UpdateResponse, string UpdateMsg) = await UpdateUser(baseVM.User) == true
-                ? (Status.Success, "External Calendars successfully unlinked")
+            (Status? UpdateResponse, string UpdateMsg) = unsetExtCalendars && unsetExtCalendarRights
+                ? (Status.Success, "External calendars successfully unlinked from Appology Calendar")
                 : (Status.Failed, "There was an issue unlinking the external Calendars");
 
             return RedirectToRoute(Url.CronofyProfiles(UpdateResponse, UpdateMsg));

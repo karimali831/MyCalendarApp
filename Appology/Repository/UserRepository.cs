@@ -21,7 +21,6 @@ namespace Appology.Repository
     {
         Task<User> GetAsync(string email, string password = null);
         Task<IEnumerable<User>> GetAllAsync();
-        Task<bool> UpdateAsync(User user);
         Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID);
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid);
@@ -32,6 +31,8 @@ namespace Appology.Repository
         Task<bool> GroupExistsInTag(int groupId);
         Task<bool> UpdateBuddys(string buddys, Guid userId);
         Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds);
+        Task<bool> UpdateCronofyUserCredentials(string cronofyUid, string accessToken, string refreshToken, Guid userId);
+        Task<bool> UpdateCronofyCalendarRights(IEnumerable<ExtCalendarRights> rights, Guid userId);
     }
 
     public class UserRepository : IUserRepository
@@ -153,42 +154,6 @@ namespace Appology.Repository
             return (await sql.QueryAsync<Tag>(sqlTxt)).ToArray();
         }
 
-        public async Task<bool> UpdateAsync(User user)
-        {
-            using var sql = dbConnectionFactory();
-            try
-            {
-                await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE UserID = @UserId",
-                    new
-                    {
-                        user.UserID,
-                        user.Name,
-                        user.Email,
-                        user.Password,
-                        user.PhoneNumber,
-                        user.CronofyUid,
-                        user.AccessToken,
-                        user.RefreshToken,
-                        user.EnableCronofy,
-                        user.RoleIds,
-                        user.BuddyIds,
-                        user.Avatar,
-                        user.RecentOpenedDocIds,
-                        user.SelectedCalendars,
-                        user.DefaultCalendarView,
-                        user.DefaultNativeCalendarView,
-                        ExtCalendars = user.ExtCalendarRights.Any() ? JsonConvert.SerializeObject(user.ExtCalendarRights) : user.ExtCalendars
-                    });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
-        }
-
         public async Task<bool> CronofyAccountRequest(string accessToken, string refreshToken, string cronofyUid)
         {
             using (var sql = dbConnectionFactory())
@@ -254,6 +219,52 @@ namespace Appology.Repository
                     exceptionHandlerService.ReportException(exp).Submit();
                     return false;
                 }
+            }
+        }
+
+        public async Task<bool> UpdateCronofyUserCredentials(string cronofyUid, string accessToken, string refreshToken, Guid userId)
+        {
+            using(var sql = dbConnectionFactory())
+            {
+                try
+                {
+                    await sql.ExecuteAsync($"UPDATE {TABLE} SET CronofyUid = @cronofyUid, AccessToken = @accessToken, RefreshToken = @refreshToken WHERE UserID = @userId", 
+                        new { 
+                            cronofyUid,
+                            accessToken,
+                            refreshToken,
+                            userId 
+                        });
+
+                    return true;
+                }
+                catch (Exception exp)
+                {
+                    exceptionHandlerService.ReportException(exp).Submit();
+                    return false;
+                }
+            }
+        }
+
+
+        public async Task<bool> UpdateCronofyCalendarRights(IEnumerable<ExtCalendarRights> rights, Guid userId)
+        {
+            using var sql = dbConnectionFactory();
+            try
+            {
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET ExtCalendars = @ExtCalendars WHERE UserID = @UserId",
+                    new
+                    {
+                        ExtCalendars = rights != null && rights.Any() ? JsonConvert.SerializeObject(rights) : null,
+                        UserId = userId
+                    });
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                exceptionHandlerService.ReportException(exp).Submit();
+                return false;
             }
         }
     }

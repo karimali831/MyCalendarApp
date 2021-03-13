@@ -12,8 +12,6 @@ using Appology.MiCalendar.Service;
 using Appology.MiCalendar.Repository;
 using Appology.MiCalendar.Enums;
 using Appology.DTOs;
-using Appology.MiCalendar.DTOs;
-using Appology.MiCalendar.Helpers;
 using Appology.Write.DTOs;
 
 namespace Appology.Service
@@ -22,7 +20,6 @@ namespace Appology.Service
     {
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> GetUser(string email = null, string password = null);
-        Task<bool> UpdateAsync(User user);
         Task<User> GetByUserIDAsync(Guid userID);
         Task<bool> UpdateUserTagsAsync(IList<Tag> tags, Guid userId);
         Task<Tag> GetUserTagAysnc(Guid tagID);
@@ -38,6 +35,8 @@ namespace Appology.Service
         object GetUserTypes(User user, IEnumerable<Types> userTypes);
         Task<(Status? UpdateResponse, string UpdateMsg)> AddBuddy(string email, Guid id);
         Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds);
+        Task<bool> UpdateCronofyUserCredentials(string cronofyUid, string accessToken, string refreshToken, Guid userId);
+        Task<bool> UpdateCronofyCalendarRights(IEnumerable<ExtCalendarRights> rights, Guid userId);
     }
 
     public class UserService : IUserService
@@ -99,13 +98,6 @@ namespace Appology.Service
 
             return userCalendars;
         }
-
-        public async Task<bool> UpdateAsync(User user)
-        {
-            user.ExtCalendarRights ??= Enumerable.Empty<ExtCalendarRights>();
-            return await userRepository.UpdateAsync(user);
-        }
-
 
         public object GetUserTypes(User user, IEnumerable<Types> userTypes)
         {
@@ -360,6 +352,16 @@ namespace Appology.Service
         public async Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds)
         {
             return await userRepository.GetCollaboratorsAsync(inviteeIds);
+        }
+
+        public async Task<bool> UpdateCronofyUserCredentials(string cronofyUid, string accessToken, string refreshToken, Guid userId)
+        {
+            return await userRepository.UpdateCronofyUserCredentials(cronofyUid, accessToken, refreshToken, userId);
+        }
+
+        public async Task<bool> UpdateCronofyCalendarRights(IEnumerable<ExtCalendarRights> rights, Guid userId)
+        {
+            return await userRepository.UpdateCronofyCalendarRights(rights, userId);
         }
     }
 }
