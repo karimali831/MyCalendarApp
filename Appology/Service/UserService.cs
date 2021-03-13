@@ -37,6 +37,7 @@ namespace Appology.Service
         Task<bool> UpdateBuddys(string buddys, Guid userId);
         object GetUserTypes(User user, IEnumerable<Types> userTypes);
         Task<(Status? UpdateResponse, string UpdateMsg)> AddBuddy(string email, Guid id);
+        Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds);
     }
 
     public class UserService : IUserService
@@ -354,6 +355,11 @@ namespace Appology.Service
             }
 
             return status;
+        }
+
+        public async Task<IList<Collaborator>> GetCollaboratorsAsync(IEnumerable<Guid> inviteeIds)
+        {
+            return await userRepository.GetCollaboratorsAsync(inviteeIds);
         }
     }
 }

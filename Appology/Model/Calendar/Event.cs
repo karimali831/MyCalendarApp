@@ -36,6 +36,10 @@ namespace Appology.MiCalendar.Model
         [DbIgnore]
         public string InviteeIds { get; set; }
         [DbIgnore]
+        public int TagGroupId { get; set; } // If reminder this is null
+        [DbIgnore]
+        public string TagGroupName { get; set; } 
+        [DbIgnore]
         public string Subject { get; set; }
         [DbIgnore]
         public IEnumerable<Guid> InviteeIdsList => (!string.IsNullOrEmpty(InviteeIds) ? InviteeIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>());

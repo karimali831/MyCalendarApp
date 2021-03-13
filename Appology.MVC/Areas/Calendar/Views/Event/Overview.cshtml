@@ -1,63 +1,94 @@
 ﻿@using Appology.Enums
 @using Appology.Helpers
-@model Appology.Website.Areas.MiCalendar.ViewModels.OverviewVM
+@using Appology.Website.ViewModels
+@using System.Configuration
+@model Appology.Website.Areas.MiCalendar.ViewModels.EventActivityOverviewVM
 @{
     ViewBag.Title = "Overview";
     ViewBag.Frequency = ((DateFrequency)Model.Filter.Frequency);
 }
 
-<div class="jumbotron">
-    <h3><span class="fas fa-chart-bar"> Activity Hub</span></h3>
-    <hr />
-    <div class="form-inline" role="form">
-        <div class="row">
-            <div class="form-group">
-                <select class="form-control" id="frequency" style="width:150px; display: inline">
-                    @foreach (DateFrequency frequency in Enum.GetValues(typeof(DateFrequency)))
-                    {
-                        <option value="@frequency" selected="@(Model.Filter.Frequency == frequency ? true: false)">@frequency</option>
-                    }
-                </select>
-            </div>
-
-            <div class="form-group" id="showInterval">
-                <select class="form-control" id="interval" style="width:90px; display: inline">
-                    @for (int i = 1; i <= 30; i++)
-                    {
-                        <option value="@i" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
-                    }
-                </select>
-            </div>
-
-            <div id="showDateRanges" style="display: none">
-                <div class="form-group" style="display: inline">
-                    @Html.TextBoxFor(x => x.Filter.FromDateRange, "{0:yyyy-MM-dd}", new { id = "fromDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
+<div class="content-shadow">
+    <div class="content-inner" style="background: white">
+        <h4>
+            <span class="fas fa-chart-bar"> Activity Hub</span>
+        </h4>
+        <div class="form-inline" role="form">
+            <div class="row" style="margin: 10px !important">
+                <div class="form-group">
+                    <select class="form-control" id="frequency" style="width:150px; display: inline">
+                        @foreach (DateFrequency frequency in Enum.GetValues(typeof(DateFrequency)))
+                        {
+                            <option value="@frequency" selected="@(Model.Filter.Frequency == frequency ? true: false)">@frequency</option>
+                        }
+                    </select>
                 </div>
-                <div class="form-group" style="display: inline">
-                    @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { id = "toDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
+
+                <div class="form-group" id="showInterval">
+                    <select class="form-control" id="interval" style="width:90px; display: inline">
+                        @for (int i = 1; i <= 30; i++)
+                        {
+                            <option value="@i" selected="@(Model.Filter.Interval == i ? true : false)">X = @i</option>
+                        }
+                    </select>
+                </div>
+
+                <div id="showDateRanges" style="display: none">
+                    <div class="form-group" style="display: inline">
+                        @Html.TextBoxFor(x => x.Filter.FromDateRange, "{0:yyyy-MM-dd}", new { id = "fromDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
+                    </div>
+                    <div class="form-group" style="display: inline">
+                        @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { id = "toDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
+                    </div>
+                </div>
+                <div id="load-activities" style="display: none; margin-left: 5px">
+                    <div class="loader loader-medium"></div>
                 </div>
             </div>
         </div>
-    </div>
-    <hr />
-    <div id="load-activities" style="display: none">
-        <div class="loader loader-medium"></div>
-    </div>
+        <div class="just-padding">
+            <div class="list-group list-group-root well" id="activities">
+                @foreach (var tagGroup in Model.EventsOverview)
+                {
+                    if (!string.IsNullOrEmpty(tagGroup.Key.TagGroupName))
+                    {
+                        string key = Utils.RemoveSpecialCharacters($"{tagGroup.Key.TagGroupName}{tagGroup.Key.TagGroupdId}");
 
-    <ul class="list-group" id="activities">
-        @foreach (var e in Model.HoursWorkedInTag)
-        {
-            <li class="list-group-item" style="background: @e.Color; color: @e.ContrastColor">
-                <span class="fas @e.ActivityTag"></span> <small> @e.Text<span style="float: right">#@e.TypeName</span></small>
-            </li>
-        }
-    </ul>
-
+                        <div class="list-group">
+                            <a href="#@key" class="list-group-item" data-toggle="collapse">
+                                <i class="fas fa-chevron-down"></i> @tagGroup.Key.TagGroupName
+                            </a>
+                            <div class="list-group in collapse show" id="@key">
+                                @foreach (var e in tagGroup.Value.Where(x => x.TagGroupId == tagGroup.Key.TagGroupdId))
+                                {
+                                    <div class="list-group-item">
+                                        <span class="fas @e.ActivityTag" style="color: @e.Color"></span> <small> @e.Text</small>
+                                        @foreach (var avatar in e.Avatars)
+                                        {
+                                            if (avatar.Length == 2)
+                                            {
+                                                <p default-avatar="@avatar" style="width: 24px; height: 24px; float: right"></p>
+                                            }
+                                            else
+                                            {
+                                                <img src="@ConfigurationManager.AppSettings["RootUrl"]/@avatar" style="width: 24px; height: 32px; float: right" />
+                                            }
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
- @section Scripts{
-     <script>
+@section Scripts{
+    <script>
         $(document).ready(function () {
+
             $("#interval").change(function () {
                 getEventsActivity();
             });
@@ -105,13 +136,12 @@
                     success: function (response) {
                         $("#load-activities").hide();
                         $("#activities").html("");
-                        var trHTML = '';
-                        if (response.length == 0) {
-                            trHTML += '<li class="list-group-item">No activities</li>';
+
+                        var trHTML = response.Content;
+                        if (response.Content == 0) {
+                            trHTML += '<div class="list-group-item"><span class="fas fa-times-circle"> No activities found</span></div>';
                         } else {
-                            $.each(response, function (i, item) {
-                                trHTML += '<li class="list-group-item" style="background: ' + item.Color + '; color: ' + item.ContrastColor + '"><span class="fas ' + item.ActivityTag + ' small"></span><small>' + item.Text + ' <span style="float: right">#' + item.TypeName + '</span></small></li>';
-                            });
+                            trHTML = response.Content;
                         }
 
                         $('#activities').append(trHTML);
@@ -121,6 +151,12 @@
                     }
                 })
             }
+
+            $('.list-group-item').on('click', function () {
+                $('.fas', this)
+                    .toggleClass('fa-chevron-right')
+                    .toggleClass('fa-chevron-down');
+            });
         })
-     </script>
+    </script>
 }

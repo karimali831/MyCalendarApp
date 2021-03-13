@@ -1062,6 +1062,7 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\Account\Settings.cshtml" />
     <Content Include="Views\Shared\_TableDetail.cshtml" />
+    <Content Include="Views\Shared\_UserAvatar.cshtml" />
     <None Include="Web.Stage.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

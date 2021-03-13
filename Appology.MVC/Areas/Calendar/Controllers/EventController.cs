@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Configuration;
 
 namespace Appology.Areas.MiCalendar.Controllers
 {
@@ -167,17 +168,17 @@ namespace Appology.Areas.MiCalendar.Controllers
 
             var dateFilter = new DateFilter
             {
-                Frequency = DateFrequency.LastXDays,
-                Interval = 7
+                Frequency = DateFrequency.LastXMonths,
+                Interval = 3
             };
 
-            var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User, dateFilter);
+            var eventsOverview = await eventService.EventActivityTagGroup(baseVM.User, dateFilter);
 
             return View("Overview",
-                new OverviewVM
+                new EventActivityOverviewVM
                 {
                     Filter = dateFilter,
-                    HoursWorkedInTag = hoursWorkedInTag
+                    EventsOverview = eventsOverview
                 });
 
         }
@@ -195,8 +196,41 @@ namespace Appology.Areas.MiCalendar.Controllers
                 ToDateRange = toDate
             };
 
-            var hoursWorkedInTag = await eventService.HoursSpentInTag(baseVM.User, dateFilter);
-            return new JsonResult { Data = hoursWorkedInTag, JsonRequestBehavior = JsonRequestBehavior.AllowGet };
+            var eventsOverview = await eventService.EventActivityTagGroup(baseVM.User, dateFilter);
+
+            string html = "";
+
+            foreach (var tagGroup in eventsOverview)
+            {
+                if (!string.IsNullOrEmpty(tagGroup.Key.TagGroupName))
+                {
+                    string key = Utils.RemoveSpecialCharacters($"{tagGroup.Key.TagGroupName}{tagGroup.Key.TagGroupdId}");
+                    html += $"<div class='list-group'><a href='#{key}' class='list-group-item' data-toggle='collapse'><i class='fas fa-chevron-down'></i> {tagGroup.Key.TagGroupName}</a><div class='list-group in collapse show' id='{key}'>";
+
+                    foreach (var e in tagGroup.Value.Where(x => x.TagGroupId == tagGroup.Key.TagGroupdId))
+                    {
+                        html += $"<div class='list-group-item'><span class='fas {e.ActivityTag}' style='color: {e.Color}'></span> <small> {e.Text}</small>";
+
+                        foreach (var avatar in e.Avatars)
+                        {
+                            if (avatar.Length == 2)
+                            {
+                                html += $"<p default-avatar='{avatar}' style='width: 24px; height: 24px; float: right'></p>";
+                            }
+                            else
+                            {
+                                html += $"<img src='{ConfigurationManager.AppSettings["RootUrl"]}/{avatar}' style='width: 24px; height: 24px; float: right' />";
+                            }
+                        }
+
+                        html += "</div>";
+                    }
+
+                    html += "</div></div>";
+                }
+            }
+
+            return new JsonResult { Data = Content(html), JsonRequestBehavior = JsonRequestBehavior.AllowGet };
         }
     }
 }

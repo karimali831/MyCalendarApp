@@ -203,7 +203,7 @@
     <Compile Include="Model\Category.cs" />
     <Compile Include="Model\Feature.cs" />
     <Compile Include="Model\FeatureGroupRole.cs" />
-    <Compile Include="Model\Calendar\HoursWorkedInTag.cs" />
+    <Compile Include="Model\Calendar\EventActivityOverview.cs" />
     <Compile Include="Model\Finance\Category.cs" />
     <Compile Include="Model\Finance\Finance.cs" />
     <Compile Include="Model\Finance\Income.cs" />

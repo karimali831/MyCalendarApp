@@ -1,0 +1,50 @@
+﻿@model Appology.Website.ViewModels.AvatarVM
+@using System.Configuration
+
+@{
+    string dimensions = "";
+    string fontSize = "";
+
+
+    switch (Model.Size)
+    {
+        case "xx-small":
+            dimensions = "18px";
+            fontSize = "9px";
+            break;
+
+        case "x-small":
+            dimensions = "24px";
+            fontSize = "12px";
+            break;
+
+        case "medium":
+            dimensions = "48px";
+            fontSize = "24px";
+            break;
+
+        case "large":
+            dimensions = "64px";
+            fontSize = "32px";
+            break;
+
+        case "x-large":
+            dimensions = "128px";
+            fontSize = "48px";
+            break;
+
+        default:
+            dimensions = "32px";
+            fontSize = "16px";
+            break;
+    }
+}
+
+@if (Model.Avatar.Length == 2)
+{
+    <p default-avatar="@Model.Avatar" style="width: @dimensions; height: @dimensions; font-size: @fontSize"></p>
+}
+else
+{
+    <img src="@ConfigurationManager.AppSettings["RootUrl"]/@Model.Avatar"  style="width: @dimensions; height: @dimensions; font-size: @fontSize" />
+}

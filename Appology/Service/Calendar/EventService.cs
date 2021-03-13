@@ -23,7 +23,7 @@ namespace Appology.MiCalendar.Service
         Task<Event> SaveGetEvent(Event dto);
         Task<bool> DeleteEvent(Guid eventId, string eventUid = null);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
-        Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, BaseDateFilter dateFilter);
+        Task<Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>> EventActivityTagGroup(User user, BaseDateFilter dateFilter);
         Task<bool> EventExistsInCalendar(int calendarId);
         Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId);
         Task<IEnumerable<Types>> GetUserCalendars(Guid userId);
@@ -329,7 +329,7 @@ namespace Appology.MiCalendar.Service
             return (await eventRepository.InsertOrUpdateAsync(dto)).e;
         }
 
-        public async Task<IList<HoursWorkedInTag>> HoursSpentInTag(User user, BaseDateFilter dateFilter)
+        public async Task<Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>> EventActivityTagGroup(User user, BaseDateFilter dateFilter)
         {
             var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
 
@@ -340,74 +340,125 @@ namespace Appology.MiCalendar.Service
             };
 
             var events = (await GetAllAsync(user, eventRequest))
-                .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID))
-                .GroupBy(x => x.TagID);
-
-            var hoursWorkedInTag = new List<HoursWorkedInTag>();
-
+                .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID) && !x.Reminder);
+         
+            var eventsOverview = new Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>();
+  
             if (events != null && events.Any())
             {
-                foreach (var e in events)
+                var hoursWorkedInTag = new List<HoursWorkedInTag>();
+
+                foreach (var tagGroup in events.GroupBy(x => new { x.TagGroupId, x.TagGroupName }))
                 {
-                    if (e.Key.HasValue && e.Key != Guid.Empty)
+                    foreach (var e in tagGroup.Where(x => x.TagGroupId == tagGroup.Key.TagGroupId).GroupBy(x => x.TagID))
                     {
-                        var tag = await userService.GetUserTagAysnc(e.Key.Value);
-                        string userName = "You";
-                        bool multiUser = false;
-
-                        if (tag.InviteeIdsList.Any())
+                        if (e.Key.HasValue && e.Key != Guid.Empty)
                         {
-                            var inviteeList = new List<string>();
-                            foreach (var invitee in tag.InviteeIdsList)
+                            var tag = e.FirstOrDefault(x => x.TagID == e.Key.Value);
+                            string userName = "You";
+                            bool multiUser = false;
+
+                            var inviteeAvatars = new List<string>();
+
+                            if (tag.InviteeIdsList.Any())
                             {
-                                var id = invitee == user.UserID ? tag.UserID : invitee;
-                                var inviteeName = (await userService.GetByUserIDAsync(id)).Name;
-                                inviteeList.Add(inviteeName);
+                                inviteeAvatars.Add(CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name));
+
+                                var inviteeList = new List<string>();
+
+                                var invitees = await userService.GetCollaboratorsAsync(tag.InviteeIdsList);
+
+                                foreach (var invitee in invitees)
+                                {
+
+                                    if (invitee.CollaboratorId == user.UserID)
+                                    {
+                                        inviteeList.Add(tag.Name);
+                                        inviteeAvatars.Add(CalendarUtils.AvatarSrc(tag.UserID, tag.Avatar, tag.Name));
+                                    }
+                                    else
+                                    {
+                                        inviteeList.Add(invitee.Name);
+                                        inviteeAvatars.Add(CalendarUtils.AvatarSrc(invitee.CollaboratorId, invitee.Avatar, invitee.Name));
+                                    }
+                                }
+
+                                userName += ", " + string.Join(", ", inviteeList);
+                                multiUser = true;
                             }
 
-                            userName += ", " + string.Join(", ", inviteeList);
-                            multiUser = true;
-                        }
+                            double minutesWorked = e.Sum(x => x.EndDate.HasValue ? DateUtils.MinutesBetweenDates(x.EndDate.Value, x.StartDate) : 1440);
 
-                        double minutesWorked = e.Sum(x => x.EndDate.HasValue ? DateUtils.MinutesBetweenDates(x.EndDate.Value, x.StartDate) : 1440);
-
-                        if (minutesWorked > 0)
-                        {
-                            int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesWorked);
-                            int calculateHours = hoursFromMinutes >= 672 ? hoursFromMinutes / 4 : 0;
-                            string averaged = calculateHours >= 1 ? $" averaging {calculateHours} hour{(calculateHours > 1 ? "s" : "")} a week" : "";
-                            string text;
-
-                            if (dateFilter.Frequency == DateFrequency.Upcoming)
+                            if (minutesWorked > 0)
                             {
-                                string multipleEvents = e.Count() > 1 ? "have upcoming events totalling" : "have an upcoming event for";
-                                text = string.Format($"{userName} {multipleEvents} {DateUtils.HoursDurationFromMinutes(minutesWorked)} with {tag.Name}");
+                                int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesWorked);
+                                int? monthsBetween = DateUtils.MonthsBetweenRanges(dateFilter);
+
+                                string additionalInfo = "";
+     
+                                if (monthsBetween.HasValue)
+                                {
+                                    int averageWeeklyHours = (hoursFromMinutes / monthsBetween.Value / 4);
+                          
+                                    if (averageWeeklyHours > 0)
+                                    {
+                                        if (tag.Subject == "Flex") 
+                                        {
+                                            double averageWeeklyEarning = (hoursFromMinutes * 14 * 1.15) / monthsBetween.Value / 4;
+                                            string earning = Utils.ToCurrency((decimal)averageWeeklyEarning);
+
+                                            additionalInfo += $" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week";
+                                        }
+                                        else
+                                        {
+                                            additionalInfo += $" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")} a week";
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    if (tag.Name == "Flex")
+                                    {
+                                        additionalInfo += $" earning approx £{hoursFromMinutes * 14 * 1.15}";
+                                    }
+                                }
+
+                                string text;
+
+
+                                if (dateFilter.Frequency == DateFrequency.Upcoming)
+                                {
+                                    string multipleEvents = e.Count() > 1 ? "have upcoming events totalling" : "have an upcoming event for";
+                                    text = string.Format($"{userName} {multipleEvents} {DateUtils.HoursDurationFromMinutes(minutesWorked)} with {tag.Subject}.");
+                                }
+                                else
+                                {
+                                    text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo} with {tag.Subject}.");
+                                }
+                
+                                hoursWorkedInTag.Add(new HoursWorkedInTag
+                                {
+                                    TagGroupId = tagGroup.Key.TagGroupId,
+                                    Text = text,
+                                    MultiUsers = multiUser,
+                                    Color = tag.ThemeColor,
+                                    Avatars = inviteeAvatars,
+                                    ActivityTag = multiUser ? "fa-user-friends" : "fa-tag"
+                                });
                             }
-                            else
-                            {
-                                text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {averaged} with {tag.Name}");
-                            }
-
-                            if (tag.Name == "Flex")
-                            {
-                                text += $" earning approx £{hoursFromMinutes * 14 * 1.15}";
-                            }
-
-                            hoursWorkedInTag.Add(new HoursWorkedInTag
-                            {
-                                Text = text,
-                                MultiUsers = multiUser,
-                                Color = tag.ThemeColor,
-                                ContrastColor = CalendarUtils.ContrastColor(tag.ThemeColor),
-                                TypeName = tag.TypeName,
-                                ActivityTag = multiUser ? "fa-user-friends" : "fa-tag"
-                            });
                         }
                     }
+
+                    eventsOverview.Add(new EventActivityTagGroup
+                    {
+                        TagGroupdId = tagGroup.Key.TagGroupId,
+                        TagGroupName = tagGroup.Key.TagGroupName
+
+                    }, hoursWorkedInTag);
                 }
             }
 
-            return hoursWorkedInTag;
+            return eventsOverview;
         }
 
         public void DeleteCronofyEvent(string syncFromCalendarId, Guid eventId)

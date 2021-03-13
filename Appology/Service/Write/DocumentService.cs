@@ -13,6 +13,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Linq;
 using Appology.Write.ViewModels;
+using Appology.Write.DTOs;
 
 namespace Appology.Write.Service
 {
@@ -66,6 +67,7 @@ namespace Appology.Write.Service
         {
             return await documentRepository.SearchDocuments(filter, userId);
         }
+
 
         private async Task<IList<DocumentTitles>> DocTitles(IList<DocumentTitles> titles)
         {
