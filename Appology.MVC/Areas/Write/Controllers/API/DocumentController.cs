@@ -14,6 +14,7 @@ using Appology.Write.Model;
 using Appology.Write.Service;
 using Appology.Write.DTOs;
 using System.Collections.Generic;
+using Appology.Write.ViewModels;
 
 namespace Appology.Areas.Write.Controllers.API
 {
@@ -39,20 +40,27 @@ namespace Appology.Areas.Write.Controllers.API
             return await userService.GetUser(isLocal ? "karimali831@googlemail.com" : null);
         }
 
-        [Route("titles/{folderId}")]
+
+        [Route("doctitlesandfolders")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetDocumentTitlesByFolder(int folderId)
+        public async Task<HttpResponseMessage> UserDocumentFoldersAndTitles()
         {
             var user = await GetUser();
-            var documents = await documentService.GetDocTitlesByFolderId(folderId, user.UserID);
-            var recentDocs = await documentService.GetDocTitlesByDocIds(user.RecentOpenedDocIdsList);
-            var pinnedDocs = await documentService.GetDocTitlesByDocIds(user.PinnedDocIdsList);
+            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, TypeGroup.DocumentFolders, userCreatedOnly: false);
+            var documents = await documentService.GetDocumentTitles(user.UserID);
+
+            var tags = documents
+                    .Where(x => !string.IsNullOrEmpty(x.Tags) && x.UserCreatedId == user.UserID)
+                    .SelectMany(x => x.Tags.Split(','))
+                    .Select(x => x);
 
             return Request.CreateResponse(HttpStatusCode.OK, new
             {
+                folders = userService.GetUserTypes(user, userTypes),
                 documents,
-                recentDocs,
-                pinnedDocs
+                recentDocs = user.RecentOpenedDocIdsList,
+                pinnedDocs = user.PinnedDocIdsList,
+                tags
             });
         }
 
@@ -61,7 +69,7 @@ namespace Appology.Areas.Write.Controllers.API
         public async Task<HttpResponseMessage> SearchDocuments(string filter)
         {
             var user = await GetUser();
-            var documents = await documentService.SearchDocuments(filter, user.UserID);
+            var documents = await documentService.SearchDocumentsByFilter(filter, user.UserID);
 
             return Request.CreateResponse(HttpStatusCode.OK, documents);
         }
@@ -99,24 +107,6 @@ namespace Appology.Areas.Write.Controllers.API
             return Request.CreateResponse(HttpStatusCode.OK, new { status, added });
         }
 
-        [Route("folders")]
-        [HttpGet]
-        public async Task<HttpResponseMessage> UserDocumentFolders()
-        {
-            var user = await GetUser();
-            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, TypeGroup.DocumentFolders, userCreatedOnly: false);
-            var recentDocs = await documentService.GetDocTitlesByDocIds(user.RecentOpenedDocIdsList);
-            var pinnedDocs = await documentService.GetDocTitlesByDocIds(user.PinnedDocIdsList);
-
-            return Request.CreateResponse(HttpStatusCode.OK, new
-            {
-                folders = userService.GetUserTypes(user, userTypes),
-                recentDocs,
-                pinnedDocs
-            });
-        }
-
-
         [Route("updaterecentdocs/{docId}")]
         [HttpGet]
         public async Task<HttpResponseMessage> UpdateRecentDocs(Guid docId)
@@ -126,18 +116,22 @@ namespace Appology.Areas.Write.Controllers.API
 
             if (doc != null)
             {
-                var recentDocIds = user.RecentOpenedDocIdsList.ToList();
-                recentDocIds.Add(docId);
-
-                string docIds = string.Join(",", recentDocIds
-                    .Skip(Math.Max(0, recentDocIds.Count() - 5))
-                    .Distinct());
+                string docIds = GetRecentDocs(user.RecentOpenedDocIdsList.ToList(), docId);
 
                 var status = await documentService.UpdateRecentOpenedDocs(user.UserID, docIds);
                 return Request.CreateResponse(HttpStatusCode.OK, status);
             }
 
-            return null;
+            return Request.CreateResponse(HttpStatusCode.OK, false);
+        }
+
+        private string GetRecentDocs(IList<Guid> recentDocIds, Guid toAddDocId)
+        {
+            recentDocIds.Add(toAddDocId);
+
+            return string.Join(",", recentDocIds
+                .Skip(Math.Max(0, recentDocIds.Count() - 5))
+                .Distinct());
         }
 
         [Route("delete/{docId}")]
@@ -180,27 +174,61 @@ namespace Appology.Areas.Write.Controllers.API
             if (dto.Id.HasValue)
             {
                 document = await documentService.LoadDocument(dto.Id.Value, user);
+                DocumentTitlesVM docTitle = null;
+
+                // just return if no change to title and text
+                if (dto.Text.Equals(document.Text) && dto.Title.Equals(document.Title) && dto.EditedAuto)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, new { status = true, doc = docTitle });
+                }
+
+                if (!dto.EditedAuto)
+                {
+                    if (!document.Text.Equals(dto.Text) || (document.DraftText != null && !document.DraftText.Equals(dto.Text)))
+                    {
+                        string oldText = !document.Text.Equals(dto.Text) ? document.Text : document.DraftText;
+
+                        await documentService.InsertChangelog(new DocumentChangelog
+                        {
+                            DocId = dto.Id.Value,
+                            UserId = user.UserID,
+                            OldText = oldText,
+                            NewText = dto.Text,
+                            Date = DateUtils.DateTime()
+                        });
+                    }
+                }
             }
 
-            var model = new Document
-            {
-                Id = dto.Id ?? Guid.NewGuid(),
-                TypeId = dto.TypeId,
-                Title = dto.Title,
-                Text = dto.Text,
-                UserCreatedId = dto.Id.HasValue ? document.UserCreatedId : user.UserID,
-                CreatedDate = dto.Id.HasValue ? document.CreatedDate : DateUtils.FromTimeZoneToUtc(DateUtils.DateTime()),
-                EditedById = user.UserID
-            };
+            var model = dto;
+            model.Id = dto.Id ?? Guid.NewGuid();
+            model.DraftText = dto.EditedAuto ? document?.Text ?? null : null;
+            model.UserCreatedId = document?.UserCreatedId ?? user.UserID;
+            model.CreatedDate = document?.CreatedDate ?? DateUtils.FromTimeZoneToUtc(DateUtils.DateTime());
+            model.EditedById = user.UserID;
+
+            // update recent docs
+            string docIds = GetRecentDocs(user.RecentOpenedDocIdsList.ToList(), model.Id.Value);
+            await documentService.UpdateRecentOpenedDocs(user.UserID, docIds);
 
             var status = await documentService.InsertOrUpdateAsync(model);
+            var doc = await documentService.GetDocumentTitle(model.Id.Value);
 
-            if (!status)
+            return Request.CreateResponse(HttpStatusCode.OK, new { status, doc });
+        }
+
+        [Route("changelog/{Id}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> DocChangelog(int Id)
+        {
+            var user = await GetUser();
+            var (OldText, NewText) = await documentService.GetDocChangelogTexts(Id, user.UserID);
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
             {
-                return Request.CreateResponse(HttpStatusCode.BadRequest, false);
-            }
-
-            return Request.CreateResponse(HttpStatusCode.OK, model);
+                oldText = OldText,
+                newText = NewText
+            });
         }
 
     }

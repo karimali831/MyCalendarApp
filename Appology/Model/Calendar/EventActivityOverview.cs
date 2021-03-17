@@ -11,11 +11,13 @@ namespace Appology.MiCalendar.Model
     {
         public string TagGroupName { get; set; }
         public int TagGroupdId { get; set; }
+        public string Text { get; set; }
     }
 
     public class HoursWorkedInTag
     {
         public int TagGroupId { get; set; }
+        public double TotalMinutes { get; set; }
         public string Text { get; set; }
         public bool MultiUsers { get; set; }
         public string ActivityTag { get; set; }

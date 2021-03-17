@@ -26,7 +26,7 @@ namespace Appology.Website.ViewModels
         // calendar and write
         public bool MultiAdd { get; set; } 
         public bool Cronofy { get; set; } 
-        public bool Overview { get; set; }
+        public bool ActivityHub { get; set; }
         public bool Documents { get; set; }
         // errand runner
         public bool ERNewOrder { get; set; }

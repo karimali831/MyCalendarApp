@@ -15,6 +15,7 @@ namespace Appology.Ninject
 
             // Repositories
             Bind<IDocumentRepository>().To<DocumentRepository>();
+            Bind<IDocumentChangelogRepository>().To<DocumentChangelogRepository>();
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.Invite, "/invite/user"),
                 new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove"),
                 // calendar app
-                new KeyValuePair<Section, string>(Section.Overview, "/calendar/event/overview"),
+                new KeyValuePair<Section, string>(Section.ActivityHub, "/calendar/event/activityhub"),
                 new KeyValuePair<Section, string>(Section.Scheduler, "/calendar/event/multiadd"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/calendar/cronofy/profiles"),
                 // write app

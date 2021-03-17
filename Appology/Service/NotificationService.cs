@@ -23,21 +23,27 @@ namespace Appology.Service
     public class NotificationService : INotificationService
     {
         private readonly IEventService eventService;
+        private readonly ICategoryService categoryService;
         private readonly IDocumentService documentService;
         private readonly INotificationRepository notificationRepository;
 
-        public NotificationService(IEventService eventService, IDocumentService documentService, INotificationRepository notificationRepository)
+        public NotificationService(
+            IEventService eventService, 
+            IDocumentService documentService, 
+            ICategoryService categoryService,
+            INotificationRepository notificationRepository)
         {
             this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
             this.documentService = documentService ?? throw new ArgumentNullException(nameof(documentService));
+            this.categoryService = categoryService ?? throw new ArgumentNullException(nameof(categoryService));
             this.notificationRepository = notificationRepository ?? throw new ArgumentNullException(nameof(notificationRepository));
         }
 
 
         public async Task<IList<Notification>> DocumentNotifications(User user)
         {
-            var documentActivity = await documentService.DocumentActivity(user);
-            return await GetNotifications(documentActivity, user.UserID, Features.Write);
+            var documentActivity = await documentService.RecentViewedDocs(user);
+            return await GetNotifications(documentActivity, user.UserID, NotificationType.RecentlyViewedDocs);
         }
 
         public async Task<IList<Notification>> EventNotifications(Guid userId, int[] userCalendars)
@@ -46,18 +52,18 @@ namespace Appology.Service
                 .Where(x => userCalendars.Contains(x.CalendarId));
 
             var eventActivity = await eventService.EventActivity(activeBuddyEvents, userId);
-            return await GetNotifications(eventActivity, userId, Features.Calendar);
+            return await GetNotifications(eventActivity, userId, NotificationType.PresentAndUpcomingEvents);
         }
 
-        private async Task<IList<Notification>> GetNotifications(IList<Notification> activity, Guid userId, Features featureId)
+        private async Task<IList<Notification>> GetNotifications(IList<Notification> activity, Guid userId, NotificationType typeId)
         {
-            var notifications = await notificationRepository.GetAllByUserIdAsync(userId, featureId);
+            var notifications = await notificationRepository.GetAllByUserIdAsync(userId, typeId);
             var addNotifications = activity.Where(ea => !notifications.Any(en => en.Id == ea.Id));
             var removeNotifications = notifications.Where(ea => !activity.Any(en => en.Id == ea.Id));
 
             if (addNotifications.Any(x => x.Id != Guid.Empty && x.UserId != Guid.Empty))
             {
-                await InsertNotifications(addNotifications, featureId);
+                await InsertNotifications(addNotifications, typeId);
             }
 
             if (removeNotifications.Any(x => x.Id != Guid.Empty && x.UserId != Guid.Empty))
@@ -76,7 +82,7 @@ namespace Appology.Service
                 .ToList();
         }
 
-        private async Task InsertNotifications(IEnumerable<Notification> notifications, Features featureId)
+        private async Task InsertNotifications(IEnumerable<Notification> notifications, NotificationType typeId)
         {
             if (notifications != null && notifications.Any())
             {
@@ -85,7 +91,7 @@ namespace Appology.Service
                     await notificationRepository.InsertAsync(new Notification
                     {
                         Id = notification.Id,
-                        FeatureId = featureId,
+                        TypeId = typeId,
                         HasRead = false,
                         Text = notification.Text,
                         UserId = notification.UserId

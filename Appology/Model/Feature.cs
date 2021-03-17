@@ -12,6 +12,7 @@ namespace Appology.Model
     {
         public Features Id { get; set; }
         public string Name { get; set; }
+        public string FaIcon { get; set; }
     }
 
     public class FeatureMap : EntityTypeConfiguration<Feature>

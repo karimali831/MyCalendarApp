@@ -422,7 +422,7 @@
     <Compile Include="Areas\Calendar\ViewModels\CalendarVM.cs" />
     <Compile Include="Areas\Calendar\ViewModels\CronofyVM.cs" />
     <Compile Include="Areas\Calendar\ViewModels\Event.cs" />
-    <Compile Include="Areas\Calendar\ViewModels\OverviewVM.cs" />
+    <Compile Include="Areas\Calendar\ViewModels\EventActivityHubVM.cs" />
     <Compile Include="Areas\Calendar\ViewModels\SchedulerVM.cs" />
     <Compile Include="ViewModels\AvatarVM.cs" />
     <Compile Include="ViewModels\BaseVM.cs" />
@@ -725,10 +725,8 @@
     <Content Include="Areas\Finance\Views\Monzo\Index.cshtml" />
     <Content Include="Areas\Finance\Views\Monzo\OAuthCallback.cshtml" />
     <Content Include="Areas\Finance\Views\_ViewStart.cshtml" />
-    <Content Include="Areas\Finance\Views\Shared\_Layout.cshtml" />
     <Content Include="Areas\Finance\Views\App\Index.cshtml" />
     <Content Include="Areas\ER\Views\_ViewStart.cshtml" />
-    <Content Include="Areas\ER\Views\Shared\_Layout.cshtml" />
     <Content Include="Areas\Calendar\Views\_ViewStart.cshtml" />
     <Content Include="Content\table-detail\css\bootstrap\.DS_Store" />
     <Content Include="Content\table-detail\css\bootstrap\mixins\.DS_Store" />
@@ -1035,7 +1033,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </Content>
     <Content Include="Areas\Calendar\Views\Event\MultiAdd.cshtml" />
-    <Content Include="Areas\Calendar\Views\Event\Overview.cshtml" />
+    <Content Include="Areas\Calendar\Views\Event\ActivityHub.cshtml" />
     <Content Include="Areas\Calendar\Views\Cronofy\Profiles.cshtml" />
     <Content Include="Areas\Calendar\Views\Cronofy\Calendar.cshtml" />
     <Content Include="Areas\Calendar\Views\Cronofy\Event.cshtml" />

@@ -64,7 +64,7 @@ namespace Appology.Controllers
                 .Select(x => x.Id)
                 .ToArray();
 
-           var documentNotifications = await notificationService.DocumentNotifications(user);
+            var documentNotifications = await notificationService.DocumentNotifications(user);
             var eventNotifications = await notificationService.EventNotifications(user.UserID, userCalendars);
             var getNotifications = documentNotifications.Concat(eventNotifications);
 
@@ -75,20 +75,7 @@ namespace Appology.Controllers
                 int i = 1;
                 foreach (var n in getNotifications)
                 {
-                    string icon = "";
-
-                    switch (n.FeatureId)
-                    {
-                        case Features.Calendar:
-                            icon = "<i class='fas fa-calendar-day'></i>";
-                            break;
-                        case Features.Write:
-                            icon = "<i class='fas fa-edit'></i>";
-                            break;
-                        case Features.ErrandRunner:
-                            icon = "<i class='fas fa-running></i>";
-                            break;
-                    }
+                    string icon = $"<i class='{n.FaIcon}'></i>";
 
                     if (i != 1)
                     {

@@ -8,6 +8,7 @@ namespace Appology.Enums
 {
     public enum Categories
     {
-        ERServices = 1
+        ERServices = 1,
+        NotificationTypes = 16
     }
 }

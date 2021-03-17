@@ -10,7 +10,10 @@
 @Html.Partial("_Status", baseModel)
 
 <div class="content-shadow">
-    <div class="content-inner" style="background: white">
+    <div class="content-inner dark-bg">
+        <h4>
+            <span class="fas fa-link"> Appology Calendar</span>
+        </h4>
         <div class="list-group">
             @if (baseModel.User.CronofyReady == CronofyStatus.Disabled)
             {

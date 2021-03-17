@@ -13,17 +13,26 @@ namespace Appology.Write.Model
         public Guid Id { get; set; }
         public int TypeId { get; set; }
         public string Title { get; set; }
+        public string DraftText { get; set; }
         public string Text { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? EditedDate { get; set; }
         public Guid UserCreatedId { get; set; }
         public Guid? EditedById { get; set; }
+        public bool EditedAuto { get; set; }
+        public string Tags { get; set; }
+        [DbIgnore]
+        public string EditedDateStr => EditedDate.HasValue ? EditedDate.Value.ToString("dd/MM/yyyy HH:mm") : null;
         [DbIgnore]
         public string UserCreatedName { get; set; }
         [DbIgnore]
         public string EditedBy { get; set; }
         [DbIgnore]
         public bool Pinned { get; set; } = false;
+        [DbIgnore]
+        public IEnumerable<DocumentChangelog> Changelog { get; set; }
+        [DbIgnore]
+        public IEnumerable<string> TagsList => !string.IsNullOrEmpty(Tags) ? Tags.Split(',') : Enumerable.Empty<string>();
     }
 
     public class DocumentMap : EntityTypeConfiguration<Document>

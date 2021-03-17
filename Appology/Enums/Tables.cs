@@ -33,6 +33,7 @@ namespace Appology.Enums
         // calendar & write
         Events, 
         Documents,
+        DocumentChangelog,
         Tags,
         Types
     }
@@ -74,6 +75,7 @@ namespace Appology.Enums
                 new KeyValuePair<Table, string>(Table.Spendings, "[Finance.Spendings]"),
                 // write
                 new KeyValuePair<Table, string>(Table.Documents, "Documents"),
+                new KeyValuePair<Table, string>(Table.DocumentChangelog, "DocumentChangelog"),
             };
         }
     }

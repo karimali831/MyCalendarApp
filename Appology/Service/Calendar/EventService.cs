@@ -133,7 +133,7 @@ namespace Appology.MiCalendar.Service
                             UserId = activity.UserID,
                             Avatar = avatar,
                             Text = reminderOrEvent,
-                            FeatureId = Features.Calendar
+                            TypeId = NotificationType.PresentAndUpcomingEvents
                         });
                     }
                     else
@@ -146,7 +146,7 @@ namespace Appology.MiCalendar.Service
                             UserId = activity.UserID,
                             Avatar = avatar,
                             Text = string.Format("{0} {3} currently at an event - {1} {2}", getName, label, finishing, pronoun),
-                            FeatureId = Features.Calendar
+                            TypeId = NotificationType.PresentAndUpcomingEvents
                         });
                     }
                 }
@@ -365,25 +365,23 @@ namespace Appology.MiCalendar.Service
                                 inviteeAvatars.Add(CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name));
 
                                 var inviteeList = new List<string>();
-
                                 var invitees = await userService.GetCollaboratorsAsync(tag.InviteeIdsList);
 
                                 foreach (var invitee in invitees)
                                 {
-
-                                    if (invitee.CollaboratorId == user.UserID)
-                                    {
-                                        inviteeList.Add(tag.Name);
-                                        inviteeAvatars.Add(CalendarUtils.AvatarSrc(tag.UserID, tag.Avatar, tag.Name));
-                                    }
-                                    else
+                                    if (invitee.CollaboratorId != user.UserID)
                                     {
                                         inviteeList.Add(invitee.Name);
                                         inviteeAvatars.Add(CalendarUtils.AvatarSrc(invitee.CollaboratorId, invitee.Avatar, invitee.Name));
                                     }
+                                    else if (tag.UserID != user.UserID)
+                                    {
+                                        inviteeList.Add(tag.Name);
+                                        inviteeAvatars.Add(CalendarUtils.AvatarSrc(tag.UserID, tag.Avatar, tag.Name));
+                                    }
                                 }
 
-                                userName += ", " + string.Join(", ", inviteeList);
+                                userName += ", " + string.Join(", ", inviteeList.Distinct());
                                 multiUser = true;
                             }
 
@@ -391,40 +389,8 @@ namespace Appology.MiCalendar.Service
 
                             if (minutesWorked > 0)
                             {
-                                int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesWorked);
-                                int? monthsBetween = DateUtils.MonthsBetweenRanges(dateFilter);
-
-                                string additionalInfo = "";
-     
-                                if (monthsBetween.HasValue)
-                                {
-                                    int averageWeeklyHours = (hoursFromMinutes / monthsBetween.Value / 4);
-                          
-                                    if (averageWeeklyHours > 0)
-                                    {
-                                        if (tag.Subject == "Flex") 
-                                        {
-                                            double averageWeeklyEarning = (hoursFromMinutes * 14 * 1.15) / monthsBetween.Value / 4;
-                                            string earning = Utils.ToCurrency((decimal)averageWeeklyEarning);
-
-                                            additionalInfo += $" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week";
-                                        }
-                                        else
-                                        {
-                                            additionalInfo += $" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")} a week";
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if (tag.Name == "Flex")
-                                    {
-                                        additionalInfo += $" earning approx £{hoursFromMinutes * 14 * 1.15}";
-                                    }
-                                }
-
+                                string additionalInfo = EventOverviewAdditionalText(minutesWorked, dateFilter, isFlexTag: tag.Subject == "Flex");
                                 string text;
-
 
                                 if (dateFilter.Frequency == DateFrequency.Upcoming)
                                 {
@@ -435,14 +401,15 @@ namespace Appology.MiCalendar.Service
                                 {
                                     text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo} with {tag.Subject}.");
                                 }
-                
+
                                 hoursWorkedInTag.Add(new HoursWorkedInTag
                                 {
                                     TagGroupId = tagGroup.Key.TagGroupId,
                                     Text = text,
+                                    TotalMinutes = minutesWorked,
                                     MultiUsers = multiUser,
                                     Color = tag.ThemeColor,
-                                    Avatars = inviteeAvatars,
+                                    Avatars = inviteeAvatars.Distinct().ToList(),
                                     ActivityTag = multiUser ? "fa-user-friends" : "fa-tag"
                                 });
                             }
@@ -453,12 +420,65 @@ namespace Appology.MiCalendar.Service
                     {
                         TagGroupdId = tagGroup.Key.TagGroupId,
                         TagGroupName = tagGroup.Key.TagGroupName
-
                     }, hoursWorkedInTag);
+
+    
+                    foreach (var group in eventsOverview.Keys)
+                    {
+                        var groupEventActivity = hoursWorkedInTag.Where(x => x.TagGroupId == group.TagGroupdId);
+
+                        if (groupEventActivity.Count() > 1)
+                        {
+                            double minutesSpent = groupEventActivity.Sum(x => x.TotalMinutes);
+
+                            group.Text = DateUtils.HoursDurationFromMinutes(minutesSpent);
+
+                            if (minutesSpent > 0)
+                            {
+                                group.Text += EventOverviewAdditionalText(minutesSpent, dateFilter);
+                            }
+                        }
+                    }
                 }
             }
 
             return eventsOverview;
+        }
+
+        private string EventOverviewAdditionalText(double minutesSpent, BaseDateFilter dateFilter, bool isFlexTag = false)
+        {
+            int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesSpent);
+            int? monthsBetween = DateUtils.MonthsBetweenRanges(dateFilter);
+
+            if (monthsBetween.HasValue && monthsBetween.Value != 0)
+            {
+                int averageWeeklyHours = (hoursFromMinutes / monthsBetween.Value / 4);
+
+                if (averageWeeklyHours > 0)
+                {
+                    if (isFlexTag)
+                    {
+                        double averageWeeklyEarning = (hoursFromMinutes * 14 * 1.15) / monthsBetween.Value / 4;
+                        string earning = Utils.ToCurrency((decimal)averageWeeklyEarning);
+
+                        return $" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week";
+                    }
+                    else
+                    {
+
+                        return $" averaging {averageWeeklyHours} hour{(averageWeeklyHours > 1 ? "s" : "")} a week";
+                    }
+                }
+            }
+            else
+            {
+                if (isFlexTag)
+                {
+                    return $" earning approx £{hoursFromMinutes * 14 * 1.15}";
+                }
+            }
+           
+            return "";
         }
 
         public void DeleteCronofyEvent(string syncFromCalendarId, Guid eventId)

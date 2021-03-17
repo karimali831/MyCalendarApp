@@ -171,6 +171,7 @@
     <Compile Include="DTOs\Finance\SpendingSummaryDTO.cs" />
     <Compile Include="DTOs\ProfileDTO.cs" />
     <Compile Include="Enums\Finance\MonzoTransactionStatus.cs" />
+    <Compile Include="Enums\NotificationType.cs" />
     <Compile Include="Enums\Variant.cs" />
     <Compile Include="Enums\Tables.cs" />
     <Compile Include="Enums\Category.cs" />
@@ -212,6 +213,7 @@
     <Compile Include="Model\Finance\Settings.cs" />
     <Compile Include="Model\Finance\Spending.cs" />
     <Compile Include="Model\Notification.cs" />
+    <Compile Include="Model\Write\DocumentChangelog.cs" />
     <Compile Include="Repository\NotificationRepository.cs" />
     <Compile Include="Model\ResourceWithError.cs" />
     <Compile Include="Model\Group.cs" />
@@ -240,6 +242,7 @@
     <Compile Include="Repository\GroupRepository.cs" />
     <Compile Include="Repository\FeatureRoleRepository.cs" />
     <Compile Include="Repository\Calendar\TagRepository.cs" />
+    <Compile Include="Repository\Write\DocumentChangelogRepository.cs" />
     <Compile Include="Repository\Write\DocumentRepository.cs" />
     <Compile Include="Repository\RoleRepository.cs" />
     <Compile Include="Repository\TypeRepository.cs" />
@@ -273,7 +276,7 @@
     <Compile Include="ViewModels\Finance\MonthComparisonChartVM.cs" />
     <Compile Include="ViewModels\Finance\RemindersVM.cs" />
     <Compile Include="ViewModels\Finance\Summary.cs" />
-    <Compile Include="ViewModels\Write\DocumentTitles.cs" />
+    <Compile Include="ViewModels\Write\DocumentTitlesVM.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

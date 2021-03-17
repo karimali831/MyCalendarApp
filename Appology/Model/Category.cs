@@ -10,6 +10,7 @@ namespace Appology.Model
         public string Name { get; set; }
         public bool Disabled { get; set; }
         public bool Active { get; set; }
+        public Features FeatureId { get; set; }
     }
 
     public class CategoryMap : EntityTypeConfiguration<Feature>

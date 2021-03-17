@@ -158,9 +158,9 @@ namespace Appology.Areas.MiCalendar.Controllers
         }
 
 
-        public async Task<ActionResult> Overview()
+        public async Task<ActionResult> ActivityHub()
         {
-            await BaseViewModel(new MenuItem { Overview = true });
+            await BaseViewModel(new MenuItem { ActivityHub = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
             string currentMonth = DateUtils.DateTime().ToString("MMMM");
@@ -169,23 +169,22 @@ namespace Appology.Areas.MiCalendar.Controllers
             var dateFilter = new DateFilter
             {
                 Frequency = DateFrequency.LastXMonths,
-                Interval = 3
+                Interval = 1
             };
 
             var eventsOverview = await eventService.EventActivityTagGroup(baseVM.User, dateFilter);
 
-            return View("Overview",
-                new EventActivityOverviewVM
+            return View("ActivityHub",
+                new EventActivityHubVM
                 {
                     Filter = dateFilter,
                     EventsOverview = eventsOverview
                 });
-
         }
 
-        public async Task<JsonResult> GetFilteredOverview(DateFrequency frequency, int interval, DateTime? fromDate = null, DateTime? toDate = null)
+        public async Task<JsonResult> FilteredActivityHub(DateFrequency frequency, int interval, DateTime? fromDate = null, DateTime? toDate = null)
         {
-            await BaseViewModel(new MenuItem { Overview = true });
+            await BaseViewModel(new MenuItem { ActivityHub = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
             var dateFilter = new DateFilter
@@ -205,7 +204,14 @@ namespace Appology.Areas.MiCalendar.Controllers
                 if (!string.IsNullOrEmpty(tagGroup.Key.TagGroupName))
                 {
                     string key = Utils.RemoveSpecialCharacters($"{tagGroup.Key.TagGroupName}{tagGroup.Key.TagGroupdId}");
-                    html += $"<div class='list-group'><a href='#{key}' class='list-group-item' data-toggle='collapse'><i class='fas fa-chevron-down'></i> {tagGroup.Key.TagGroupName}</a><div class='list-group in collapse show' id='{key}'>";
+                    html += $"<div class='list-group'><a href='#{key}' class='list-group-item' data-toggle='collapse'><i class='fas fa-chevron-down'></i> {tagGroup.Key.TagGroupName}";
+
+                    if (tagGroup.Value.Count(x => x.TagGroupId == tagGroup.Key.TagGroupdId) > 1)
+                    {
+                        html += $"<span class='float-right' style='color: #000; font-size: small'><i class='fas fa-tags'></i> {tagGroup.Key.Text}</span>";
+                    }
+
+                    html += $"</a><div class='list-group in collapse show' id='{key}'>";
 
                     foreach (var e in tagGroup.Value.Where(x => x.TagGroupId == tagGroup.Key.TagGroupdId))
                     {
