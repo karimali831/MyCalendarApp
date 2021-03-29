@@ -57,11 +57,18 @@ namespace Appology.Areas.ER.Controllers.API
 
         private bool VerifyInvoiceAmount(Order order, decimal invoice)
         {
-            var items = JsonConvert.DeserializeObject<IEnumerable<OrderItems>>(order.Items);
-            decimal orderValue = items.Sum(x => x.Cost * x.Qty);
-            decimal calcInvoice = orderValue + order.ServiceFee + order.OrderFee + order.DeliveryFee;
+            try
+            {
+                var items = JsonConvert.DeserializeObject<IEnumerable<OrderItems>>(order.Items);
+                decimal orderValue = items.Sum(x => x.Cost * x.Qty);
+                decimal calcInvoice = orderValue + order.ServiceFee + order.OrderFee + order.DeliveryFee;
 
-            return calcInvoice == order.Invoice && order.Invoice == invoice;
+                return calcInvoice == order.Invoice && order.Invoice == invoice;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 

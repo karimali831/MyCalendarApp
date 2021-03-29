@@ -3,16 +3,18 @@ import IBaseModel from '@appology/react-components/src/SelectionRefinement/IBase
 import * as React from 'react';
 import { api, IOrderResponse } from 'src/Api/Api';
 import { IOrder } from 'src/models/IOrder';
+import { IPlace } from 'src/models/IPlace';
 import { IStakeholder } from 'src/models/IStakeholder';
 import { ITrip } from 'src/models/ITrip';
-import { SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { PlaceAction, ResetOrderAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 import { SelectedOrderAction } from 'src/state/contexts/order/Actions';
 
 export interface IPropsFromDispatch {
     handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction,
     selectedOrderChange: (order: IOrder | undefined, trip: ITrip | undefined) => SelectedOrderAction,
     selectedDriverChange: (stakeholder: IStakeholder | undefined) => SelectedDriverAction,
-    resetOrder: () => void
+    onPlaceChange: (place: IPlace | undefined) => PlaceAction,
+    resetOrder: () => ResetOrderAction
 }
 
 export interface IPropsFromState {
@@ -113,6 +115,10 @@ export default class ExistingOrders extends React.Component<AllProps, IOwnState>
     }
 
     private orderSuccess = (order: IOrderResponse) => {
+
+        // this is to see if we have any API data in ER.Places
+        api.place(order.trip.pickupId).then(place => this.props.onPlaceChange(place ?? undefined))
+
         this.setState({ loadingOrder: false })
 
         if (order.status) {

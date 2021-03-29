@@ -3,6 +3,7 @@ import IBaseModel from '@appology/react-components/src/SelectionRefinement/IBase
 import { rootUrl } from 'src/components/utils/Utils';
 import { Stakeholders } from 'src/Enums/Stakeholders';
 import { IOrder } from 'src/models/IOrder';
+import { IPlace } from 'src/models/IPlace';
 import { IStakeholder } from 'src/models/IStakeholder';
 import { ITrip } from 'src/models/ITrip';
 
@@ -162,6 +163,25 @@ export class Api {
 
         })
         .then(data => data as boolean);
+    }
+
+    public place = async (placeId: string): Promise<IPlace | null> => {
+        return fetch(`${this.rootUrl}/place/${placeId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as IPlace);
     }
 }
 

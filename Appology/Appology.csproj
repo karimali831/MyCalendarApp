@@ -197,6 +197,7 @@
     <Compile Include="Helpers\MVCRoutes.cs" />
     <Compile Include="Helpers\UrlHelper.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Model\ER\Place.cs" />
     <Compile Include="Model\ER\Trip.cs" />
     <Compile Include="Model\ER\Order.cs" />
     <Compile Include="Model\ER\Stakeholder.cs" />
@@ -214,6 +215,7 @@
     <Compile Include="Model\Finance\Spending.cs" />
     <Compile Include="Model\Notification.cs" />
     <Compile Include="Model\Write\DocumentChangelog.cs" />
+    <Compile Include="Repository\ER\PlaceRepository.cs" />
     <Compile Include="Repository\NotificationRepository.cs" />
     <Compile Include="Model\ResourceWithError.cs" />
     <Compile Include="Model\Group.cs" />

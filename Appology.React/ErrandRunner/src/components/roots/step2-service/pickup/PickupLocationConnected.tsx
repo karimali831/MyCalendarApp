@@ -1,7 +1,7 @@
 import IStoreState from '../../../../state/IStoreState';
 import { connect } from 'react-redux';
 import PickupLocation, { IPropsFromState, IPropsFromDispatch } from './PickupLocation';
-import { DistanceMatrixAction } from 'src/state/contexts/landing/Actions';
+import { DistanceMatrixAction, PlaceAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -15,7 +15,8 @@ const mapStateToProps =
 // Add required action creators for component
 const mapPropsFromDispatch: IPropsFromDispatch =
 {
-    onStoreChange: DistanceMatrixAction.creator
+    onStoreChange: DistanceMatrixAction.creator,
+    onPlaceChange: PlaceAction.creator
 };
 
 // This does the magic of subscribing to state changes and ensuring the wrapped

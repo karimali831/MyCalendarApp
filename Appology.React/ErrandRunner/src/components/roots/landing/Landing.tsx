@@ -1,4 +1,4 @@
-import { Variant, ToggleSwitch, AlertModal } from '@appology/react-components';
+import { Variant, ToggleSwitch, AlertModal, ConfirmModal } from '@appology/react-components';
 import * as React from 'react';
 import { IStakeholder } from 'src/models/IStakeholder';
 import { SidebarMenu } from 'src/components/menu/SidebarMenu';
@@ -11,6 +11,7 @@ import OrderConnected from '../step3-order/order/OrderConnected';
 import ExistingOrdersConnected from '../step2-service/existingorders/ExistingOrdersConnected';
 import ServiceConnected from '../step2-service/service/ServiceConnected';
 import { IOrder } from 'src/models/IOrder';
+import { ActionDialogue } from 'src/Enums/ActionDialogue';
 
 export interface IPropsFromDispatch {
     updateConfig: (config: IDefaultConfig | undefined) => UpdateConfigAction,
@@ -30,7 +31,11 @@ export interface IPropsFromState {
 }
 
 export interface IOwnState {
-    newOrder: boolean
+    newOrder: boolean,
+    confirmDialogueBodyCnt?: JSX.Element,
+    confirmDialogueVariant: Variant,
+    confirmAction?: boolean,
+    actionDialogue?: ActionDialogue
 }
 
 type AllProps = IPropsFromState & IPropsFromDispatch;
@@ -40,7 +45,11 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
     constructor(props: AllProps) {
         super(props);
         this.state = {
-            newOrder: true
+            newOrder: true,
+            confirmDialogueBodyCnt: undefined,
+            confirmDialogueVariant: Variant.Warning,
+            confirmAction: undefined,
+            actionDialogue: undefined
         };
     }
 
@@ -72,8 +81,16 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
                             timeout={this.props.alertTimeout}
                             handleClose={() => this.props.handleAlert("")} 
                             variant={this.props.alertVariant} />
+                        : this.state.confirmDialogueBodyCnt !== undefined ?
+
+                        <ConfirmModal
+                            show={true}
+                            variant={this.state.confirmDialogueVariant}
+                            handleAction={(confirm: boolean) => this.handleConfirmation(confirm)}
+                            bodyContent={this.state.confirmDialogueBodyCnt}
+                        />
                     : null
-                }   
+                }
                 <SidebarMenu 
                     initialState={() => this.props.updateConfig(undefined)}
                     pinSidebar={this.props.pinSidebar && this.props.step === 2} 
@@ -93,7 +110,12 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
                                     <ServiceConnected newOrder={this.state.newOrder} />
                                 </>
                             : this.props.step === 2 ?
-                                <OrderConnected />  
+                                <OrderConnected 
+                                    actionDialogue={this.state.actionDialogue}
+                                    confirmAction={this.state.confirmAction}
+                                    showConfirmation={this.showConfirmation}
+                                    confirmationHandled={() => this.handleConfirmation(undefined)}
+                                />  
                             : this.props.step === 4 ?
                                 <OverviewConnected />
                             : null
@@ -101,11 +123,26 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
                     </div>
                 </div>
             </div>
-        );
+        )
     }    
 
     private newOrder = (checked: boolean) => {
         this.props.resetOrder();
         this.setState({ newOrder: checked })
+    }
+
+    private handleConfirmation = (confirm?: boolean) => {
+        this.setState({ 
+            confirmAction: confirm,
+            confirmDialogueBodyCnt: undefined 
+        })
+    }
+
+    private showConfirmation = (actionDialogue: ActionDialogue, variant: Variant, bodyContent: JSX.Element) => {
+        this.setState({ 
+            actionDialogue: actionDialogue,
+            confirmDialogueBodyCnt: bodyContent,
+            confirmDialogueVariant: variant 
+        })
     }
 }

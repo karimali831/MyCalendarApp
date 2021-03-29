@@ -8,6 +8,7 @@ import { ITripOverview } from "src/models/ITrip";
 import { defaultConfig, defaultNavigator, defaultTimeout } from "./Selectors";
 import { Stakeholders } from "src/Enums/Stakeholders";
 import { Variant } from "@appology/react-components";
+import { IPlace } from "src/models/IPlace";
 
 export default interface ILandingState {
     config: IDefaultConfig,
@@ -25,6 +26,7 @@ export default interface ILandingState {
     selectedDriver?: IStakeholder,
     selectedService?: IBaseModel,
     alertTxt: string,
+    place?: IPlace,
     alertVariant?: Variant,
     alertTimeout?: number
 }
@@ -43,6 +45,7 @@ export class LandingState {
         pickupPlace: undefined,
         selectedCustomer: undefined,
         selectedService: undefined,
+        place: undefined,
         alertTxt: "",
         alertVariant: Variant.Success,
         alertTimeout: defaultTimeout

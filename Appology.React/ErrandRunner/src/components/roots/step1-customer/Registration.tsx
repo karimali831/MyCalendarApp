@@ -82,7 +82,7 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
                                         filter={this.props.filter} 
                                         onChange={(f) => this.props.searchStakeholder(f, Stakeholders.driver)} 
                                         loading={this.props.loading}
-                                        setFilterToItemName={true}
+                                        setFilterToItemName={false}
                                         itemSelected={(i) => this.selectedDriver(i.stakeholder)}
                                         filteredResults={this.props.stakeholders} 
                                     />

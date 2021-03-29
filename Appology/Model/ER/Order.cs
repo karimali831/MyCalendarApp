@@ -35,8 +35,10 @@ namespace Appology.ER.Model
     {
         public string Name { get; set; }
         public int Qty { get; set; }
-        public int Cost { get; set; }
+        public decimal Cost { get; set; }
         public string Notes { get; set; }
+        public int MaxQuantity { get; set; }
+        public string Image { get; set; }
     }
 
     public class OrderMap : EntityTypeConfiguration<Order>

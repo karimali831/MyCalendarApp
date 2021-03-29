@@ -58,35 +58,35 @@ const OrderReducer: Reducer<IOrdersState, OrderActions> =
                     } 
                 };   
 
-                case OrderActionTypes.ResetOrder:
-                    return {
-                        ...state, ...{ 
-                            order: undefined,
-                            trip: undefined,
-                            orderForm: {
-                                items: [{
-                                    name: "",
-                                    qty: 1,
-                                    cost: 0,
-                                    total: 0,
-                                    notes: ""
-                                }],
-                                orderId: "",
-                                orderValue: 0,
-                                orderFee: 0,
-                                totalItems: 1,
-                    
-                            },
-                            orderOverview: {
-                                tripMiles: 0,
-                                deliveryFee: 0,
-                                serviceFee: 0,
-                                invoiceAmt: 0,
-                                netProfit: 0,
-                                driverFee: 0
-                            },
-                        }
-                    }      
+            case OrderActionTypes.ResetOrder:
+                return {
+                    ...state, ...{ 
+                        order: undefined,
+                        trip: undefined,
+                        orderForm: {
+                            items: [{
+                                name: "",
+                                qty: 1,
+                                cost: 0,
+                                notes: "",
+                                maxQuantity: 10
+                            }],
+                            orderId: "",
+                            orderValue: 0,
+                            orderFee: 0,
+                            totalItems: 1,
+                
+                        },
+                        orderOverview: {
+                            tripMiles: 0,
+                            deliveryFee: 0,
+                            serviceFee: 0,
+                            invoiceAmt: 0,
+                            netProfit: 0,
+                            driverFee: 0
+                        },
+                    }
+                }      
 
             default:
                 return state;

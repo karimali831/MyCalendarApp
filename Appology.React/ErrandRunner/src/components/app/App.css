@@ -18,3 +18,87 @@
 .toggleswitch-margin-top {
     margin-top: 30px;
 }
+
+/* basket */
+.quantity-buttons {
+    align-items: center;
+    margin-left: var(--spacing-base--1-4);
+    flex: 0.4 0;
+}
+
+.quantity-controls {
+    justify-content: space-between;
+}
+
+.quantity-display {
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+    margin-right: 0.3rem
+}
+
+.quantity-minus {
+    color: #e20f14;
+    height: 24px;
+    width: 24px;
+}
+
+.add-note {
+    margin-left: 0.3rem;
+    font-size: 1.3rem;
+}
+
+.quantity-plus {
+    margin-left: 0.5rem;
+    height: 24px;
+    width: 24px;
+}
+
+.item-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-right: 10px;
+}
+
+.basket-title {
+    background: rgba(0, 0, 0, 0.03);
+    padding: 0px 10px 0px 20px;
+    height: 60px;
+    line-height: 60px;
+    margin: -20px -20px 20px -20px;
+}
+
+.basket-title-header {
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+.basket-title-clear {
+    float: right;
+}
+
+.order-items {
+    max-width: 100%;
+    margin-bottom: 15px;
+    padding: 20px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: rgba(0,0,0,0.3) 0px 0 10px;
+    -moz-box-shadow: rgba(0,0,0,0.3) 0 0 10px;
+    box-shadow: rgba(0,0,0,0.3) 0 0 10px;
+}
+
+.order-item {
+    padding: 10px 10px 10px 0px;
+    margin-bottom: 20px;
+}
+
+
+/* react bootstrap overrides */
+
+@media (max-width: 800px) {
+    .table td, .table th {
+        border: none;
+        padding: 0.25rem;
+    }
+}

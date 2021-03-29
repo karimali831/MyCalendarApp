@@ -2,7 +2,7 @@ import IStoreState from '../../../../state/IStoreState';
 import { connect } from 'react-redux';
 import ExistingOrders, { IPropsFromState, IPropsFromDispatch } from './ExistingOrders';
 import { SelectedOrderAction } from 'src/state/contexts/order/Actions';
-import { ResetOrderAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { PlaceAction, ResetOrderAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -17,7 +17,8 @@ const mapStateToProps =
 // Add required action creators for component
 const mapPropsFromDispatch: IPropsFromDispatch =
 {
-    resetOrder: () => ResetOrderAction,
+    resetOrder: ResetOrderAction.creator,
+    onPlaceChange: PlaceAction.creator,
     selectedDriverChange: SelectedDriverAction.creator,
     selectedOrderChange: SelectedOrderAction.creator,
     handleAlert: ToggleAlertAction.creator

@@ -178,6 +178,7 @@ const LandingReducer: Reducer<ILandingsState, LandingActions> =
                 return {
                     ...state, ...{ 
                         pickupPlace: undefined,
+                        place: undefined,
                         stakeholderLocation: undefined,
                         tripOverview: undefined,
                         selectedService: undefined,
@@ -219,6 +220,12 @@ const LandingReducer: Reducer<ILandingsState, LandingActions> =
                     }
                 }  
 
+            case LandingActionTypes.Place:
+                return {
+                    ...state, ...{ 
+                        place: action.place
+                    }
+                }  
 
             default:
                 return state;

@@ -14,7 +14,8 @@ const mapStateToProps =
         order: state.order.orderForm,
         orderOverview: state.order.orderOverview,
         config: state.landing.config,
-        pinSidebar: state.order.pinSidebar
+        pinSidebar: state.order.pinSidebar,
+        place: state.landing.place
     });
 
 // Add required action creators for component

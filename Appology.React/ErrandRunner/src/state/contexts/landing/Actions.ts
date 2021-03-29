@@ -6,6 +6,7 @@ import { IGoogleAutoCompleteSearch } from "src/models/IGoogleAutoComplete";
 import { ITripOverview } from "src/models/ITrip";
 import { Stakeholders } from "src/Enums/Stakeholders";
 import { Variant } from "@appology/react-components";
+import { IPlace } from "src/models/IPlace";
 
 // action types
 export class LandingActionTypes {
@@ -25,6 +26,7 @@ export class LandingActionTypes {
     public static readonly ToggleDriverStep4 = "@@landing/toggledriverstep4";
     public static readonly SelectedOrderEnableSteps = "@@landing/seletedorderenablesteps";
     public static readonly ShowAlert = "@@landing/showalert";
+    public static readonly Place = "@@landing/place"
 }
 
 export class LoadStakeholdersAction {
@@ -148,6 +150,16 @@ export class DistanceMatrixAction {
     ) { }
 }
 
+export class PlaceAction {
+    public static readonly creator = (place: IPlace | undefined) => new PlaceAction(place);
+
+    public readonly type = LandingActionTypes.Place;
+
+    constructor(
+        public place: IPlace | undefined
+    ) { }
+}
+
 export class DistanceMatrixSuccessAction {
     public static readonly creator = (matrix: IGoogleDistanceMatrixRows[]) => new DistanceMatrixSuccessAction(matrix);
 
@@ -202,4 +214,5 @@ export type LandingActions =
     ResetOrderAction |
     ToggleDriverStep4Action |
     SelectedOrderEnableStepsAction |
-    ToggleAlertAction
+    ToggleAlertAction |
+    PlaceAction

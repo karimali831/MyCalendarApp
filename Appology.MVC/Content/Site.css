@@ -105,6 +105,63 @@ textarea {
     color: #09c !important;
 }
 
+.alert.alert-danger {
+    background-color: #f64e60;
+    border-color: #f64e60;
+    color: #fff;
+}
+
+.alert.alert-success {
+    background-color: #1bc5bd;
+    border-color: #1bc5bd;
+    color: #fff;
+}
+
+.alert.alert-warning {
+    background-color: #ffa800;
+    border-color: #ffa800;
+    color: #fff;
+}
+
+.alert.alert-primary {
+    color: #472a83;
+    background-color: #e7dcfe;
+    border-color: #decefe;
+}
+
+.alert.alert-secondary {
+    background-color: #e5eaee;
+    border-color: #e5eaee;
+    color: #464e5f;
+}
+
+.alert.alert-light {
+    background-color: #f3f6f9;
+    border-color: #f3f6f9;
+    color: #80808f;
+}
+
+.alert.alert-dark {
+    background-color: #212121;
+    border-color: #212121;
+    color: #fff;
+}
+
+.alert.alert-info {
+    background-color: #6993ff;
+    border-color: #6993ff;
+    color: #fff;
+}
+
+.alert {
+    position: relative;
+    padding: .75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid transparent;
+    border-radius: .42rem;
+}
+
+
 /*caledar overrides*/
 .fc-more {
     font-size: x-small !important;

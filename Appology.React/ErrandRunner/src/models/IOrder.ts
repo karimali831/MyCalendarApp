@@ -10,7 +10,9 @@ export interface IOrderItem {
     name: string,
     qty: number,
     cost: number,
-    notes: string
+    notes: string,
+    maxQuantity: number,
+    image?: string
 }
 
 export interface IOrderFeeFormula {

@@ -21,7 +21,8 @@ export class OrderState {
                 qty: 1,
                 cost: 0,
                 total: 0,
-                notes: ""
+                notes: "",
+                maxQuantity: 10
             }],
             orderValue: 0,
             orderFee: 0,

@@ -30,6 +30,7 @@ namespace Appology.Enums
         Orders,
         Stakeholders,
         Trips,
+        Places,
         // calendar & write
         Events, 
         Documents,
@@ -61,6 +62,7 @@ namespace Appology.Enums
                 new KeyValuePair<Table, string>(Table.Orders, "[ER.Orders]"),
                 new KeyValuePair<Table, string>(Table.Stakeholders, "[ER.Stakeholders]"),
                 new KeyValuePair<Table, string>(Table.Trips, "[ER.Trips]"),
+                new KeyValuePair<Table, string>(Table.Places, "[ER.Places]"),
                 // calendar
                 new KeyValuePair<Table, string>(Table.Tags, "Tags"),
                 new KeyValuePair<Table, string>(Table.Events, "Events"),

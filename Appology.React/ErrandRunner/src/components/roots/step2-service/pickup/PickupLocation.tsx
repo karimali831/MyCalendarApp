@@ -1,13 +1,17 @@
 import { SelectElement, SelectionRefinement } from "@appology/react-components";
 import IBaseModel from "@appology/react-components/dist/SelectionRefinement/IBaseModel";
 import * as React from "react";
+import { api } from "src/Api/Api";
 import { googleApi, IGoogleGeoLocation } from "src/Api/GoogleApi";
 import { IGoogleAutoCompleteSearch, IPrediction } from 'src/models/IGoogleAutoComplete';
+import { IPlace } from "src/models/IPlace";
 import { IStakeholder } from "src/models/IStakeholder";
+import { DistanceMatrixAction, PlaceAction } from "src/state/contexts/landing/Actions";
 
 
 export interface IPropsFromDispatch {
-    onStoreChange: (store: IGoogleAutoCompleteSearch, storeLocation: IGoogleGeoLocation, stakeholderLocation: IGoogleGeoLocation) => void
+    onStoreChange: (store: IGoogleAutoCompleteSearch, storeLocation: IGoogleGeoLocation, stakeholderLocation: IGoogleGeoLocation) => DistanceMatrixAction
+    onPlaceChange: (place: IPlace | undefined) => PlaceAction
 }
 
 export interface IPropsFromState {
@@ -106,6 +110,9 @@ export default class PickupLocation extends React.Component<AllProps, IOwnState>
             loading: true,
             filter: ""
         })
+
+        // this is to see if we have any API data in ER.Places
+        api.place(store.id).then(place => this.props.onPlaceChange(place ?? undefined))
 
         googleApi.placeDetails(store.id)
             .then(p => this.selectedStoreSuccess(store, p.result.geometry.location))

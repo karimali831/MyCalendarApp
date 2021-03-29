@@ -9,6 +9,7 @@ namespace Appology.ER.Service
     public interface IOrderService
     {
         Task<(Order Order, bool Status)> GetAsync(Guid orderId);
+        Task<Place> GetPlaceAsync(string placeId);
         Task<IEnumerable<Order>> GetAllAsync(Guid customerId);
         Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip);
         Task<bool> DeleteOrder(Guid orderId);
@@ -17,10 +18,12 @@ namespace Appology.ER.Service
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository orderRepository;
+        private readonly IPlaceRepository placeRepository;
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(IOrderRepository orderRepository, IPlaceRepository placeRepository)
         {
             this.orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+            this.placeRepository = placeRepository ?? throw new ArgumentNullException(nameof(placeRepository));
         }
 
         public async Task<IEnumerable<Order>> GetAllAsync(Guid customerId)
@@ -41,6 +44,11 @@ namespace Appology.ER.Service
         public async Task<bool> DeleteOrder(Guid orderId)
         {
             return await orderRepository.DeleteOrder(orderId);
+        }
+
+        public async Task<Place> GetPlaceAsync(string placeId)
+        {
+            return await placeRepository.GetAsync(placeId);
         }
     }
 }

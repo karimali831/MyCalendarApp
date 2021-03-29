@@ -10,7 +10,7 @@ import { IStakeholder } from 'src/models/IStakeholder';
 import { SelectedDriverAction } from 'src/state/contexts/landing/Actions';
 import { FaCreditCard  } from 'react-icons/fa';
 import { SaveOrderAction } from 'src/state/contexts/order/Actions';
-import { SaveButton } from 'src/components/utils/ActionButtons';
+import { ActionButton } from 'src/components/utils/ActionButtons';
 import { SaveStatus } from 'src/Enums/SaveStatus';
 
 export interface IPropsFromDispatch {
@@ -115,12 +115,13 @@ export default class EmptyStateComponent extends React.Component<AllProps, IOwnS
                 }
                 {
                     !this.props.registrationOn && this.props.selectedDriver !== undefined ?
-                        <SaveButton 
-                            style={{ float: "right" }} 
-                            value={this.props.orderId ? "Update & Checkout" : "Create & Checkout"}
-                            icon={<FaCreditCard />}
-                            saving={this.props.saveOrderStatus === SaveStatus.Processing} 
-                            onSaveClick={() => this.props.saveOrder()} />
+                        <span className="float-right">
+                            <ActionButton 
+                                value={this.props.orderId ? "Update & Checkout" : "Create & Checkout"}
+                                icon={<FaCreditCard />}
+                                loading={this.props.saveOrderStatus === SaveStatus.Processing} 
+                                onClick={() => this.props.saveOrder()} />
+                        </span>
                     : null
                 }
                 {

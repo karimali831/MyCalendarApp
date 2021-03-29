@@ -67,7 +67,7 @@ export const defaultNavigator : INavigator[] = [
     },
     {
         stepNo: 2,
-        label: 'Items', 
+        label: 'Basket', 
         disabledMsg: "Select an existing or new order first"
     }, 
     {

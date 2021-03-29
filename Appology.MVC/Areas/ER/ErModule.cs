@@ -17,6 +17,7 @@ namespace Appology.Ninject
             Bind<IStakeholderRepository>().To<StakeholderRepository>();
             Bind<IOrderRepository>().To<OrderRepository>();
             Bind<ITripRepository>().To<TripRepository>();
+            Bind<IPlaceRepository>().To<PlaceRepository>();
         }
     }
 }

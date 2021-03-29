@@ -45,6 +45,14 @@ namespace Appology.Areas.ER.Controllers.API
             return Request.CreateResponse(HttpStatusCode.OK, new { services });
         }
 
+        [Route("place/{placeId}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetPlace(string placeId)
+        {
+            var place = await orderService.GetPlaceAsync(placeId);
+            return Request.CreateResponse(HttpStatusCode.OK, place);
+        }
+
         [Route("order/{orderId}")]
         [HttpGet]
         public async Task<HttpResponseMessage> GetOrder(Guid orderId)

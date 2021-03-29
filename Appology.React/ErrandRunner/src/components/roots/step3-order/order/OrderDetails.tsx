@@ -1,19 +1,25 @@
 import Form from 'react-bootstrap/Form'
-import Table from 'react-bootstrap/Table'
 import * as React from 'react';
 import Button from 'react-bootstrap/Button'
-import { FaAngleDoubleRight, FaMinus, FaPlus, FaTrashAlt } from 'react-icons/fa';
-import InputGroup from 'react-bootstrap/InputGroup'
+import { FaAngleDoubleRight, FaInfoCircle, FaMinus, FaPlus, FaPlusSquare, FaShoppingBasket, FaStickyNote, FaTimes, FaTrashAlt } from 'react-icons/fa';
 import { OrderOverview } from './OrderOverview';
-import { IOrderForm } from 'src/models/IOrder';
+import { IOrderForm, IOrderItem } from 'src/models/IOrder';
 import { IDefaultConfig } from 'src/models/IDefaultConfig';
 import { ITripOverview } from 'src/models/ITrip';
 import { SetDriverStep4Action, ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
 import { IOrderOverview } from 'src/models/IOrder';
-import { DeleteButton } from 'src/components/utils/ActionButtons';
+import { ActionButton } from 'src/components/utils/ActionButtons';
 import { api } from 'src/Api/Api';
-import { Variant } from '@appology/react-components';
+import { Variant, Delayed } from '@appology/react-components';
+import Badge from 'react-bootstrap/Badge'
 import { ResetOrderAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { IPlace, IPlaceItemSearch } from 'src/models/IPlace';
+import Alert from 'react-bootstrap/Alert'
+import { OrderItemsSearch } from './OrderItemsSearch';
+import Container from 'react-bootstrap/Container'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+import { ActionDialogue } from 'src/Enums/ActionDialogue';
 
 export interface IPropsFromDispatch {
     toggleConfig: () => ToggleConfigAction,
@@ -28,21 +34,35 @@ export interface IPropsFromState {
     orderOverview: IOrderOverview,
     order: IOrderForm,
     config: IDefaultConfig,
-    pinSidebar: boolean
+    pinSidebar: boolean,
+    place?: IPlace
 }
 
 export interface IOwnState {
-    deleting: boolean
+    deleting: boolean,
+    deletingRef?: number,
+    addNoteTblRef?: number,
+    noApiMsgShow: boolean
 }
 
-type AllProps = IPropsFromState & IPropsFromDispatch;
+export interface IOwnProps {
+    confirmAction?: boolean,
+    actionDialogue?: ActionDialogue,
+    confirmationHandled: () => void,
+    showConfirmation: (actionDialogue: ActionDialogue, variant: Variant, bodyContent: JSX.Element) => void
+}
+
+type AllProps = IPropsFromState & IPropsFromDispatch & IOwnProps;
 
 export default class OrderDetails extends React.Component<AllProps, IOwnState> {
 
     constructor(props: AllProps) {
         super(props);
         this.state = {
-            deleting: false
+            deleting: false,
+            deletingRef: undefined,
+            addNoteTblRef: undefined,
+            noApiMsgShow: true
         };
     }
 
@@ -61,91 +81,142 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                 this.orderFeeChange();
             }
         }
+
+        if (prevProps.confirmAction !== this.props.confirmAction) {
+            if (this.props.actionDialogue === ActionDialogue.RemoveItem && this.state.deletingRef !== undefined) {
+
+                if (this.props.confirmAction) {
+                    this.handleRemove(this.state.deletingRef)
+                }
+                else{
+                    this.setState({ deletingRef: undefined })
+                }
+            }
+
+            else if (this.props.actionDialogue === ActionDialogue.ClearBasket && this.props.confirmAction) {
+                this.clearBasket();
+            }
+
+            if (!this.props.confirmAction) {
+                this.props.confirmationHandled();
+            }
+        }
     }
 
     public render() {
         return ( 
             <div>
+                    {this.props.place && <OrderItemsSearch place={this.props.place} itemSelected={this.itemSelected} />}
+                    {
+                        this.state.noApiMsgShow && this.props.place === undefined &&
+                        <Delayed waitBeforeShow={1000}>
+                            <Alert variant="info">
+                                <FaInfoCircle /> This store currently has no searchable product API configured
+                                <span className="float-right" onClick={() => this.setState({ noApiMsgShow: false })}><FaTimes /></span>
+                            </Alert>
+                        </Delayed>
+                }   
                 {
-                    <Table responsive={true}>
-                        <thead>
-                            <tr>
-                                <th>Item Name</th>
-                                <th>Quantity</th>
-                                <th>Cost</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {
-                            this.props.order.items.map((x, i) => {
-                                return (
-                                    <>
-                                        <tr key={i}>
-                                            <td>
-                                                <Form.Control 
-                                                    autoFocus={i === 0}
-                                                    required={true}
-                                                    name="name"
-                                                    value={x.name}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
-                                            </td>
-                                            <td>
-                                                <Form.Control 
-                                                    required={true}
-                                                    name="qty"
-                                                    type="number"
-                                                    value={x.qty}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
-                                            </td>
-                                            <td>
-                                                <Form.Control  
-                                                    required={true}
-                                                    name="cost"
-                                                    type="number"
-                                                    value={x.cost}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
-                                            </td>
-                                            <td>
-                                                <InputGroup className="mb-2 mr-sm-2">
-                                                    <Form.Control 
-                                                        name="notes"
-                                                        value={x.notes}
-                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} 
-                                                    />
-                                                    <InputGroup.Prepend>                 
+                    !this.props.place || (this.props.place && this.props.order.items[0].name !== "") ?
+
+                        <Container className="order-items">
+                            <div className="basket-title border-bottom">
+                                <span className="basket-title-header"><FaShoppingBasket /> Basket</span>
+                                {
+                                    this.props.order.items.length > 1 &&
+
+                                    <span className="basket-title-clear" onClick={() => this.props.showConfirmation(
+                                            ActionDialogue.ClearBasket,
+                                            Variant.Warning,
+                                            <>Are you sure you want to clear your basket?</>, 
+                                        )}>
+                                        <Badge variant="danger"><FaTimes /> Clear Basket</Badge>
+                                    </span>
+                                }
+                            </div>
+                            {
+                                this.props.order.items.map((x, i) => {
+                                    return (
+                                        <>
+                                            <Row className="order-item border-bottom">
+                                                <Col xs="12" md="6" ld="8">
+                                                    {
+                                                        this.props.place ? 
+                                                            <><img src={x.image} height="32" width="32" /> {x.name}</>
+                                                        :
+                                                            <Form.Control 
+                                                                autoFocus={i === 0}
+                                                                required={true}
+                                                                placeholder="Item name"
+                                                                readonly={this.props.place}
+                                                                name="name"
+                                                                value={x.name}
+                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
+                                                    }
+                                                </Col>
+                                                <Col xs="6" md="3" ld="2">
+                                                    <div className="quantity-controls">
+                                                        <div className="quantity-buttons">
+                                                            <span className="quantity-display"><Badge variant="secondary">x{x.qty}</Badge> </span>
+                                                            <FaMinus className="quantity-minus" onClick={() => this.handleQtyChange(i, false)} />
+                                                            <FaPlusSquare className="quantity-plus" onClick={() => this.handleQtyChange(i, true)}/>
+                                                            <FaStickyNote style={{ color: x.notes && "#09c" }} className="add-note" onClick={() => this.setState({ addNoteTblRef: this.state.addNoteTblRef === i ? undefined : i })} />
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                                <Col xs="6" md="3" ld="2">
+                                                    <div className="float-right" >
                                                         {
-                                                            this.props.order.items.length !== 1 && 
-                                                                <Button variant="danger" onClick={() => this.handleRemoveClick(i)}>
-                                                                    <FaMinus />
-                                                                </Button>
+                                                            this.props.place ? <span className="item-price">£{x.cost*x.qty}</span> :
+                                                            <Form.Control
+                                                                required={true}
+                                                                readonly={this.props.place}
+                                                                name="cost"
+                                                                placeholder="Price"
+                                                                type="number"
+                                                                value={x.cost}
+                                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} 
+                                                            />
                                                         }
-                                                    </InputGroup.Prepend>
-                                                </InputGroup>
-                                            </td>
-                                        </tr>
-                                        {
-                                            this.props.order.items.length - 1 === i && 
-                                                <tr key={i+1}>
-                                                    <td colSpan={2}>
-                                                        <Button variant="success" onClick={this.handleAddClick}>
-                                                            <FaPlus /> Add Item
-                                                        </Button>
-                                                    </td>
-                                                    <td colSpan={2} align="right">
-                                                        <Button disabled={this.props.order.orderValue < this.props.config.minimumOrderValue} variant="primary" onClick={this.props.setDriverStep4}>
-                                                            <FaAngleDoubleRight /> Assign Driver
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                        }
-                                   
-                                    </>
-                                );
-                            })
-                        }
-                        </tbody>
-                    </Table>
+                                                    </div>
+                                                </Col>
+                                                {
+                                                    this.state.addNoteTblRef !== undefined && this.state.addNoteTblRef === i &&
+                                                    <Col xs="12" md="12">
+                                                        <Form.Control 
+                                                            name="notes"
+                                                            placeholder="Add a note..."
+                                                            value={x.notes}
+                                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)}  
+                                                        />  
+                                                    </Col>
+                                                }
+                                            </Row>
+                                            {
+                                                this.props.order.items.length - 1 === i && 
+                                                    <Row className="order-items-controls">
+                                                        <Col>
+                                                            {
+                                                                this.props.place === undefined || this.props.place.allowManual ?
+                                                                <Button variant="success" onClick={this.handleAddClick}>
+                                                                    <FaPlus /> Add Item
+                                                                </Button>
+                                                                : null
+                                                            }
+                                                        </Col>
+                                                        <Col>
+                                                            <Button className="float-right" disabled={this.props.order.orderValue < this.props.config.minimumOrderValue} variant="primary" onClick={this.props.setDriverStep4}>
+                                                                <FaAngleDoubleRight /> Assign Driver
+                                                            </Button>
+                                                        </Col>
+                                                    </Row>
+                                            }  
+                                        </>
+                                    );
+                                })}
+                        </Container>
+
+                    : null
                 }
                 {
                     this.props.tripOverview !== undefined && this.props.orderOverview !== undefined ?
@@ -157,18 +228,57 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                             toggleConfig={this.props.toggleConfig} />
                         : null
                 }
-
                 {
                     this.props.order.orderId && 
-                        <DeleteButton 
+                    <span className="float-right">
+                        <ActionButton
                             icon={<FaTrashAlt />}
-                            style={{ float: "right" }} 
                             value="Delete Order" 
-                            deleting={this.state.deleting} 
-                            onDeleteClick={() => this.deleteOrder()} />
+                            loading={this.state.deleting} 
+                            onClick={() => this.deleteOrder()} />
+                    </span>
                 }
             </div>
         );
+    }
+
+    private clearBasket = () => {
+        this.props.updateOrder({ ...this.props.order, 
+            items: [{
+                name: "",
+                qty: 1,
+                cost: 0,
+                notes: "",
+                maxQuantity: 10
+            }],
+        });
+    }
+
+    private itemSelected = (item: IPlaceItemSearch) => {
+        const tableItem : IOrderItem = { 
+            name: item.name,
+            qty: 1,
+            cost: item.price,
+            notes: "",
+            maxQuantity: item.maxQuantity,
+            image: item.leftImage
+        }
+
+        // replace object in first initialised default state
+        if (this.props.order.items[0].name === "") {
+            this.props.updateOrder({ ...this.props.order, items: this.props.order.items.map(i => tableItem)});
+        }
+        else{
+
+            const itemAlreadyAdded = this.props.order.items.find(x => x.name === item.name);
+
+            if (itemAlreadyAdded) {
+                this.props.handleAlert("Item already added to basket", Variant.Primary)
+            }
+            else{
+                this.props.updateOrder({ ...this.props.order, items: [...this.props.order.items, tableItem]});
+            }
+        }
     }
 
     private deleteOrder = () => {
@@ -204,6 +314,34 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
         } as IOrderForm);
     }
 
+    private handleQtyChange = (idx: number, plus: boolean) => {
+        const items = [...this.props.order.items]
+        const qnt = plus ? items[idx]["qty"] + 1 : items[idx]["qty"] - 1;
+
+        if (qnt > items[idx]["maxQuantity"]) {
+            this.props.handleAlert(`Maximum quantity ${items[idx]["maxQuantity"]} reached for this item`, Variant.Info)
+        }
+        else if (qnt === 0) {
+            this.setState({ deletingRef: idx })
+
+            this.props.showConfirmation(
+                ActionDialogue.RemoveItem,
+                Variant.Warning,
+                <>Remove this item from your basket?</>,
+            )
+        }
+        else{
+            items[idx]["qty"] = qnt;
+
+            this.props.updateOrder({ ...this.props.order,
+                items: items
+            } as IOrderForm);
+
+            this.updateFigures();
+        }
+    }
+
+
     private handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, idx: number) => {
         const { name, value } = e.target;
         const items = [...this.props.order.items]
@@ -213,7 +351,7 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
             items: items
         } as IOrderForm);
 
-        if (name === "qty" || name === "cost") {
+        if (name === "cost") {
             this.updateFigures();
         }
     }
@@ -226,13 +364,15 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
     }
 
 
-    private handleRemoveClick = (idx: number) => {
+    private handleRemove = (idx: number) => {
         const items = [...this.props.order.items]
         items.splice(idx, 1);
 
         this.props.updateOrder({ ...this.props.order,
             items: items
         } as IOrderForm);
+
+        this.props.confirmationHandled();
     };
 
     private handleAddClick = () => {
@@ -242,7 +382,8 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                     name: "",
                     qty: 1,
                     cost: 0,
-                    notes: ""
+                    notes: "",
+                    maxQuantity: 10
                 }
             ]
         } as IOrderForm);
