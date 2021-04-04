@@ -46,7 +46,7 @@ export class DeliverySlots extends React.Component<IOwnProps, IOwnState> {
         const startDate = moment();
         const endDate = moment().add(5, 'days');
         const timeslots : string[] = [
-            "10am to 12am",
+            "10am to 12pm",
             "12pm to 2pm",
             "4pm to 6pm",
             "6pm to 8pm",

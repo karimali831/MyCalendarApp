@@ -147,7 +147,7 @@ namespace Appology.Areas.MiCalendar.Controllers
 
                 if (status.UpdateResponse == Status.Success)
                 {
-                    return RedirectToRoute(Url.Home(updateResponse: status.UpdateResponse, updateMsg: status.UpdateMsg));
+                    return RedirectToRoute(Url.Home(status.UpdateResponse, status.UpdateMsg));
 
                 }
                 else

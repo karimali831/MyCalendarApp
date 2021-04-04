@@ -4,9 +4,13 @@ using Appology.ER.Enums;
 using Appology.ER.Model;
 using Appology.ER.Service;
 using Appology.Helpers;
+using Appology.MiCalendar.Service;
+using Appology.Model;
 using Appology.Service;
 using Stripe;
 using System;
+using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -24,17 +28,30 @@ namespace Appology.Areas.ER.Controllers.API
         private readonly ICategoryService categoryService;
         private readonly IOrderService orderService;
         private readonly ITripService tripService;
+        private readonly IEventService eventService;
+        private readonly IUserService userService;
+        private readonly string rootUrl = ConfigurationManager.AppSettings["RootUrl"];
 
         public ErrandRunnerController(
             IStakeholderService stakeholderService, 
             ICategoryService categoryService,
             IOrderService orderService,
-            ITripService tripService)
+            ITripService tripService,
+            IEventService eventService,
+            IUserService userService)
         {
             this.stakeholderService = stakeholderService ?? throw new ArgumentNullException(nameof(stakeholderService));
             this.categoryService = categoryService ?? throw new ArgumentNullException(nameof(categoryService));
             this.orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
             this.tripService = tripService ?? throw new ArgumentNullException(nameof(tripService));
+            this.eventService = eventService ?? throw new ArgumentNullException(nameof(eventService));
+            this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        }
+
+        private async Task<User> GetUser()
+        {
+            bool isLocal = this.rootUrl == "http://localhost:53822";
+            return await userService.GetUser(isLocal ? "karimali831@googlemail.com" : null);
         }
 
         [Route("services")]
@@ -159,6 +176,32 @@ namespace Appology.Areas.ER.Controllers.API
         [HttpGet]
         public async Task<HttpResponseMessage> OrderDispatch(Guid orderId, bool dispatch)
         {
+
+            var order = await orderService.GetAsync(orderId);
+            var user = await GetUser();
+
+            var timeslot = order.Order.Timeslot.Split(' ');
+            var startDateStr = string.Format("{0} {1}", order.Order.DeliveryDate.Value.ToString("dd/MM/yyyy"), timeslot[0]);
+            var endDateStr = string.Format("{0} {1}", order.Order.DeliveryDate.Value.ToString("dd/MM/yyyy"), timeslot[2]);
+
+            var startDate = DateUtils.FromTimeZoneToUtc(DateTime.ParseExact(startDateStr, "dd/MM/yyyy htt", CultureInfo.InvariantCulture));
+            var endDate = DateUtils.FromTimeZoneToUtc(DateTime.ParseExact(endDateStr, "dd/MM/yyyy htt", CultureInfo.InvariantCulture));
+
+            if (dispatch && order.Order != null && user != null) {
+
+                var eventDTO = new Appology.MiCalendar.Model.Event
+                {
+                    CalendarId = 159,
+                    UserID = user.UserID,
+                    TagID = new Guid("290CDB32-2E5F-4E3B-80A5-4330466C0A09"),
+                    StartDate = startDate,
+                    EndDate = endDate,
+
+                };
+
+                await eventService.SaveEvent(eventDTO);
+            }
+
             var status = await orderService.OrderDispatch(orderId, dispatch);
             return Request.CreateResponse(HttpStatusCode.OK, status);
         }

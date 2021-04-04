@@ -11,7 +11,7 @@ namespace Appology.Helpers
     {
         public static string GetActionName(string url) => url.Split('/').Last();
         public static string GetControllerName(string url) => url.Split('/').Reverse().Skip(1).First();
-        public static string GetAreaName(string url) => url.Split('/').Reverse().Skip(2).First();
+        public static string GetAreaName(string url) => url.Split('/').Reverse().Skip(2).FirstOrDefault() ?? "";
 
         public static IList<KeyValuePair<Section, string>> MvcRoutes()
         {
@@ -83,6 +83,7 @@ namespace Appology.Helpers
             return new {
                 action = MvcRoute(helper, Section.Home).ActionName, 
                 controller = MvcRoute(helper, Section.Home).ControllerName,
+                area = "",
                 updateResponse,
                 updateMsg
             };
@@ -94,6 +95,7 @@ namespace Appology.Helpers
             {
                 action = MvcRoute(helper, Section.Profile).ActionName,
                 controller = MvcRoute(helper, Section.Profile).ControllerName,
+                area = "",
                 updateResponse,
                 updateMsg
             };
@@ -125,7 +127,8 @@ namespace Appology.Helpers
             return new { 
                 action = MvcRoute(helper, Section.Invite).ActionName, 
                 controller = MvcRoute(helper, Section.Invite).ControllerName, 
-                id = inviteeId 
+                id = inviteeId,
+                area = "",
             };
         }
     }

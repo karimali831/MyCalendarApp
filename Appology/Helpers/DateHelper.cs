@@ -182,10 +182,11 @@ namespace Appology.Helpers
 
         public static DateTime FromTimeZoneToUtc(this DateTime dateTime, string timezone = "Europe/London")
         {
-            DateTimeZone zone = DateTimeZoneProviders.Tzdb[timezone];
-            var localtime = LocalDateTime.FromDateTime(dateTime);
-            var zonedtime = localtime.InZoneLeniently(zone);
-            return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
+            return dateTime;
+            //DateTimeZone zone = DateTimeZoneProviders.Tzdb[timezone];
+            //var localtime = LocalDateTime.FromDateTime(dateTime);
+            //var zonedtime = localtime.InZoneLeniently(zone);
+            //return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
         }
 
         public static DateTime UtcDateTime() => FromTimeZoneToUtc(DateTime());
