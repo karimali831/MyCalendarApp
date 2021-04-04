@@ -612,6 +612,9 @@
     <Content Include="Content\img\bg.jpg" />
     <Content Include="Content\img\bg1.jpg" />
     <Content Include="Content\img\customer.png" />
+    <Content Include="Content\img\errandrunner\stores\argos.png" />
+    <Content Include="Content\img\errandrunner\stores\coop.png" />
+    <Content Include="Content\img\errandrunner\stores\tesco.png" />
     <Content Include="Content\img\financeappbg.jpeg" />
     <Content Include="Content\img\logo-medium.png" />
     <Content Include="Content\img\logo.png" />

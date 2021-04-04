@@ -19,6 +19,18 @@
     margin-top: 30px;
 }
 
+.alert-icon {
+    margin: 0px 5px 5px 0px;
+}
+
+/* store */
+.selected-store button {
+    float: right;
+    margin-bottom: -10px;
+    margin-top: -5px;
+    font-size: 0.9rem;
+}
+
 /* basket */
 .quantity-buttons {
     align-items: center;

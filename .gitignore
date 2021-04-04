@@ -303,3 +303,7 @@ __pycache__/
 /Appology.MVC/Scripts/dist/write/bundle.js
 /Appology.MVC/Scripts/dist/write/bundle.js.map
 /Appology.React/ErrandRunner/package-lock.json
+/Appology.MVC/Scripts/dist/errandrunner/bundle.js
+/Appology.MVC/Scripts/dist/errandrunner/bundle.js.map
+/Appology.MVC/Scripts/dist/write/bundle.js
+/Appology.React/ErrandRunner/package-lock.json

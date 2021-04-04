@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
 import OrderDetails, { IPropsFromState, IPropsFromDispatch } from './OrderDetails';
-import { SetDriverStep4Action, ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
+import { ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
 import IStoreState from 'src/state/IStoreState';
-import { ResetOrderAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { ResetOrderAction, SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -23,7 +23,7 @@ const mapPropsFromDispatch: IPropsFromDispatch =
 {
     toggleConfig: ToggleConfigAction.creator,
     updateOrder: UpdateOrderAction.creator,
-    setDriverStep4: SetDriverStep4Action.creator,
+    setActiveStep: SetActiveStepAction.creator,
     handleAlert: ToggleAlertAction.creator,
     resetOrder: ResetOrderAction.creator
 };

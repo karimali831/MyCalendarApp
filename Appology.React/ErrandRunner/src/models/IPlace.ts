@@ -2,10 +2,17 @@ import IBaseModel from "@appology/react-components/src/SelectionRefinement/IBase
 
 export interface IPlace {
     id: string,
+    serviceId: number,
+    serviceName: string,
     placeId: string,
+    name: string,
     description: string,
-    apiUrl: string,
-    allowManual: boolean
+    apiProductUrl: string,
+    apiTimeslotUrl: string,
+    imagePath: string,
+    allowManual: boolean,
+    active: boolean,
+    displayController: boolean
 }
 
 export interface IPlaceItemSearch extends IBaseModel {

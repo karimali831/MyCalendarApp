@@ -165,8 +165,8 @@ export class Api {
         .then(data => data as boolean);
     }
 
-    public place = async (placeId: string): Promise<IPlace | null> => {
-        return fetch(`${this.rootUrl}/place/${placeId}`, {
+    public places = async (): Promise<IPlace[]> => {
+        return fetch(`${this.rootUrl}/places`, {
             method: "GET",
             headers: {
                 "Accept": "application/json",
@@ -181,7 +181,84 @@ export class Api {
             return response.json();
 
         })
-        .then(data => data as IPlace);
+        .then(data => data as IPlace[]);
+    }
+
+    public setDeliveryDate = async (request: IDeliveryDateRequest): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/setdeliverydate`, {
+            method: "POST",
+            body: JSON.stringify(request),
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
+    }
+
+    public unsetDeliveryDate = async (orderId: string): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/unsetdeliverydate/${orderId}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
+    }
+
+    public setOrderPaid = async (orderId: string, paid: boolean, stripePaymentConfirmationId?: string): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/orderpaid/${orderId}/${paid}/${stripePaymentConfirmationId ?? ""}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
+    }
+
+    public setOrderDispatch = async (orderId: string, dispatch: boolean): Promise<boolean> => {
+        return fetch(`${this.rootUrl}/orderdispatch/${orderId}/${dispatch}`, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            credentials: 'same-origin',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+
+        })
+        .then(data => data as boolean);
     }
 }
 
@@ -229,4 +306,10 @@ export interface IPaymentChargeRequest {
     cvc: string,
     expMonth: number,
     expYear: number
+}
+
+export interface IDeliveryDateRequest {
+    orderId: string,
+    deliveryDate: Date,
+    timeslot: string
 }

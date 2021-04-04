@@ -99,7 +99,7 @@ namespace Appology.Helpers
         }
 
 
-
+        public static decimal ToMoney(decimal amount) => Math.Round(amount, 2, MidpointRounding.AwayFromZero);
         public static string ToCurrency(decimal amount) => amount.ToString("C", CultureInfo.CreateSpecificCulture("en-GB"));
 
         public static T ParseEnum<T>(string value)

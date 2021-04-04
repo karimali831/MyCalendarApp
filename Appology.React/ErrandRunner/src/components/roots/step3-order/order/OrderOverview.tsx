@@ -5,6 +5,7 @@ import { FaCar, FaFileInvoice, FaPoundSign, FaSlidersH } from 'react-icons/fa';
 import { IOrderForm } from 'src/models/IOrder';
 import { IOrderOverview } from 'src/models/IOrder';
 import { ITripOverview } from 'src/models/ITrip';
+import { ToggleConfigAction } from 'src/state/contexts/order/Actions';
 import { TripOverviewDetails } from '../trip/TripOverviewDetails';
 
 interface IOwnProps {
@@ -12,7 +13,7 @@ interface IOwnProps {
     order: IOrderForm,
     mov: number,
     orderOverview: IOrderOverview,
-    toggleConfig: () => void
+    toggleConfig: () => ToggleConfigAction
 }
 
 export const OrderOverview: React.FC<IOwnProps> = (props) => {
@@ -31,7 +32,7 @@ export const OrderOverview: React.FC<IOwnProps> = (props) => {
             <Card>
                 <Card.Header>
                     <FaPoundSign /> <b>Service Costs</b>
-                    <FaSlidersH className="float-right" onClick={props.toggleConfig} />
+                    <FaSlidersH className="float-right" style={{ cursor: "pointer" }} onClick={() => props.toggleConfig()} />
                 </Card.Header>
                 <Card.Body>
                     <Card.Text>

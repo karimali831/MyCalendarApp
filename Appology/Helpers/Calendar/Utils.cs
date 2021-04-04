@@ -1,20 +1,7 @@
-﻿using Appology.DTOs;
-using Appology.Enums;
-using Appology.Model;
-using Newtonsoft.Json;
-using NodaTime;
-using NodaTime.Extensions;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Web;
 
 namespace Appology.MiCalendar.Helpers
 {

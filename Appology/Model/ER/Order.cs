@@ -22,6 +22,11 @@ namespace Appology.ER.Model
         public decimal NET { get; set; }
         public decimal DriverFee { get; set; }
         public decimal DriverEarning { get; set; }
+        public DateTime? DeliveryDate { get; set; }
+        public string Timeslot { get; set; }
+        public bool Dispatched { get; set; }
+        public bool Paid { get; set; }
+        public string StripePaymentConfirmationId { get; set; }
         [DbIgnore]
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }

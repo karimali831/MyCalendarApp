@@ -3,6 +3,7 @@ import IOrdersState, { OrderState } from './IOrderState';
 import { Reducer } from 'redux';
 import { OrderActions, OrderActionTypes } from './Actions';
 import { SaveStatus } from 'src/Enums/SaveStatus';
+import { orderStatusDispatch } from './Selectors';
 
 const OrderReducer: Reducer<IOrdersState, OrderActions> =
     (state = OrderState.intialState, action) => {
@@ -56,7 +57,27 @@ const OrderReducer: Reducer<IOrdersState, OrderActions> =
                         order: action.order,
                         trip: action.trip
                     } 
-                };   
+                }; 
+
+            case OrderActionTypes.OrderStatus:
+                return {
+                    ...state, ...{ 
+                        orderStatus: 
+                            state.orderStatus.map(l => {
+                                if (l.orderAction === action.action) {
+                                    return { ...l,  
+                                        ...{  
+                                            variant: action.variant,
+                                            show: action.show
+                                        } 
+                                    }
+                                } else {
+                                    return { ...l }
+                                }
+                            }),
+                    }
+                } 
+
 
             case OrderActionTypes.ResetOrder:
                 return {
@@ -85,8 +106,43 @@ const OrderReducer: Reducer<IOrdersState, OrderActions> =
                             netProfit: 0,
                             driverFee: 0
                         },
+                        deliveryDate: undefined,
+                        timeslot: undefined,
+                        orderStatus: orderStatusDispatch
                     }
                 }      
+
+            case OrderActionTypes.SetDeliveryDate:
+                return { ...state, 
+                    ...{ 
+                        deliveryDate: action.deliveryDate,
+                        timeslot: action.timeSlot
+                    } 
+                };   
+
+            case OrderActionTypes.OrderPaid:
+                return { ...state, 
+                    ...{ 
+                        paid: action.paid,
+                        stripePaymentConfirmationId: action.stripePaymentConfirmationId,
+                        saveOrderStatus: SaveStatus.Processing
+                    } 
+                };   
+
+            case OrderActionTypes.DispatchOrder:
+                return { ...state, 
+                    ...{ 
+                        dispatched: action.dispatch,
+                        saveOrderStatus: SaveStatus.Dispatching
+                    } 
+                };   
+
+            case OrderActionTypes.SaveStatus:
+                return { ...state, 
+                    ...{ 
+                        saveOrderStatus: action.status
+                    } 
+                };  
 
             default:
                 return state;

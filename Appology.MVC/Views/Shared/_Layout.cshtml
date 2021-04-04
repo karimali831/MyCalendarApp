@@ -72,7 +72,7 @@
                                         <li>
                                             <a style="@(Model.MenuItem.Home ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Home)">
                                                 <i class="fas fa-calendar">
-                                                </i> Calendar
+                                                </i>  Calendar
                                             </a>
                                         </li>
                                         <li>
@@ -122,6 +122,11 @@
                                 <li class="@(Model.MenuItem.FinanceApp || Model.MenuItem.FinanceCategories | Model.MenuItem.FinanceSettings ? "current-menu" : "")">
                                     <a href="#">Finance</a>
                                     <ul>
+                                        <li>
+                                            <a style="@(Model.MenuItem.FinanceAppAddSpending ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.FinanceAppAddSpending)">
+                                                <i class="fas fa-plus"></i> Add Spending
+                                            </a>
+                                        </li>
                                         <li>
                                             <a style="@(Model.MenuItem.FinanceApp ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.FinanceApp)">
                                                 <i class="fas fa-chart-pie"></i> Finance App
@@ -180,8 +185,9 @@
         </div>
     </div>
     <div class="container body-container">
-        <div class="body-content">
-            <br /><br /><br /><br /><br />
+        <div class="body-content" style="padding-top: 120px">
+            @*<i class="fa-3x fas fa-circle-notch fa-spin"></i>*@
+            
             @RenderBody()
         </div>
         <div class="container">

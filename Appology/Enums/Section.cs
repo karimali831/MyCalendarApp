@@ -16,6 +16,7 @@
         ErrandRunnerNewOrder,
         // Finance
         FinanceApp,
+        FinanceAppAddSpending,
         FinanceCategories,
         FinanceSettings,
         Monzo,

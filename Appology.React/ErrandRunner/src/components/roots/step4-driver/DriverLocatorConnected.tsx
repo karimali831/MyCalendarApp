@@ -1,8 +1,7 @@
 import IStoreState from '../../../state/IStoreState';
 import { connect } from 'react-redux';
 import DriverLocator, { IPropsFromState, IPropsFromDispatch } from './DriverLocator';
-import { SelectedDriverAction } from 'src/state/contexts/landing/Actions';
-import { SaveOrderAction } from 'src/state/contexts/order/Actions';
+import { SelectedDriverAction, SetActiveStepAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -23,7 +22,7 @@ const mapStateToProps =
 const mapPropsFromDispatch: IPropsFromDispatch =
 {
     selectedDriverAssigned: SelectedDriverAction.creator,
-    saveOrder: SaveOrderAction.creator
+    setActiveStep: SetActiveStepAction.creator
 };
 
 // This does the magic of subscribing to state changes and ensuring the wrapped

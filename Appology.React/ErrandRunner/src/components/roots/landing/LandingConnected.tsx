@@ -11,7 +11,6 @@ import { Variant } from '@appology/react-components';
 const mapStateToProps =
     (state: IStoreState): IPropsFromState => ({
         selectedCustomer: state.landing.selectedCustomer,
-        selectedOrder: state.order.order,
         config: state.landing.config,
         pinSidebar: state.order.pinSidebar,
         step: state.landing.activeStep,

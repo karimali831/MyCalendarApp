@@ -1,18 +1,18 @@
 import Form from 'react-bootstrap/Form'
 import * as React from 'react';
 import Button from 'react-bootstrap/Button'
-import { FaAngleDoubleRight, FaInfoCircle, FaMinus, FaPlus, FaPlusSquare, FaShoppingBasket, FaStickyNote, FaTimes, FaTrashAlt } from 'react-icons/fa';
+import { FaAngleDoubleRight, FaInfoCircle, FaMinus, FaPlus, FaPlusSquare, FaShoppingBasket, FaStickyNote, FaTimes, FaTrashAlt, FaUser } from 'react-icons/fa';
 import { OrderOverview } from './OrderOverview';
 import { IOrderForm, IOrderItem } from 'src/models/IOrder';
 import { IDefaultConfig } from 'src/models/IDefaultConfig';
 import { ITripOverview } from 'src/models/ITrip';
-import { SetDriverStep4Action, ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
+import { ToggleConfigAction, UpdateOrderAction } from 'src/state/contexts/order/Actions';
 import { IOrderOverview } from 'src/models/IOrder';
 import { ActionButton } from 'src/components/utils/ActionButtons';
 import { api } from 'src/Api/Api';
 import { Variant, Delayed } from '@appology/react-components';
 import Badge from 'react-bootstrap/Badge'
-import { ResetOrderAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { ResetOrderAction, SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 import { IPlace, IPlaceItemSearch } from 'src/models/IPlace';
 import Alert from 'react-bootstrap/Alert'
 import { OrderItemsSearch } from './OrderItemsSearch';
@@ -24,7 +24,7 @@ import { ActionDialogue } from 'src/Enums/ActionDialogue';
 export interface IPropsFromDispatch {
     toggleConfig: () => ToggleConfigAction,
     updateOrder: (order: IOrderForm) => UpdateOrderAction,
-    setDriverStep4: () => SetDriverStep4Action,
+    setActiveStep: (step: number) => SetActiveStepAction,
     handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction,
     resetOrder: () => ResetOrderAction
 }
@@ -92,9 +92,11 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                     this.setState({ deletingRef: undefined })
                 }
             }
-
             else if (this.props.actionDialogue === ActionDialogue.ClearBasket && this.props.confirmAction) {
-                this.clearBasket();
+                this.clearBasketConfirmed();
+            }
+            else if (this.props.actionDialogue === ActionDialogue.DeleteOrder && this.props.confirmAction) {
+                this.deleteOrderConfirmed();
             }
 
             if (!this.props.confirmAction) {
@@ -125,12 +127,8 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                                 {
                                     this.props.order.items.length > 1 &&
 
-                                    <span className="basket-title-clear" onClick={() => this.props.showConfirmation(
-                                            ActionDialogue.ClearBasket,
-                                            Variant.Warning,
-                                            <>Are you sure you want to clear your basket?</>, 
-                                        )}>
-                                        <Badge variant="danger"><FaTimes /> Clear Basket</Badge>
+                                    <span className="basket-title-clear" onClick={() => this.clearBasket()}>
+                                        <Badge variant="danger"><FaTimes /> Clear</Badge>
                                     </span>
                                 }
                             </div>
@@ -167,7 +165,7 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                                                 <Col xs="6" md="3" ld="2">
                                                     <div className="float-right" >
                                                         {
-                                                            this.props.place ? <span className="item-price">£{x.cost*x.qty}</span> :
+                                                            this.props.place ? <span className="item-price">£{(x.cost*x.qty).toFixed(2)}</span> :
                                                             <Form.Control
                                                                 required={true}
                                                                 readonly={this.props.place}
@@ -198,15 +196,15 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                                                         <Col>
                                                             {
                                                                 this.props.place === undefined || this.props.place.allowManual ?
-                                                                <Button variant="success" onClick={this.handleAddClick}>
+                                                                <Button variant="success" onClick={() => this.handleAddClick}>
                                                                     <FaPlus /> Add Item
                                                                 </Button>
                                                                 : null
                                                             }
                                                         </Col>
                                                         <Col>
-                                                            <Button className="float-right" disabled={this.props.order.orderValue < this.props.config.minimumOrderValue} variant="primary" onClick={this.props.setDriverStep4}>
-                                                                <FaAngleDoubleRight /> Assign Driver
+                                                            <Button className="float-right" disabled={this.props.order.orderValue < this.props.config.minimumOrderValue} variant="primary" onClick={() => this.props.setActiveStep(3)}>
+                                                                <FaUser /> Assign Driver <FaAngleDoubleRight />
                                                             </Button>
                                                         </Col>
                                                     </Row>
@@ -225,7 +223,7 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                             mov={this.props.config.minimumOrderValue-this.props.order.orderValue}
                             orderOverview={this.props.orderOverview}
                             trip={this.props.tripOverview}
-                            toggleConfig={this.props.toggleConfig} />
+                            toggleConfig={() => this.props.toggleConfig()} />
                         : null
                 }
                 {
@@ -234,6 +232,7 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                         <ActionButton
                             icon={<FaTrashAlt />}
                             value="Delete Order" 
+                            variant={Variant.Danger}
                             loading={this.state.deleting} 
                             onClick={() => this.deleteOrder()} />
                     </span>
@@ -243,6 +242,14 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
     }
 
     private clearBasket = () => {
+        this.props.showConfirmation(
+            ActionDialogue.ClearBasket,
+            Variant.Warning,
+            <>Are you sure you want to clear your basket?</>
+        )
+    }
+
+    private clearBasketConfirmed = () => {
         this.props.updateOrder({ ...this.props.order, 
             items: [{
                 name: "",
@@ -252,6 +259,7 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
                 maxQuantity: 10
             }],
         });
+        this.props.confirmationHandled();
     }
 
     private itemSelected = (item: IPlaceItemSearch) => {
@@ -282,10 +290,20 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
     }
 
     private deleteOrder = () => {
+        this.props.showConfirmation(
+            ActionDialogue.DeleteOrder,
+            Variant.Warning,
+            <>Are you sure you want to permanently delete this order? This action is not recoverable.</>
+        )
+    }
+
+    private deleteOrderConfirmed = () => {
         this.setState({ deleting: true })
         
         api.deleteOrder(this.props.order.orderId)
             .then(status => this.deleteOrderSuccess(status))
+        
+        this.props.confirmationHandled();
     }
 
     private deleteOrderSuccess = (status: boolean) => {
@@ -322,13 +340,20 @@ export default class OrderDetails extends React.Component<AllProps, IOwnState> {
             this.props.handleAlert(`Maximum quantity ${items[idx]["maxQuantity"]} reached for this item`, Variant.Info)
         }
         else if (qnt === 0) {
-            this.setState({ deletingRef: idx })
 
-            this.props.showConfirmation(
-                ActionDialogue.RemoveItem,
-                Variant.Warning,
-                <>Remove this item from your basket?</>,
-            )
+            if (items.length === 1) {
+                this.clearBasket();
+            }
+            else{
+
+                this.setState({ deletingRef: idx })
+
+                this.props.showConfirmation(
+                    ActionDialogue.RemoveItem,
+                    Variant.Warning,
+                    <>Remove this item from your basket?</>,
+                )
+            }
         }
         else{
             items[idx]["qty"] = qnt;

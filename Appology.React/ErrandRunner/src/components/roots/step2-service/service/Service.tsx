@@ -5,8 +5,6 @@ import { api } from "src/Api/Api";
 import { IOrder } from "src/models/IOrder";
 import { IStakeholder } from "src/models/IStakeholder";
 import { SelectedServiceAction } from "src/state/contexts/landing/Actions";
-import PickupLocationConnected from "../pickup/PickupLocationConnected";
-
 
 export interface IPropsFromDispatch {
     selectedServiceChange: (service: IBaseModel | undefined) => SelectedServiceAction
@@ -24,7 +22,6 @@ export interface IOwnState {
 }
 
 export interface IOwnProps {
-    newOrder: boolean
 }
 
 type AllProps = IPropsFromState & IPropsFromDispatch & IOwnProps;
@@ -47,7 +44,7 @@ export default class Service extends React.Component<AllProps, IOwnState> {
         return (
             <>
                 {
-                    this.state.services !== undefined && (this.props.newOrder || this.props.order !== undefined)  ?
+                    this.state.services !== undefined ?
                         <div className="toggleswitch-margin-top">
                             <SelectElement 
                                 label="Services"
@@ -59,7 +56,6 @@ export default class Service extends React.Component<AllProps, IOwnState> {
                                 selectorOptions={this.state.services}
                                 onSelectChange={this.handleServiceChange}
                             />
-                            <PickupLocationConnected />
                         </div>
                     : null
                 }

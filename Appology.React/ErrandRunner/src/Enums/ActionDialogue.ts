@@ -1,4 +1,5 @@
 export enum ActionDialogue {
     RemoveItem,
-    ClearBasket
+    ClearBasket,
+    DeleteOrder
 }

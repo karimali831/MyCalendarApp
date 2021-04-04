@@ -192,6 +192,7 @@
     <Compile Include="Enums\Status.cs" />
     <Compile Include="Helpers\Calendar\Utils.cs" />
     <Compile Include="Helpers\DateHelper.cs" />
+    <Compile Include="Helpers\ER\Utils.cs" />
     <Compile Include="Helpers\Finance\Utils.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
     <Compile Include="Helpers\MVCRoutes.cs" />

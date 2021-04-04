@@ -59,7 +59,7 @@ export class OrderItemsSearch extends React.Component<IOwnProps, IOwnState> {
                 ]
             }
 
-            coopApi.searchItems(this.props.place.apiUrl, request)
+            coopApi.searchItems(this.props.place.apiProductUrl, request)
                 .then(response => this.searchItemsSuccess(response))
         }
     }

@@ -3,13 +3,17 @@ import { CardElement } from '@stripe/react-stripe-js';
 import { StripeElements, Stripe, StripeElementChangeEvent } from '@stripe/stripe-js';
 import * as React from 'react';
 import { IPaymentIntentRequest, IPaymentIntentResponse, stripeApi } from 'src/Api/StripeApi';
+import { OrderAction } from 'src/models/IDispatchStatus';
 import { ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { OrderPaidAction, OrderStatusAction } from 'src/state/contexts/order/Actions';
 
 export interface IOwnProps {
     elements: StripeElements | null,
     stripe: Stripe | null,
     orderId: string,
-    invoice: number
+    invoice: number,
+    orderPaid: (paid: boolean, stripePaymentConfirmationId?: string) => OrderPaidAction,
+    orderStatusChange: (action: OrderAction, variant: Variant, show: boolean) => OrderStatusAction,
     handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction
 }
 
@@ -85,18 +89,17 @@ export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
 
             stripeApi.paymentIntent(paymentIntentRequest)
                 .then(r => this.createPaymentIntentSuccess(r))
-
         } 
-        else{
-            this.props.handleAlert("Invalid order", Variant.Danger) 
-        }
     }    
 
     private createPaymentIntentSuccess = (response: IPaymentIntentResponse) => {
         this.setState({ clientSecret: response.clientSecret });
 
         if (!response.status) {
-            this.props.handleAlert("Error creating payment intent", Variant.Danger) 
+            this.props.orderStatusChange(OrderAction.PaymentIntent, Variant.Danger, true)
+        }
+        else{
+            this.props.orderStatusChange(OrderAction.PaymentIntent, Variant.Success, false)
         }
     }
 
@@ -126,9 +129,13 @@ export class CheckoutForm extends React.Component<IOwnProps, IOwnState> {
         if (payload.error) {
             this.setState({ processing: false })
             this.props.handleAlert(`Payment failed ${payload.error.message}`, Variant.Danger) 
+            this.props.orderPaid(false);
+            this.props.orderStatusChange(OrderAction.Payment, Variant.Danger, true);
         } 
         else{
             this.setState({ processing: false })
+            this.props.orderStatusChange(OrderAction.Payment, Variant.Success, true);
+            this.props.orderPaid(true, payload.paymentIntent?.id);
             this.props.handleAlert("Payment successful", Variant.Success) 
         }
     };

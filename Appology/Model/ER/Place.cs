@@ -10,10 +10,19 @@ namespace Appology.ER.Model
     public class Place
     {
         public Guid Id { get; set; }
+        public int ServiceId { get; set; }
+        [DbIgnore]
+        public string ServiceName { get; set; }
         public string PlaceId { get; set; }
+        public string Name { get; set; }
         public string Description { get; set; }
-        public string ApiUrl { get; set; }
+        public string ApiProductUrl { get; set; }
+        public string ApiTimeslotsUrl { get; set; }
+        public string ImagePath { get; set; }
         public bool AllowManual { get; set; }
+        public bool Active { get; set; }
+        public bool DisplayController { get; set; }
+        public bool DisplayConsumer { get; set; }
     }
 
 

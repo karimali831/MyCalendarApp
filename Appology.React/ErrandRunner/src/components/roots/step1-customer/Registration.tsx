@@ -1,8 +1,9 @@
 import { SelectionRefinement, ToggleSwitch, Variant } from '@appology/react-components';
 import * as React from 'react';
+import { FaUser } from 'react-icons/fa';
 import { Stakeholders } from 'src/Enums/Stakeholders';
 import {  IStakeholder, IStakeholderSearch } from 'src/models/IStakeholder';
-import { SelectedCustomerAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { SelectedCustomerAction, SelectedDriverAction, SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 import DriverLocatorConnected from '../step4-driver/DriverLocatorConnected';
 import RegistrationForm from './RegistrationForm';
 
@@ -11,7 +12,8 @@ export interface IPropsFromDispatch {
     searchStakeholder: (filter: string, stakeholderId: Stakeholders) => void,
     selectedCustomerChange: (stakeholder: IStakeholder | undefined) => SelectedCustomerAction,
     selectedDriverChange: (stakeholder: IStakeholder | undefined) => SelectedDriverAction,
-    handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction
+    handleAlert: (text: string, variant?: Variant, timeout?: number) => ToggleAlertAction,
+    setActiveStep: (step: number) => SetActiveStepAction
 }
 
 export interface IPropsFromState {
@@ -54,6 +56,7 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
                             label="Customer search" 
                             focus={true}
                             placeholder="Search by customer info..." 
+                            resultsLeftIcon={<FaUser />}
                             filter={this.props.filter} 
                             onChange={(f) => this.props.searchStakeholder(f, Stakeholders.customer)} 
                             loading={this.props.loading}
@@ -78,6 +81,7 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
                                     <SelectionRefinement<IStakeholderSearch>
                                         label="Driver search" 
                                         focus={true}
+                                        resultsLeftIcon={<FaUser />}
                                         placeholder="Search by driver info..." 
                                         filter={this.props.filter} 
                                         onChange={(f) => this.props.searchStakeholder(f, Stakeholders.driver)} 
@@ -130,6 +134,7 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
     /* driver */
     private selectedDriver = (stakeholder: IStakeholder) => {
         this.props.selectedDriverChange(stakeholder);
+        this.props.setActiveStep(4);
 
         this.setState({ 
             driverRegistrationOn: false,
@@ -147,6 +152,6 @@ export default class Registration extends React.Component<AllProps, IOwnState> {
 
     private driverRegistrationChange = (stakeholder: IStakeholderSearch) => {
         this.props.handleAlert("Driver registration successful");
-        this.selectedDriver(stakeholder.stakeholder)
+        this.selectedDriver(stakeholder.stakeholder);
     }
 }

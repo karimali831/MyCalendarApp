@@ -1,4 +1,4 @@
-import { Variant, ToggleSwitch, AlertModal, ConfirmModal } from '@appology/react-components';
+import { Variant, AlertModal, ConfirmModal } from '@appology/react-components';
 import * as React from 'react';
 import { IStakeholder } from 'src/models/IStakeholder';
 import { SidebarMenu } from 'src/components/menu/SidebarMenu';
@@ -9,9 +9,8 @@ import RegistrationConnected from '../step1-customer/RegistrationConnected';
 import OverviewConnected from '../step5-stripe/OverviewConnected';
 import OrderConnected from '../step3-order/order/OrderConnected';
 import ExistingOrdersConnected from '../step2-service/existingorders/ExistingOrdersConnected';
-import ServiceConnected from '../step2-service/service/ServiceConnected';
-import { IOrder } from 'src/models/IOrder';
 import { ActionDialogue } from 'src/Enums/ActionDialogue';
+import PickupLocationConnected from '../step2-service/pickup/PickupLocationConnected';
 
 export interface IPropsFromDispatch {
     updateConfig: (config: IDefaultConfig | undefined) => UpdateConfigAction,
@@ -21,7 +20,6 @@ export interface IPropsFromDispatch {
 
 export interface IPropsFromState {
     selectedCustomer?: IStakeholder,
-    selectedOrder?: IOrder,
     config: IDefaultConfig,
     pinSidebar: boolean,
     step: number,
@@ -31,7 +29,6 @@ export interface IPropsFromState {
 }
 
 export interface IOwnState {
-    newOrder: boolean,
     confirmDialogueBodyCnt?: JSX.Element,
     confirmDialogueVariant: Variant,
     confirmAction?: boolean,
@@ -45,7 +42,6 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
     constructor(props: AllProps) {
         super(props);
         this.state = {
-            newOrder: true,
             confirmDialogueBodyCnt: undefined,
             confirmDialogueVariant: Variant.Warning,
             confirmAction: undefined,
@@ -56,10 +52,6 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
     public componentDidUpdate = (prevProps: AllProps, prevState: IOwnState) => {
         if (JSON.stringify(this.props.config) !== JSON.stringify(this.props.config)) {
             this.props.updateConfig(this.props.config)
-        }
-
-        if (this.props.selectedOrder !== undefined && this.state.newOrder === true) {
-            this.setState({ newOrder: false })
         }
 
         if (this.props.selectedCustomer !== undefined && this.props.step === 1) {
@@ -105,9 +97,8 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
                                 <RegistrationConnected />
                             : this.props.step === 1 ?
                                 <>
-                                    <ExistingOrdersConnected newOrder={this.state.newOrder}  />
-                                    <ToggleSwitch id="newOrder" name='New order' onChange={c => this.newOrder(c)} checked={this.state.newOrder} />
-                                    <ServiceConnected newOrder={this.state.newOrder} />
+                                    <ExistingOrdersConnected  />
+                                    <PickupLocationConnected />
                                 </>
                             : this.props.step === 2 ?
                                 <OrderConnected 
@@ -125,11 +116,6 @@ export default class Landing extends React.Component<AllProps, IOwnState> {
             </div>
         )
     }    
-
-    private newOrder = (checked: boolean) => {
-        this.props.resetOrder();
-        this.setState({ newOrder: checked })
-    }
 
     private handleConfirmation = (confirm?: boolean) => {
         this.setState({ 

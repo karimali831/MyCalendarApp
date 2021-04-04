@@ -26,13 +26,26 @@ const LandingReducer: Reducer<ILandingsState, LandingActions> =
                     }
                 }  
 
+            case LandingActionTypes.SearchStore:
+                return {
+                    ...state, ...{ 
+                        searchStore: action.searchStore
+                    }
+                }  
+
+            case LandingActionTypes.LoadPlaces:
+                return {
+                    ...state, ...{ 
+                        places: action.places
+                    }
+                }  
+
             case LandingActionTypes.SelectedDriver:
                 return {
                     ...state, ...{ 
                         selectedDriver: action.driver,
                         filter: "",
                         stakeholders: [],
-                        // activeStep: action.driver !== undefined ? 4 : 3,
                         navigator: 
                             state.navigator.map((l, idx) => {
                                 if (action.driver !== undefined) {

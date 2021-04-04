@@ -9,7 +9,7 @@ interface IOwnProps {
     variant?: Variant,
     inlineDisplay?: boolean,
     disabled?: boolean,
-    onClick?: React.MouseEventHandler<HTMLButtonElement>
+    onClick?: () => void
 }
 
 export const variant = (props: IOwnProps) => props.variant !== undefined ? Variant[props.variant] : Variant[Variant.Primary]

@@ -24,6 +24,10 @@ namespace Appology.ER.Repository
         Task<bool> OrderExists(Guid orderId);
         Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip);
         Task<bool> DeleteOrder(Guid orderId);
+        Task<bool> SetDeliveryDate(Guid orderId, DateTime date, string timeslot);
+        Task<bool> UnsetDeliveryDate(Guid orderId);
+        Task<bool> OrderPaid(Guid orderId, bool paid, string stripePaymentConfirmationId = null);
+        Task<bool> OrderDispatch(Guid orderId, bool dispatch);
     }
 
     public class OrderRepository : IOrderRepository
@@ -48,7 +52,7 @@ namespace Appology.ER.Repository
                 try
                 {
                     string sqlTxt = $@"
-                    SELECT o.OrderId, o.ServiceId, c.Name AS ServiceName, o.Items, o.OrderValue, o.ServiceFee, o.OrderFee, o.DeliveryFee, o.TotalItems, o.Invoice, o.Created, o.Modified
+                    SELECT o.OrderId, o.ServiceId, c.Name AS ServiceName, o.Items, o.OrderValue, o.ServiceFee, o.OrderFee, o.DeliveryFee, o.TotalItems, o.Invoice, o.Created, o.Modified, o.DeliveryDate, o.Timeslot, o.Dispatched, o.Paid, o.StripePaymentConfirmationId
                     FROM {TABLE} AS o
                     LEFT JOIN {Tables.Name(Table.Categories)} AS c
                     ON c.Id = o.ServiceId
@@ -139,6 +143,78 @@ namespace Appology.ER.Repository
                 await sql.ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
 
                 return await tripRepository.DeleteTripByOrderId(orderId);
+            }
+            catch (Exception exp)
+            {
+                exceptionHandlerService.ReportException(exp).Submit();
+                return false;
+            }
+        }
+
+        public async Task<bool> SetDeliveryDate(Guid orderId, DateTime date, string timeslot)
+        {
+            try
+            {
+                using var sql = dbConnectionFactory();
+
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET DeliveryDate = @date, Timeslot = @timeslot WHERE orderId = @orderId", 
+                    new {
+                        orderId,
+                        timeslot,
+                        date
+                    });
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                exceptionHandlerService.ReportException(exp).Submit();
+                return false;
+            }
+        }
+
+        public async Task<bool> UnsetDeliveryDate(Guid orderId)
+        {
+            try
+            {
+                using var sql = dbConnectionFactory();
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET DeliveryDate = null, Timeslot = null WHERE orderId = @orderId",  new { orderId });
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                exceptionHandlerService.ReportException(exp).Submit();
+                return false;
+            }
+        }
+
+        public async Task<bool> OrderPaid(Guid orderId, bool paid, string stripePaymentConfirmationId = null)
+        {
+            try
+            {
+                using var sql = dbConnectionFactory();
+
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET Paid = @paid, StripePaymentConfirmationId = @stripePaymentConfirmationId WHERE OrderId = @orderId", 
+                    new { orderId, paid, stripePaymentConfirmationId });
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                exceptionHandlerService.ReportException(exp).Submit();
+                return false;
+            }
+        }
+        
+        public async Task<bool> OrderDispatch(Guid orderId, bool dispatch)
+        {
+            try
+            {
+                using var sql = dbConnectionFactory();
+                await sql.ExecuteAsync($"UPDATE {TABLE} SET Dispatched = @dispatch WHERE OrderId = @orderId", new { orderId, dispatch });
+
+                return true;
             }
             catch (Exception exp)
             {

@@ -7,15 +7,14 @@ import GoogleMapMarker from 'src/components/google/GoogleMapMarker';
 import { Stakeholders } from 'src/Enums/Stakeholders';
 import { IGoogleMapMarker } from 'src/models/IGoogleMapMarker';
 import { IStakeholder } from 'src/models/IStakeholder';
-import { SelectedDriverAction } from 'src/state/contexts/landing/Actions';
-import { FaCreditCard  } from 'react-icons/fa';
-import { SaveOrderAction } from 'src/state/contexts/order/Actions';
-import { ActionButton } from 'src/components/utils/ActionButtons';
+import { SelectedDriverAction, SetActiveStepAction } from 'src/state/contexts/landing/Actions';
+import { FaAngleDoubleRight, FaTruck  } from 'react-icons/fa';
 import { SaveStatus } from 'src/Enums/SaveStatus';
+import Button from 'react-bootstrap/Button'
 
 export interface IPropsFromDispatch {
     selectedDriverAssigned: (stakeholder: IStakeholder | undefined) => SelectedDriverAction,
-    saveOrder: (saved?: boolean) => SaveOrderAction
+    setActiveStep: (step: number) => SetActiveStepAction
 }
 
 export interface IPropsFromState {
@@ -40,7 +39,7 @@ export interface IOwnProps {
 
 type AllProps = IPropsFromState & IPropsFromDispatch & IOwnProps;
 
-export default class EmptyStateComponent extends React.Component<AllProps, IOwnState> {
+export default class DriverLocator extends React.Component<AllProps, IOwnState> {
 
     constructor(props: AllProps) {
         super(props);
@@ -114,15 +113,9 @@ export default class EmptyStateComponent extends React.Component<AllProps, IOwnS
                     : null
                 }
                 {
-                    !this.props.registrationOn && this.props.selectedDriver !== undefined ?
-                        <span className="float-right">
-                            <ActionButton 
-                                value={this.props.orderId ? "Update & Checkout" : "Create & Checkout"}
-                                icon={<FaCreditCard />}
-                                loading={this.props.saveOrderStatus === SaveStatus.Processing} 
-                                onClick={() => this.props.saveOrder()} />
-                        </span>
-                    : null
+                    <Button className="float-right" disabled={this.props.registrationOn || !this.props.selectedDriver} variant="primary" onClick={() => this.props.setActiveStep(4)}>
+                        <FaTruck /> Go to Dispatch <FaAngleDoubleRight />
+                    </Button>
                 }
                 {
                     this.props.showMap ?
@@ -134,7 +127,7 @@ export default class EmptyStateComponent extends React.Component<AllProps, IOwnS
                                 pickupLocation={this.props.pickupLocation}
                                 selectedCustomer={this.props.selectedCustomer}
                                 selectedDriver={this.props.selectedDriver}
-                                selectedDriverAssigned={(s: IStakeholder) => this.props.selectedDriverAssigned(s)}
+                                selectedDriverAssigned={(s: IStakeholder) => this.assignDriver(s)}
                                 excludeCenterMarker={false} 
                             />
                         </>
@@ -142,6 +135,13 @@ export default class EmptyStateComponent extends React.Component<AllProps, IOwnS
                 }
             </>
         );
+    }
+
+    private assignDriver = (driver: IStakeholder) => {
+        if (driver !== undefined) {
+            this.props.selectedDriverAssigned(driver)
+            this.props.setActiveStep(4);
+        }
     }
 
     private driversSuccess = (drivers: IStakeholder[]) => {

@@ -6,7 +6,7 @@ import { IOrder } from 'src/models/IOrder';
 import { IPlace } from 'src/models/IPlace';
 import { IStakeholder } from 'src/models/IStakeholder';
 import { ITrip } from 'src/models/ITrip';
-import { PlaceAction, ResetOrderAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { PlaceAction, ResetOrderAction, SelectedDriverAction, SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 import { SelectedOrderAction } from 'src/state/contexts/order/Actions';
 
 export interface IPropsFromDispatch {
@@ -14,12 +14,14 @@ export interface IPropsFromDispatch {
     selectedOrderChange: (order: IOrder | undefined, trip: ITrip | undefined) => SelectedOrderAction,
     selectedDriverChange: (stakeholder: IStakeholder | undefined) => SelectedDriverAction,
     onPlaceChange: (place: IPlace | undefined) => PlaceAction,
-    resetOrder: () => ResetOrderAction
+    resetOrder: () => ResetOrderAction,
+    setActiveStep: (step: number) => SetActiveStepAction
 }
 
 export interface IPropsFromState {
     selectedCustomer?: IStakeholder,
-    order?: IOrder
+    order?: IOrder,
+    places: IPlace[]
 }
 
 export interface IOwnState {
@@ -28,9 +30,7 @@ export interface IOwnState {
     loadingOrder: boolean
 }
 
-export interface IOwnProps {
-    newOrder: boolean
-}
+export interface IOwnProps {}
 
 export interface IOwnState {
 }
@@ -50,7 +50,9 @@ export default class ExistingOrders extends React.Component<AllProps, IOwnState>
     }
 
     public componentDidMount() {
-        this.getOrders();
+        if (this.state.orders.length === 0) {
+            this.getOrders();
+        }
     }
 
     public componentDidUpdate = (prevProps: AllProps, prevState: IOwnState) => {
@@ -68,12 +70,12 @@ export default class ExistingOrders extends React.Component<AllProps, IOwnState>
 
         return (
             <SelectElement 
-                label="Existing orders"
-                selectorName={this.state.loadingOrders === undefined ? "..." : this.state.orders.length === 0 ? "No previous orders" : "Select Order"}
+                label="Orders"
+                selectorName="New Order"
                 icon="&#xf1cb;"
                 id="order"
                 loading={this.state.loadingOrders}
-                selected={this.props.newOrder ? "" : this.props.order?.orderId}
+                selected={this.props.order?.orderId}
                 selectorOptions={this.state.orders}
                 onSelectChange={this.handleOrderChange}
             />
@@ -117,13 +119,15 @@ export default class ExistingOrders extends React.Component<AllProps, IOwnState>
     private orderSuccess = (order: IOrderResponse) => {
 
         // this is to see if we have any API data in ER.Places
-        api.place(order.trip.pickupId).then(place => this.props.onPlaceChange(place ?? undefined))
+        const place : IPlace | undefined = this.props.places.find(x => x.placeId === order.trip.pickupId)
+        this.props.onPlaceChange(place);
 
         this.setState({ loadingOrder: false })
 
         if (order.status) {
             this.props.selectedDriverChange(order.driver);
             this.props.selectedOrderChange(order.order, order.trip);
+            this.props.setActiveStep(2);
         }
         else{
         

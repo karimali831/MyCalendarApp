@@ -1,6 +1,8 @@
 import { SaveStatus } from 'src/Enums/SaveStatus';
+import { IDispatchStatus } from 'src/models/IDispatchStatus';
 import { IOrder, IOrderForm, IOrderOverview } from 'src/models/IOrder';
 import { ITrip } from 'src/models/ITrip';
+import { orderStatusDispatch } from './Selectors';
 
 export default interface IOrderState {
     order?: IOrder,
@@ -8,7 +10,13 @@ export default interface IOrderState {
     orderForm: IOrderForm,
     orderOverview: IOrderOverview,
     saveOrderStatus: SaveStatus,
-    pinSidebar: boolean
+    pinSidebar: boolean,
+    deliveryDate?: Date,
+    timeslot?: string,
+    orderStatus: IDispatchStatus[],
+    dispatched: boolean,
+    paid: boolean,
+    stripePaymentConfirmationId?: string
 }
 
 export class OrderState {
@@ -38,6 +46,12 @@ export class OrderState {
             driverFee: 0
         },
         saveOrderStatus: SaveStatus.Unprocessing,
-        pinSidebar: false
+        pinSidebar: false,
+        deliveryDate: undefined,
+        timeslot: undefined,
+        orderStatus: orderStatusDispatch,
+        dispatched: false,
+        paid: false,
+        stripePaymentConfirmationId: undefined
     }
 }

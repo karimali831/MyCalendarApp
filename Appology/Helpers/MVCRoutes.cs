@@ -34,6 +34,7 @@ namespace Appology.Helpers
                 // errand runner app
                 new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/order/new"),
                 // finance app
+                new KeyValuePair<Section, string>(Section.FinanceAppAddSpending, "/finance/app/addspending"),
                 new KeyValuePair<Section, string>(Section.FinanceApp, "/finance/app"),
                 new KeyValuePair<Section, string>(Section.FinanceCategories, "/finance/app/categories"),
                 new KeyValuePair<Section, string>(Section.FinanceSettings, "/finance/app/settings"),

@@ -44,5 +44,10 @@ export interface IOrder {
     invoice: number,
     net: number,
     driverFee: number,
-    driverEarning: number
+    driverEarning: number,
+    deliveryDate?: Date,
+    timeslot?: string,
+    dispatched: boolean,
+    paid: boolean,
+    stripePaymentConfirmationId?: string
 }

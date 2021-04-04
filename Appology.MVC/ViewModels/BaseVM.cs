@@ -31,6 +31,7 @@ namespace Appology.Website.ViewModels
         // errand runner
         public bool ERNewOrder { get; set; }
         // finance
+        public bool FinanceAppAddSpending { get; set; }
         public bool FinanceApp { get; set; }
         public bool FinanceSettings { get; set; }
         public bool FinanceCategories { get; set; }

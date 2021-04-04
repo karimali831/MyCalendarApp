@@ -15,7 +15,7 @@ namespace Appology.ER.Repository
 {
     public interface IPlaceRepository
     {
-        Task<Place> GetAsync(string placeId);
+        Task<IEnumerable<Place>> GetAllAsync();
     }
 
     public class PlaceRepository : IPlaceRepository
@@ -29,11 +29,31 @@ namespace Appology.ER.Repository
             this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
         }
 
-        public async Task<Place> GetAsync(string placeId)
+        public async Task<IEnumerable<Place>> GetAllAsync()
         {
             using (var sql = dbConnectionFactory())
             {
-                return (await sql.QueryAsync<Place>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE PlaceId = @placeId", new { placeId })).FirstOrDefault();
+                string sqlTxt = $@";
+                    SELECT 
+                        p.Id, 
+                        p.ServiceId, 
+                        s.Name AS ServiceName, 
+                        p.PlaceId, 
+                        p.Name, 
+                        p.Description, 
+                        p.ApiProductUrl, 
+                        p.ApiTimeslotsUrl, 
+                        p.ImagePath, 
+                        p.AllowManual, 
+                        p.Active,
+                        p.DisplayController,
+                        p.DisplayConsumer
+                    FROM {TABLE} AS p
+                    LEFT JOIN Categories AS s
+                    ON p.ServiceId = s.Id
+                ";
+
+                return (await sql.QueryAsync<Place>(sqlTxt)).ToArray();
             }
         }
     }

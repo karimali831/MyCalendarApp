@@ -1,7 +1,4 @@
-import { rootUrl } from 'src/components/utils/Utils';
-
 export class CoopApi {
-    public rootUrl: string = `${rootUrl}/api/errandrunner`;
 
     public searchItems = async (apiUrl: string, request: ISearchItemsRequests): Promise<ISearchItemsResponse> => {
         return fetch(apiUrl, {

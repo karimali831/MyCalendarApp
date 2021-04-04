@@ -28,7 +28,9 @@ export default interface ILandingState {
     alertTxt: string,
     place?: IPlace,
     alertVariant?: Variant,
-    alertTimeout?: number
+    alertTimeout?: number,
+    searchStore: boolean,
+    places: IPlace[]
 }
 
 export class LandingState {
@@ -48,6 +50,8 @@ export class LandingState {
         place: undefined,
         alertTxt: "",
         alertVariant: Variant.Success,
-        alertTimeout: defaultTimeout
+        alertTimeout: defaultTimeout,
+        searchStore: false,
+        places: []
     }
 }

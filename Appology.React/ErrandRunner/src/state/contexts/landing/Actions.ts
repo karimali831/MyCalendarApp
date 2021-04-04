@@ -27,6 +27,8 @@ export class LandingActionTypes {
     public static readonly SelectedOrderEnableSteps = "@@landing/seletedorderenablesteps";
     public static readonly ShowAlert = "@@landing/showalert";
     public static readonly Place = "@@landing/place"
+    public static readonly SearchStore = "@@landing/searchstore"
+    public static readonly LoadPlaces = "@@landing/loadplaces"
 }
 
 export class LoadStakeholdersAction {
@@ -37,6 +39,16 @@ export class LoadStakeholdersAction {
     constructor(
         public filter: string,
         public stakeholderId: Stakeholders
+    ) { }
+}
+
+export class LoadPlacesAction {
+    public static readonly creator = (places: IPlace[]) => new LoadPlacesAction(places);
+
+    public readonly type = LandingActionTypes.LoadPlaces;
+
+    constructor(
+        public places: IPlace[]
     ) { }
 }
 
@@ -85,6 +97,16 @@ export class SelectedServiceAction {
 
     constructor(
         public service: IBaseModel | undefined
+    ) { }
+}
+
+export class SearchStoreAction {
+    public static readonly creator = (searchStore: boolean) => new SearchStoreAction(searchStore);
+
+    public readonly type = LandingActionTypes.SearchStore;
+
+    constructor(
+        public searchStore: boolean
     ) { }
 }
 
@@ -189,7 +211,6 @@ export class ToggleDriverStep4Action {
         public enable: boolean
     ) { }
 }
-
 export class SelectedOrderEnableStepsAction {
     public static readonly creator = () => new  SelectedOrderEnableStepsAction();
 
@@ -215,4 +236,6 @@ export type LandingActions =
     ToggleDriverStep4Action |
     SelectedOrderEnableStepsAction |
     ToggleAlertAction |
-    PlaceAction
+    PlaceAction |
+    SearchStoreAction |
+    LoadPlacesAction

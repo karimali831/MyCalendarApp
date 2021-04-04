@@ -1,7 +1,7 @@
 import IStoreState from '../../../state/IStoreState';
 import { connect } from 'react-redux';
 import Registration, { IPropsFromState, IPropsFromDispatch } from './Registration';
-import { LoadStakeholdersAction, SelectedCustomerAction, SelectedDriverAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
+import { LoadStakeholdersAction, SelectedCustomerAction, SelectedDriverAction, SetActiveStepAction, ToggleAlertAction } from 'src/state/contexts/landing/Actions';
 
 // REACT-REDUX
 // Wrap stateless component with redux connected component
@@ -22,7 +22,8 @@ const mapPropsFromDispatch: IPropsFromDispatch =
     searchStakeholder: LoadStakeholdersAction.creator,
     selectedCustomerChange: SelectedCustomerAction.creator,
     selectedDriverChange: SelectedDriverAction.creator,
-    handleAlert: ToggleAlertAction.creator
+    handleAlert: ToggleAlertAction.creator,
+    setActiveStep: SetActiveStepAction.creator
 };
 
 // This does the magic of subscribing to state changes and ensuring the wrapped

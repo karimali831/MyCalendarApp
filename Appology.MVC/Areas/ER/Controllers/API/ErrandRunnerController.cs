@@ -45,13 +45,14 @@ namespace Appology.Areas.ER.Controllers.API
             return Request.CreateResponse(HttpStatusCode.OK, new { services });
         }
 
-        [Route("place/{placeId}")]
+        [Route("places")]
         [HttpGet]
-        public async Task<HttpResponseMessage> GetPlace(string placeId)
+        public async Task<HttpResponseMessage> GetPlaces()
         {
-            var place = await orderService.GetPlaceAsync(placeId);
-            return Request.CreateResponse(HttpStatusCode.OK, place);
+            var places = (await orderService.GetAllPlacesAsync()).Where(x => x.DisplayController);
+            return Request.CreateResponse(HttpStatusCode.OK, places);
         }
+
 
         [Route("order/{orderId}")]
         [HttpGet]
@@ -88,7 +89,7 @@ namespace Appology.Areas.ER.Controllers.API
                 orders = orders.Select(x => new
                 {
                     id = x.OrderId,
-                    name = $"{x.Modified.ToShortDateString()} - {Utils.ToCurrency(x.Invoice)}"
+                    name = $"{x.Modified.ToShortDateString()} - {Utils.ToCurrency(x.Invoice)} {(x.Paid ? "- Paid" : "")} {(x.Dispatched ? " & Dispatched" : "")}"
                 })
             });
         }
@@ -129,11 +130,50 @@ namespace Appology.Areas.ER.Controllers.API
             var register = await stakeholderService.RegisterAsync(stakeholder);
             return Request.CreateResponse(HttpStatusCode.OK, new { Stakeholder = register.stakeholder, Message = register.Message });
         }
+
+        [Route("setdeliverydate")]
+        [HttpPost]
+        public async Task<HttpResponseMessage> SetDeliveryDate(DeliveryDateRequest request)
+        {
+            var status = await orderService.SetDeliveryDate(request.OrderId, request.DeliveryDate, request.Timeslot);
+            return Request.CreateResponse(HttpStatusCode.OK, status);
+        }
+
+        [Route("unsetdeliverydate/{orderId}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> UnsetDeliveryDate(Guid orderId)
+        {
+            var status = await orderService.UnsetDeliveryDate(orderId);
+            return Request.CreateResponse(HttpStatusCode.OK, status);
+        }
+
+        [Route("orderpaid/{orderId}/{paid}/{stripePaymentConfirmationId?}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> OrderPaid(Guid orderId, bool paid, string stripePaymentConfirmationId = null)
+        {
+            var status = await orderService.OrderPaid(orderId, paid, stripePaymentConfirmationId);
+            return Request.CreateResponse(HttpStatusCode.OK, status);
+        }
+
+        [Route("orderdispatch/{orderId}/{dispatch}")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> OrderDispatch(Guid orderId, bool dispatch)
+        {
+            var status = await orderService.OrderDispatch(orderId, dispatch);
+            return Request.CreateResponse(HttpStatusCode.OK, status);
+        }
     }
 
     public class SaveOrderRequest
     {
         public Appology.ER.Model.Order Order { get; set; }
         public Trip Trip { get; set; }
+    }
+
+    public class DeliveryDateRequest
+    {
+        public Guid OrderId { get; set; }
+        public DateTime DeliveryDate { get; set; }
+        public string Timeslot { get; set; }
     }
 }

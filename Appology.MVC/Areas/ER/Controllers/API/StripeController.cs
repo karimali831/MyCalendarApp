@@ -1,6 +1,7 @@
 ﻿using Appology.Controllers.Api;
 using Appology.ER.Model;
 using Appology.ER.Service;
+using Appology.Helpers;
 using Newtonsoft.Json;
 using Stripe;
 using System;
@@ -36,22 +37,28 @@ namespace Appology.Areas.ER.Controllers.API
         public async Task<HttpResponseMessage> Create(PaymentIntentCreateRequest request)
         {
             var order = await orderService.GetAsync(request.OrderId);
+            var verify = VerifyInvoiceAmount(order.Order, request.Invoice);
 
-            if (order.Status && order.Order != null && VerifyInvoiceAmount(order.Order, request.Invoice))
+            if (order.Status && order.Order != null && verify == true)
             {
 
                 var paymentIntents = new PaymentIntentService();
+
                 var paymentIntent = paymentIntents.Create(new PaymentIntentCreateOptions
                 {
                     Amount = ((int)order.Order.Invoice) * 100,
                     Currency = "gbp",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        {"OrderId", order.Order.OrderId.ToString()}
+                    }
                 });
 
                 return Request.CreateResponse(HttpStatusCode.OK, new { clientSecret = paymentIntent.ClientSecret, status = true });
             }
             else
             {
-                return Request.CreateResponse(HttpStatusCode.OK, new { clientSecret = "", status = false});
+                return Request.CreateResponse(HttpStatusCode.OK, new { clientSecret = "", status = false });
             }
         }
 
@@ -60,10 +67,12 @@ namespace Appology.Areas.ER.Controllers.API
             try
             {
                 var items = JsonConvert.DeserializeObject<IEnumerable<OrderItems>>(order.Items);
-                decimal orderValue = items.Sum(x => x.Cost * x.Qty);
-                decimal calcInvoice = orderValue + order.ServiceFee + order.OrderFee + order.DeliveryFee;
 
-                return calcInvoice == order.Invoice && order.Invoice == invoice;
+                decimal orderValue = items.Sum(x => x.Cost * x.Qty);
+                decimal calcInvoice = Utils.ToMoney(orderValue + order.ServiceFee + order.OrderFee + order.DeliveryFee);
+                decimal orderInvoice = Utils.ToMoney(order.Invoice);
+
+                return calcInvoice == orderInvoice && orderInvoice == Utils.ToMoney(invoice);
             }
             catch
             {
@@ -71,7 +80,6 @@ namespace Appology.Areas.ER.Controllers.API
             }
         }
     }
-
 
     public class PaymentIntentCreateRequest
     {

@@ -7,6 +7,7 @@ import { SelectionRefinement } from '@appology/react-components';
 import { addressApi } from "src/Api/AddressApi";
 import { Stakeholders } from "src/Enums/Stakeholders";
 import { googleApi, IGoogleAddressGeoResponse, IGoogleGeoLocation } from "src/Api/GoogleApi";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 export interface IOwnProps {
     onRegistrationChange: (stakeholder: IStakeholderSearch) => void,
@@ -81,6 +82,7 @@ export default class RegistrationForm extends React.Component<IOwnProps, IOwnSta
                     <SelectionRefinement<IAddressSearch>
                             label="Address Search" 
                             placeholder="Enter address..." 
+                            resultsLeftIcon={<FaMapMarkerAlt />}
                             filter={this.state.filter} 
                             focus={false}
                             onChange={(f) => this.handleSearchAddressChange(f)} 
