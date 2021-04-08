@@ -1,6 +1,6 @@
 // make sure this matches from .net project values especially!
 export enum TableRef {
-    FinanceCategories = 6,
+    FinanceCategories,
     Finances,
     Incomes,
     MonzoAccount,

@@ -45,30 +45,41 @@ namespace Appology.Areas.MiFinance.Controllers.API
         [HttpPost]
         public async Task<HttpResponseMessage> UpdateAsync(UpdateRequest model)
         {
-            string fieldToPascal = FinanceUtils.FirstCharToUpper(model.Field);
-            object dbValue = model.Value;
-
-            if (DateTime.TryParseExact(model.Value, "yyyy-MM-dd", new CultureInfo("en-GB"), DateTimeStyles.None, out DateTime date))
+            if (Enum.TryParse(model.TableName, out Table table))
             {
-                dbValue = date;
+                string fieldToPascal = FinanceUtils.FirstCharToUpper(model.Field);
+                object dbValue = model.Value;
+
+                if (DateTime.TryParseExact(model.Value, "yyyy-MM-dd", new CultureInfo("en-GB"), DateTimeStyles.None, out DateTime date))
+                {
+                    dbValue = date;
+                }
+
+                await baseService.UpdateAsync(fieldToPascal, dbValue, model.Id, table);
+                return Request.CreateResponse(HttpStatusCode.OK, true);
             }
 
-            await baseService.UpdateAsync(fieldToPascal, dbValue, model.Id, model.Table);
-            return Request.CreateResponse(HttpStatusCode.OK, true);
+            return Request.CreateResponse(HttpStatusCode.BadRequest, false);
+
         }
 
-        [Route("delete/{id}/{table}")]
+        [Route("delete/{id}/{tableName}")]
         [HttpPost]
-        public async Task<HttpResponseMessage> DeleteAsync(int id, Table table)
+        public async Task<HttpResponseMessage> DeleteAsync(int id, string tableName)
         {
-            await baseService.DeleteAsync(id, table);
-            return Request.CreateResponse(HttpStatusCode.OK, true);
+            if (Enum.TryParse(tableName, out Table table))
+            {
+                await baseService.DeleteAsync(id, table);
+                return Request.CreateResponse(HttpStatusCode.OK, true);
+            }
+
+            return Request.CreateResponse(HttpStatusCode.BadRequest, false);
         }
     }
 
     public class UpdateRequest
     {
-        public Table Table { get; set; }
+        public string TableName { get; set; }
         public string Field { get; set; }
         public string Value { get; set; } = "";
         public int Id { get; set; }

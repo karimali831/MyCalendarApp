@@ -1,5 +1,5 @@
 import * as React from 'react';
-import BootstrapTable, { SelectRowOptions, ITableProps, ITableOptions } from 'react-bootstrap-table-next';
+import BootstrapTable, { ITableOptions, ITableProps, SelectRowOptions } from 'react-bootstrap-table-next';
 import cellEditFactory from 'react-bootstrap-table2-editor';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import { TableRef } from 'src/enums/TableRef';
@@ -85,7 +85,7 @@ export default class Table extends React.Component<IOwnProps, IOwnState> {
         this.setState({ ...this.state, ...{ loading: true }}) 
 
         const updateModel: IUpdateRequest = {
-            table: this.props.table, 
+            tableName: TableRef[this.props.table], 
             field: key, 
             value: value, 
             id: id
