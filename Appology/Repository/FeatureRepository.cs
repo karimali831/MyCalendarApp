@@ -1,11 +1,9 @@
-﻿using Dapper;
-using DFM.Utils;
+﻿using DFM.Utils;
 using Appology.Enums;
 using Appology.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Appology.Repository
@@ -16,31 +14,21 @@ namespace Appology.Repository
         Task<Feature> GetAsync(int Id);
     }
 
-    public class FeatureRepository : IFeatureRepository
+    public class FeatureRepository : DapperBaseRepository, IFeatureRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Features);
         private static readonly string[] FIELDS = typeof(Feature).DapperFields();
 
-        public FeatureRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public FeatureRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<IEnumerable<Feature>> GetAllAsync()
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Feature>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
-            }
+            return await QueryAsync<Feature>($"{DapperHelper.SELECT(TABLE, FIELDS)}");
         }
 
         public async Task<Feature> GetAsync(int Id)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Feature>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id", new { Id })).FirstOrDefault();
-            }
+            return await QueryFirstOrDefaultAsync<Feature>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id", new { Id });
         }
 
     }

@@ -112,9 +112,9 @@ namespace Appology.Areas.Write.Controllers.API
         public async Task<HttpResponseMessage> UpdateRecentDocs(Guid docId)
         {
             var user = await GetUser();
-            var doc = await documentService.LoadDocument(docId, user);
+            var docExists = await documentService.DocumentExists(docId, user.UserID);
 
-            if (doc != null)
+            if (docExists)
             {
                 string docIds = GetRecentDocs(user.RecentOpenedDocIdsList.ToList(), docId);
 
@@ -139,9 +139,9 @@ namespace Appology.Areas.Write.Controllers.API
         public async Task<HttpResponseMessage> DeleteDocument(Guid docId)
         {
             var user = await GetUser();
-            var doc = await documentService.LoadDocument(docId, user);
+            var docExists = await documentService.DocumentExists(docId, user.UserID);
 
-            if (doc != null && doc.UserCreatedId == user.UserID)
+            if (docExists)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, await documentService.DeleteDocument(docId));
             }
@@ -154,10 +154,10 @@ namespace Appology.Areas.Write.Controllers.API
         public async Task<HttpResponseMessage> MoveDocument(Guid docId, int moveToFolder)
         {
             var user = await GetUser();
-            var doc = await documentService.LoadDocument(docId, user);
+            var docExists = await documentService.DocumentExists(docId, user.UserID);
 
-            if (doc != null && doc.UserCreatedId == user.UserID)
-            {
+            if (docExists)
+            { 
                 return Request.CreateResponse(HttpStatusCode.OK, await documentService.MoveAsync(docId, moveToFolder));
             }
 

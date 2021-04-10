@@ -1,5 +1,8 @@
 ﻿using DFM.ExceptionHandling;
 using DFM.ExceptionHandling.Sentry;
+using StackExchange.Profiling;
+using StackExchange.Profiling.EntityFramework6;
+using StackExchange.Profiling.Mvc;
 using System;
 using System.Configuration;
 using System.Linq;
@@ -28,6 +31,28 @@ namespace Appology
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            GlobalFilters.Filters.Add(new ProfilingActionFilter());
+            MiniProfiler.Configure(new MiniProfilerOptions
+            {
+                SqlFormatter = new StackExchange.Profiling.SqlFormatters.InlineFormatter(),
+                ResultsAuthorize = request => request.IsLocal
+            }
+            .AddViewProfiling());
+
+            MiniProfilerEF6.Initialize();
+        }
+
+        protected void Application_BeginRequest()
+        {
+            {
+                MiniProfiler.StartNew();
+            }
+        }
+
+        protected void Application_EndRequest()
+        {
+            MiniProfiler.Current?.Stop(discardResults: false);
         }
 
         public void Application_Error(object sender, EventArgs e)

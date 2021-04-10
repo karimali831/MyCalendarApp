@@ -11,6 +11,7 @@ namespace Appology.Enums
         Calendar = 1,
         Write,
         ErrandRunner,
-        Finance
+        Finance,
+        Admin
     }
 }

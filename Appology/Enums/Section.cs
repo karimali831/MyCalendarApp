@@ -23,6 +23,8 @@
         MonzoAuthenticate,
         // Write
         Document,
-        DocLink
+        DocLink,
+        // Admin,
+        Cache
     }
 }

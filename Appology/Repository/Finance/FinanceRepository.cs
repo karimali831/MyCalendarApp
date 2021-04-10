@@ -4,12 +4,11 @@ using Appology.MiFinance.DTOs;
 using Appology.MiFinance.Enums;
 using Appology.MiFinance.Model;
 using Appology.MiFinance.ViewModels;
-using Dapper;
+using Appology.Repository;
 using DFM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using Categories = Appology.MiFinance.Enums.Categories;
 
@@ -25,42 +24,30 @@ namespace Appology.MiFinance.Repository
         Task<IEnumerable<MonthComparisonChartVM>> GetFinanceTotalsByMonth(MonthComparisonChartRequestDTO request);
     }
 
-    public class FinanceRepository : IFinanceRepository
+    public class FinanceRepository : DapperBaseRepository, IFinanceRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Finances);
         private static readonly string[] FIELDS = typeof(Finance).DapperFields();
         private static readonly string[] DTOFIELDS = typeof(FinanceDTO).DapperFields();
 
-        public FinanceRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public FinanceRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<Finance> GetAsync(int financeId)
         {
             string sqlTxt = $"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id";
-
-            var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<Finance>(sqlTxt, new { Id = financeId })).FirstOrDefault();
+            return await QueryFirstOrDefaultAsync<Finance>(sqlTxt, new { Id = financeId });
         }
 
         public async Task<IEnumerable<Finance>> GetAllAsync()
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Finance>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
-            }
+            return await QueryAsync<Finance>($"{DapperHelper.SELECT(TABLE, FIELDS)}");
         }
 
         public async Task UpdateNextDueDateAsync(DateTime dueDate, int Id)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                await sql.ExecuteAsync($@"
-                    UPDATE {TABLE} SET NextDueDate = @DueDate WHERE Id = @Id", new { DueDate = dueDate, Id }
-                );
-            }
+            await ExecuteAsync($@"
+                UPDATE {TABLE} SET NextDueDate = @DueDate WHERE Id = @Id", new { DueDate = dueDate, Id }
+            );
         }
 
         public async Task<IEnumerable<MonthComparisonChartVM>> GetIncomeExpenseTotalsByMonth(DateFilter filter)
@@ -107,10 +94,7 @@ namespace Appology.MiFinance.Repository
                 ORDER BY 
                     YearMonth";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<MonthComparisonChartVM>(sqlTxt)).ToArray();
-            }
+            return await QueryAsync<MonthComparisonChartVM>(sqlTxt);
         }
 
         public async Task<IEnumerable<MonthComparisonChartVM>> GetFinanceTotalsByMonth(MonthComparisonChartRequestDTO request)
@@ -132,18 +116,13 @@ namespace Appology.MiFinance.Repository
                 ORDER BY 
                     YearMonth";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<MonthComparisonChartVM>(sqlTxt)).ToArray();
-            }
+            return await QueryAsync<MonthComparisonChartVM>(sqlTxt);
+
         }
 
         public async Task InsertAsync(FinanceDTO dto)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                await sql.ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
-            }
+            await ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
         }
     }
 }

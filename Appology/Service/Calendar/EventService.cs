@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Appology.MiCalendar.Helpers;
+using System.Web.Helpers;
 
 namespace Appology.MiCalendar.Service
 {
@@ -36,33 +37,46 @@ namespace Appology.MiCalendar.Service
 
     public class EventService : IEventService
     {
+        public static readonly string cachePrefix = typeof(EventService).FullName;
         private readonly IEventRepository eventRepository;
         private readonly ICronofyService cronofyService;
         private readonly IUserService userService;
         private readonly ITypeService typeService;
+        private readonly ICacheService cache;
 
         public EventService(
             IEventRepository eventRepository, 
             ICronofyService cronofyService, 
             ITypeService typeService,
-            IUserService userService)
+            IUserService userService,
+            ICacheService cache)
         {
             this.eventRepository = eventRepository ?? throw new ArgumentNullException(nameof(eventRepository));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(Cronofy));
             this.userService = userService ?? throw new ArgumentNullException(nameof(userService));
             this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
+            this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         public async Task<Event> GetAsync(Guid eventId)
         {
-            return await eventRepository.GetAsync(eventId);
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetAsync)}",
+                async () => await eventRepository.GetAsync(eventId)
+            );
         }
 
         public async Task<IEnumerable<Event>> GetCurrentActivityAsync()
         {
-            return (await eventRepository.GetCurrentActivityAsync())
-                .Where(x => (DateUtils.DateTime() >= DateUtils.FromUtcToTimeZone(x.StartDate.AddHours(-4)) && x.EndDate.HasValue && DateUtils.DateTime() < DateUtils.FromUtcToTimeZone(x.EndDate.Value)) ||
-                        (!x.EndDate.HasValue && DateUtils.FromUtcToTimeZone(x.StartDate).Date == DateUtils.DateTime().Date));
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetCurrentActivityAsync)}",
+                async () =>
+                {
+                    return (await eventRepository.GetCurrentActivityAsync())
+                        .Where(x => (DateUtils.DateTime() >= DateUtils.FromUtcToTimeZone(x.StartDate.AddHours(-4)) && x.EndDate.HasValue && DateUtils.DateTime() < DateUtils.FromUtcToTimeZone(x.EndDate.Value)) ||
+                                (!x.EndDate.HasValue && DateUtils.FromUtcToTimeZone(x.StartDate).Date == DateUtils.DateTime().Date));
+                }
+            );
         }
 
         public async Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId)
@@ -117,7 +131,7 @@ namespace Appology.MiCalendar.Service
 
                     string label = activity.Subject ?? activity.Description;
                     string finishing = (activity.EndDate.HasValue ? "finishing " + DateUtils.FromUtcToTimeZone(activity.EndDate.Value).ToString("HH:mm") : "for the day");
-                    string starting = DateUtils.FromUtcToTimeZone(activity.StartDate).ToString("HH:mm");
+                    string starting =  activity.StartDate.ToString("HH:mm");
                     string avatar = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name);
 
                     if (DateUtils.DateTime() >= DateUtils.FromUtcToTimeZone(activity.StartDate.AddHours(-4)) && DateUtils.DateTime() < DateUtils.FromUtcToTimeZone(activity.StartDate))
@@ -155,6 +169,14 @@ namespace Appology.MiCalendar.Service
             return currentActivity;
         }
 
+        private async Task<IEnumerable<Event>> GetAllAsync(RequestEventDTO request)
+        {
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetAllAsync)}.{Json.Encode(request)}",
+                async () => await eventRepository.GetAllAsync(request)
+            );
+        }
+
         public async Task<IEnumerable<Event>> GetAllAsync(User user, RequestEventDTO request)
         {
             var accessibleCalendars = (await GetAccessibleCalendars(user.UserID)).Select(x => x.Id);
@@ -164,7 +186,7 @@ namespace Appology.MiCalendar.Service
                 throw new ApplicationException("No permission to view calendar events");
             }
 
-            var events = await eventRepository.GetAllAsync(request);
+            var events = await GetAllAsync(request);
 
             if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
@@ -245,6 +267,7 @@ namespace Appology.MiCalendar.Service
                                         {
                                             model.EventID = eventToUpdate.EventID;
                                             await eventRepository.InsertOrUpdateAsync(model);
+                                            RemoveAll();
 
                                         }
                                         else if (!eventExistsAtStartTime)
@@ -253,6 +276,7 @@ namespace Appology.MiCalendar.Service
                                         }
 
                                         await eventRepository.InsertOrUpdateAsync(model);
+                                        RemoveAll();
                                     }
                                 }
                             }
@@ -304,8 +328,9 @@ namespace Appology.MiCalendar.Service
                     cronofyService.UpsertEvent(e.EventID.ToString(), extCal.SyncFromCalendarId, subject, e.Description, e.StartDate, endDate, color, reminders);
                 }
             }
-        }
 
+            RemoveAll();
+        }
 
         public async Task<bool> SaveEvent(Event dto)
         {
@@ -321,11 +346,13 @@ namespace Appology.MiCalendar.Service
             //    dto.EventID = Guid.NewGuid();
             //}
 
+            RemoveAll();
             return (await eventRepository.InsertOrUpdateAsync(dto)).Status;
         }
 
         public async Task<Event> SaveGetEvent(Event dto)
         {
+            RemoveAll();
             return (await eventRepository.InsertOrUpdateAsync(dto)).e;
         }
 
@@ -339,7 +366,7 @@ namespace Appology.MiCalendar.Service
                 DateFilter = dateFilter
             };
 
-            var events = (await GetAllAsync(user, eventRequest))
+            var events = (await GetAllAsync(eventRequest))
                 .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID) && !x.Reminder);
          
             var eventsOverview = new Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>();
@@ -488,8 +515,10 @@ namespace Appology.MiCalendar.Service
 
         public async Task<bool> DeleteEvent(Guid eventId, string eventUid = null)
         {
+            RemoveAll();
             return await eventRepository.DeleteAsync(eventId);
         }
+
 
         public async Task<bool> EventExistsAtStartTime(DateTime startDate, int calendarId)
         {
@@ -499,6 +528,11 @@ namespace Appology.MiCalendar.Service
         public async Task<bool> EventExistsInCalendar(int calendarId)
         {
             return await eventRepository.EventExistsInCalendar(calendarId);
+        }
+
+        private void RemoveAll()
+        {
+            cache.RemoveAll(cachePrefix);
         }
     }
 }

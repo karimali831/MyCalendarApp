@@ -1,5 +1,4 @@
-﻿using Dapper;
-using DFM.Utils;
+﻿using DFM.Utils;
 using Appology.Helpers;
 using System;
 using System.Collections.Generic;
@@ -10,12 +9,12 @@ using Appology.Enums;
 using Appology.Write.Model;
 using Appology.Write.ViewModels;
 using Appology.Write.DTOs;
+using Appology.Repository;
 
 namespace Appology.Write.Repository
 {
     public interface IDocumentRepository
     {
-        //Task<IList<DocumentTitlesVM>> GetDocTitlesByFolderId(int typeId, Guid userId);
         Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId);
         Task<Document> GetAsync(Guid Id, Guid userId);
         Task<bool> InsertOrUpdateAsync(DocumentDTO dto);
@@ -26,216 +25,129 @@ namespace Appology.Write.Repository
         Task<IList<DocumentTitlesVM>> GetDocumentTitles(Guid userId);
         Task<IList<DocumentTitlesVM>> SearchDocumentsByFilter(IEnumerable<Guid> docIds, string filter, Guid userId);
         Task<IEnumerable<(Guid DocId, string Tag)>> GetAllDocumentUserTags(Guid userId);
+        Task<bool> DocumentExists(Guid docId, Guid userCreatedId);
     }
 
-    public class DocumentRepository : IDocumentRepository
+    public class DocumentRepository : DapperBaseRepository, IDocumentRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Documents);
         private static readonly string[] FIELDS = typeof(Document).DapperFields();
 
-        public DocumentRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
-
-
-        //public async Task<IList<DocumentTitlesVM>> GetDocTitlesByFolderId(int typeId, Guid userId)
-        //{
-        //    using (var sql = dbConnectionFactory())
-        //    {
-        //        string sqlTxt = $@"
-        //            SELECT d.Id, d.Title, d.EditedDate, d.EditedById, d.EditedAuto
-        //            FROM {TABLE} AS d
-        //            LEFT JOIN {Tables.Name(Table.Types)} AS t
-        //            ON d.TypeId = t.Id
-        //            WHERE d.TypeId = {typeId}
-        //            AND (t.UserCreatedId = '{userId}'
-        //            OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')
-        //            ORDER BY EditedDate DESC";
-
-        //        return (await sql.QueryAsync<DocumentTitlesVM>(sqlTxt)).ToArray();
-        //    }
-        //}
-
-        //public async Task<IList<DocumentTitlesVM>> GetDocTitlesByDocIds(IEnumerable<Guid> docIds)
-        //{
-        //    using (var sql = dbConnectionFactory())
-        //    {
-        //        return (await sql.QueryAsync<DocumentTitlesVM>($"SELECT Id, Title, EditedDate, EditedById, EditedAuto FROM {TABLE} WHERE Id IN @docIds", new { docIds })).ToList();
-        //    }
-        //}
+        public DocumentRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<IList<DocumentTitlesVM>> GetDocumentTitles(Guid userId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                string sqlTxt = $@"
-                    SELECT d.Id, d.TypeId, d.Title, d.EditedDate, d.EditedById, d.EditedAuto, d.Tags, d.UserCreatedId
-                    FROM {TABLE} AS d
-                    LEFT JOIN {Tables.Name(Table.Types)} AS t
-                    ON d.TypeId = t.Id
-                    WHERE  t.UserCreatedId = '{userId}'
-                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%'
-                    ORDER BY EditedDate DESC";
+            string sqlTxt = $@"
+                SELECT d.Id, d.TypeId, d.Title, d.EditedDate, d.EditedById, d.EditedAuto, d.Tags, d.UserCreatedId
+                FROM {TABLE} AS d
+                LEFT JOIN {Tables.Name(Table.Types)} AS t
+                ON d.TypeId = t.Id
+                WHERE  t.UserCreatedId = '{userId}'
+                OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%'
+                ORDER BY EditedDate DESC";
 
-                return (await sql.QueryAsync<DocumentTitlesVM>(sqlTxt)).ToList();
-            }
+            return await QueryAsync<DocumentTitlesVM>(sqlTxt);
         }
 
         public async Task<DocumentTitlesVM> GetDocumentTitle(Guid docId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<DocumentTitlesVM>($"SELECT Id, TypeId, Title, EditedDate, EditedById, EditedAuto, Tags, UserCreatedId FROM {TABLE} WHERE Id = @docId", new { docId })).FirstOrDefault();
-            }
+            return await QueryFirstOrDefaultAsync<DocumentTitlesVM>($"SELECT Id, TypeId, Title, EditedDate, EditedById, EditedAuto, Tags, UserCreatedId FROM {TABLE} WHERE Id = @docId", new { docId });
         }
 
         public async Task<IList<DocumentTitlesVM>> SearchDocumentsByFilter(IEnumerable<Guid> docIds, string filter, Guid userId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                string sqlTxt = $@"
-                    SELECT d.Id, d.Title, EditedAuto
-                    FROM {TABLE} AS d
-                    LEFT JOIN {Tables.Name(Table.Types)} AS t
-                    ON d.TypeId = t.Id
-                    WHERE (d.Title LIKE '%{filter}%' OR d.ID IN ('{string.Join(",",docIds)}'))
-                    AND (t.UserCreatedId = '{userId}'
-                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')
-                    ORDER BY EditedDate DESC";
+            string sqlTxt = $@"
+                SELECT d.Id, d.Title, EditedAuto
+                FROM {TABLE} AS d
+                LEFT JOIN {Tables.Name(Table.Types)} AS t
+                ON d.TypeId = t.Id
+                WHERE (d.Title LIKE '%{filter}%' OR d.ID IN ('{string.Join(",",docIds)}'))
+                AND (t.UserCreatedId = '{userId}'
+                OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')
+                ORDER BY EditedDate DESC";
 
-                return (await sql.QueryAsync<DocumentTitlesVM>(sqlTxt)).ToList();
-            }
+            return await QueryAsync<DocumentTitlesVM>(sqlTxt);
         }
 
         public async Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Document>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE TypeId = @typeId", new { typeId })).ToArray();
-            }
+            return await QueryAsync<Document>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE TypeId = @typeId", new { typeId });
         }
 
         public async Task<IEnumerable<(Guid DocId, string Tag)>> GetAllDocumentUserTags(Guid userId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<(Guid, string)>($"SELECT Id, Tags FROM {TABLE} WHERE UserCreatedId = @userId AND datalength(tags)!=0", new { userId })).ToArray();
-            }
+
+            return await QueryAsync<(Guid, string)>($"SELECT Id, Tags FROM {TABLE} WHERE UserCreatedId = @userId AND datalength(tags)!=0", new { userId });
+            
         }
 
         public async Task<bool> DeleteDocument(Guid docId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                try
-                {
-                    await sql.ExecuteAsync($"{DapperHelper.DELETE(TABLE)} WHERE Id = @docId", new { docId });
-                    await sql.ExecuteAsync($"{DapperHelper.DELETE(Tables.Name(Table.DocumentChangelog))} WHERE DocId = @docId", new { docId });
+            var deleteDoc = await ExecuteAsync($"{DapperHelper.DELETE(TABLE)} WHERE Id = @docId", new { docId });
+            var docDocChanges = await ExecuteAsync($"{DapperHelper.DELETE(Tables.Name(Table.DocumentChangelog))} WHERE DocId = @docId", new { docId });
 
-                    return true;
-                }
-                catch (Exception exp)
-                {
-                    string.IsNullOrEmpty(exp.Message);
-                    return false;
-                }
-            }
+            return deleteDoc && docDocChanges;
         }
 
         public async Task<Document> GetAsync(Guid Id, Guid userId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                string sqlTxt = $@"
-                    SELECT d.Id, d.TypeId, d.Title, d.Text, d.DraftText, d.CreatedDate, d.EditedDate, d.UserCreatedId, d.EditedById, d.EditedAuto, d.Tags
-                    FROM {TABLE} AS d
-                    LEFT JOIN {Tables.Name(Table.Types)} AS t
-                    ON d.TypeId = t.Id
-                    WHERE d.Id = '{Id}'
-                    AND (t.UserCreatedId = '{userId}'
-                    OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')";
+            string sqlTxt = $@"
+                SELECT d.Id, d.TypeId, d.Title, d.Text, d.DraftText, d.CreatedDate, d.EditedDate, d.UserCreatedId, d.EditedById, d.EditedAuto, d.Tags
+                FROM {TABLE} AS d
+                LEFT JOIN {Tables.Name(Table.Types)} AS t
+                ON d.TypeId = t.Id
+                WHERE d.Id = '{Id}'
+                AND (t.UserCreatedId = '{userId}'
+                OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,{userId},%')";
 
-                return (await sql.QueryAsync<Document>(sqlTxt)).FirstOrDefault();
-            }
+            return await QueryFirstOrDefaultAsync<Document>(sqlTxt);
         }
 
-        public async Task<bool> DocumentExists(Guid docId)
+        public async Task<bool> DocumentExists(Guid docId, Guid userCreatedId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE Id = @Id", new { Id = docId });
-            }
+            return await ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE Id = @docId AND UserCreatedId = @userCreatedId", new { docId, userCreatedId });
         }
 
         public async Task<bool> MoveAsync(Guid docId, int moveToId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                try
-                {
-                    await sql.ExecuteAsync($"UPDATE {TABLE} SET TypeId = @moveToId WHERE Id = @docId", new { docId, moveToId });
-                    return true;
-                }
-                catch (Exception exp)
-                {
-                    string.IsNullOrEmpty(exp.Message);
-                    return false;
-                }
-            }
+            return await ExecuteAsync($"UPDATE {TABLE} SET TypeId = @moveToId WHERE Id = @docId", new { docId, moveToId });
         }
 
         public async Task<bool> InsertOrUpdateAsync(DocumentDTO dto)
         {
-            using (var sql = dbConnectionFactory())
+            Func<DocumentDTO, object> saveDocument = (DocumentDTO d) =>
+                new
+                {
+                    id = d.Id,
+                    typeId = d.TypeId,
+                    title = d.Title,
+                    draftText = d.DraftText,
+                    text = d.Text,
+                    userCreatedId = d.UserCreatedId,
+                    editedDate = DateUtils.FromTimeZoneToUtc(DateUtils.DateTime()),
+                    editedById = d.EditedById,
+                    createdDate = d.CreatedDate,
+                    editedAuto = d.EditedAuto,
+                    tags = d.TagsList != null && d.TagsList.Any() ? string.Join(",", d.TagsList) : null
+                };
+
+            var existing = await DocumentExists(dto.Id.Value, dto.UserCreatedId);
+
+            if (existing == false)
             {
-                try
-                {
-                    Func<DocumentDTO, object> saveDocument = (DocumentDTO d) =>
-                        new
-                        {
-                            id = d.Id,
-                            typeId = d.TypeId,
-                            title = d.Title,
-                            draftText = d.DraftText,
-                            text = d.Text,
-                            userCreatedId = d.UserCreatedId,
-                            editedDate = DateUtils.FromTimeZoneToUtc(DateUtils.DateTime()),
-                            editedById = d.EditedById,
-                            createdDate = d.CreatedDate,
-                            editedAuto = d.EditedAuto,
-                            tags = d.TagsList != null && d.TagsList.Any() ? string.Join(",", d.TagsList) : null
-                        };
-
-                    var existing = await DocumentExists(dto.Id.Value);
-
-
-                    if (existing == false)
-                    {
-                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveDocument(dto));
-                    }
-                    else
-                    {
-                        await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE Id = @Id", saveDocument(dto));
-                    }
-
-                    return true;
-                }
-                catch (Exception exp)
-                {
-                    string.IsNullOrEmpty(exp.Message);
-                    return false;
-                }
+                await ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", saveDocument(dto));
             }
+            else
+            {
+                await ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE Id = @Id", saveDocument(dto));
+            }
+
+            return true;
         }
 
         public async Task<bool> DocumentsExistsInGroup(int groupId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {Tables.Name(Table.Documents)} WHERE TypeId = @groupId", new { groupId });
-            }
+            return await ExecuteScalarAsync<bool>($"SELECT count(1) FROM {Tables.Name(Table.Documents)} WHERE TypeId = @groupId", new { groupId });
         }
     }
 }

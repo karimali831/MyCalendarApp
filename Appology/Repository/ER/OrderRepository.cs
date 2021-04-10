@@ -1,19 +1,13 @@
-﻿using Dapper;
-using DFM.Utils;
+﻿using DFM.Utils;
 using Appology.ER.Model;
-using Appology.ER.Service;
 using Appology.Helpers;
-using Appology.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
 using Appology.Enums;
-using DFM.ExceptionHandling;
-using DFM.ExceptionHandling.Sentry;
-using System.Configuration;
+using Appology.Repository;
 
 namespace Appology.ER.Repository
 {
@@ -30,106 +24,75 @@ namespace Appology.ER.Repository
         Task<bool> OrderDispatch(Guid orderId, bool dispatch);
     }
 
-    public class OrderRepository : IOrderRepository
+    public class OrderRepository : DapperBaseRepository, IOrderRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private readonly ITripRepository tripRepository;
-        private readonly IExceptionHandlerService exceptionHandlerService;
         private static readonly string TABLE = Tables.Name(Table.Orders);
         private static readonly string[] FIELDS = typeof(Order).DapperFields();
 
-        public OrderRepository(Func<IDbConnection> dbConnectionFactory, ITripRepository tripRepository)
+        public OrderRepository(Func<IDbConnection> dbConnectionFactory, ITripRepository tripRepository) : base(dbConnectionFactory)
         {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
             this.tripRepository = tripRepository ?? throw new ArgumentNullException(nameof(tripRepository));
-            this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
         }
 
         public async Task<(Order Order, bool Status)> GetAsync(Guid orderId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                try
-                {
-                    string sqlTxt = $@"
-                    SELECT o.OrderId, o.ServiceId, c.Name AS ServiceName, o.Items, o.OrderValue, o.ServiceFee, o.OrderFee, o.DeliveryFee, o.TotalItems, o.Invoice, o.Created, o.Modified, o.DeliveryDate, o.Timeslot, o.Dispatched, o.Paid, o.StripePaymentConfirmationId
-                    FROM {TABLE} AS o
-                    LEFT JOIN {Tables.Name(Table.Categories)} AS c
-                    ON c.Id = o.ServiceId
-                    WHERE OrderId = '{orderId}'";
+            string sqlTxt = $@"
+                SELECT o.OrderId, o.ServiceId, c.Name AS ServiceName, o.Items, o.OrderValue, o.ServiceFee, o.OrderFee, o.DeliveryFee, o.TotalItems, o.Invoice, o.Created, o.Modified, o.DeliveryDate, o.Timeslot, o.Dispatched, o.Paid, o.StripePaymentConfirmationId
+                FROM {TABLE} AS o
+                LEFT JOIN {Tables.Name(Table.Categories)} AS c
+                ON c.Id = o.ServiceId
+                WHERE OrderId = '{orderId}'";
 
-                    var order = (await sql.QueryAsync<Order>(sqlTxt)).FirstOrDefault();
-                    return (order, true);
-                }
-                catch (Exception exp)
-                {
-                    exceptionHandlerService.ReportException(exp).Submit();
-                    return (null, false);
-                }
-            }
+            var order = await QueryFirstOrDefaultAsync<Order>(sqlTxt);
+            return (order, order != null);
         }
 
         public async Task<IEnumerable<Order>> GetAllAsync(Guid customerId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Order>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE CustomerId = @customerId", new { customerId })).ToArray();
-            }
+            return await QueryAsync<Order>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE CustomerId = @customerId", new { customerId });
         }
 
         public async Task<bool> OrderExists(Guid orderId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE OrderId = @orderId", new { orderId });
-            }
+            return await ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE OrderId = @orderId", new { orderId });
         }
 
         public async Task<(Order Order, Trip Trip, bool Status)> InsertOrUpdateAsync(Order order, Trip trip)
         {
             using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            using (var sql = dbConnectionFactory())
-            {
-                try
+            { 
+                order.Modified = DateUtils.FromTimeZoneToUtc(DateUtils.DateTime());
+
+                if (!await OrderExists(order.OrderId))
                 {
-                    order.Modified = DateUtils.FromTimeZoneToUtc(DateUtils.DateTime());
+                    order.OrderId = Guid.NewGuid();
+                    await ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", order);
+                }
+                else
+                {
+                    await ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE OrderId = @OrderId", order);
+                }
 
-                    if (!await OrderExists(order.OrderId))
+                var newOrder = await GetAsync(order.OrderId);
+
+                if (newOrder.Status)
+                {
+                    trip.OrderId = newOrder.Order.OrderId;
+                    var orderTrip = await tripRepository.InsertOrUpdateAsync(trip);
+
+                    if (orderTrip.Status)
                     {
-                        order.OrderId = Guid.NewGuid();
-                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", order);
-                    }
-                    else
-                    {
-                        await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE OrderId = @OrderId", order);
-                    }
-
-                    var newOrder = await GetAsync(order.OrderId);
-
-                    if (newOrder.Status)
-                    {
-                        trip.OrderId = newOrder.Order.OrderId;
-                        var orderTrip = await tripRepository.InsertOrUpdateAsync(trip);
-
-                        if (orderTrip.Status)
-                        {
-                            scope.Complete();
-                            return (newOrder.Order, orderTrip.Trip, true);
-                        }
-                        else
-                        {
-                            return (null, null, false);
-                        }
+                        scope.Complete();
+                        return (newOrder.Order, orderTrip.Trip, true);
                     }
                     else
                     {
                         return (null, null, false);
                     }
-
                 }
-                catch (Exception exp)
+                else
                 {
-                    exceptionHandlerService.ReportException(exp).Submit();
                     return (null, null, false);
                 }
             }
@@ -137,90 +100,34 @@ namespace Appology.ER.Repository
 
         public async Task<bool> DeleteOrder(Guid orderId)
         {
-            try
-            {
-                using var sql = dbConnectionFactory();
-                await sql.ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
-
-                return await tripRepository.DeleteTripByOrderId(orderId);
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
+            await ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
+            return await tripRepository.DeleteTripByOrderId(orderId);
         }
 
         public async Task<bool> SetDeliveryDate(Guid orderId, DateTime date, string timeslot)
         {
-            try
-            {
-                using var sql = dbConnectionFactory();
-
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET DeliveryDate = @date, Timeslot = @timeslot WHERE orderId = @orderId", 
-                    new {
-                        orderId,
-                        timeslot,
-                        date
-                    });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
+            return await ExecuteAsync($"UPDATE {TABLE} SET DeliveryDate = @date, Timeslot = @timeslot WHERE orderId = @orderId", 
+                new {
+                    orderId,
+                    timeslot,
+                    date
+                });
         }
 
         public async Task<bool> UnsetDeliveryDate(Guid orderId)
         {
-            try
-            {
-                using var sql = dbConnectionFactory();
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET DeliveryDate = null, Timeslot = null WHERE orderId = @orderId",  new { orderId });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
+            return await ExecuteAsync($"UPDATE {TABLE} SET DeliveryDate = null, Timeslot = null WHERE orderId = @orderId",  new { orderId });
         }
 
         public async Task<bool> OrderPaid(Guid orderId, bool paid, string stripePaymentConfirmationId = null)
         {
-            try
-            {
-                using var sql = dbConnectionFactory();
-
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET Paid = @paid, StripePaymentConfirmationId = @stripePaymentConfirmationId WHERE OrderId = @orderId", 
-                    new { orderId, paid, stripePaymentConfirmationId });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
+            return await ExecuteAsync($"UPDATE {TABLE} SET Paid = @paid, StripePaymentConfirmationId = @stripePaymentConfirmationId WHERE OrderId = @orderId", 
+                new { orderId, paid, stripePaymentConfirmationId });
         }
         
         public async Task<bool> OrderDispatch(Guid orderId, bool dispatch)
         {
-            try
-            {
-                using var sql = dbConnectionFactory();
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET Dispatched = @dispatch WHERE OrderId = @orderId", new { orderId, dispatch });
-
-                return true;
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
+            return await ExecuteAsync($"UPDATE {TABLE} SET Dispatched = @dispatch WHERE OrderId = @orderId", new { orderId, dispatch });
         }
     }
 }

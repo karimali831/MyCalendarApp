@@ -18,7 +18,7 @@ namespace Appology.MiFinance.Service
         Task<int?> GetIdFromFinanceAsync(int Id);
         Task MakeSpendingFinanceless(int id, int catId, int? secondCatId);
         Task InsertAsync(SpendingDTO dto);
-        (DateTime? Date, decimal Amount) ExpenseLastPaid(int financeId);
+        Task<(DateTime? Date, decimal Amount)> ExpenseLastPaid(int financeId);
         Task<IEnumerable<SpendingSummaryDTO>> GetSpendingSummary(DateFilter dateFilter, bool summaryOverview = false);
         Task<IEnumerable<SpendingSummaryDTO>> GetSpendingSummaryOverview(DateFilter dateFilter);
         Task<IEnumerable<MonthComparisonChartVM>> GetSpendingsByCategoryAndMonthAsync(DateFilter dateFilter, int catId, bool isSecondCat, bool isFinance);
@@ -73,9 +73,9 @@ namespace Appology.MiFinance.Service
             await spendingRepository.InsertAsync(dto);
         }
 
-        public (DateTime? Date, decimal Amount) ExpenseLastPaid(int financeId)
+        public async Task<(DateTime? Date, decimal Amount)> ExpenseLastPaid(int financeId)
         {
-            return spendingRepository.ExpenseLastPaid(financeId);
+            return await spendingRepository.ExpenseLastPaid(financeId);
         }
 
         public async Task MissedCreditCardInterestEntriesAsync()

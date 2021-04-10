@@ -1,0 +1,34 @@
+﻿@model Appology.Website.Areas.Admin.ViewModels.CacheVM
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h4>Cached Items</h4>
+
+<div class="content-shadow">
+    <div class="content-inner light-bg">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Key</th>
+                    <th scope="col">Remove</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var key in Model.Keys)
+                {
+                    <tr>
+                        <td>@key.Substring(9, key.Length - 9)</td>
+                        <td>@Html.ActionLink("Remove", "RemoveKey", "Cache", new { key = key }, null)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" align="right">@Html.ActionLink("Remove All", "RemoveAll", "Cache")</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

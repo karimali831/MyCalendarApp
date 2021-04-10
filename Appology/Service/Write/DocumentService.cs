@@ -13,6 +13,7 @@ using System.Web.Mvc;
 using System.Linq;
 using Appology.Write.ViewModels;
 using Appology.Write.DTOs;
+using Appology.Service;
 
 namespace Appology.Write.Service
 {
@@ -34,24 +35,36 @@ namespace Appology.Write.Service
         Task<bool> InsertChangelog(DocumentChangelog docChangeLog);
         Task<(string OldText, string NewText)> GetDocChangelogTexts(int Id, Guid userId);
         Task<IEnumerable<(Guid DocId, string Tag)>> GetAllDocumentUserTags(Guid userId);
+        Task<bool> DocumentExists(Guid docId, Guid userCreatedId); 
     }
 
     public class DocumentService : IDocumentService
     {
+        public static readonly string cachePrefix = typeof(DocumentService).FullName;
         private readonly IUserRepository userRepo;
         private readonly IDocumentRepository documentRepository;
         private readonly IDocumentChangelogRepository documentChangelogRepository;
+        private readonly ICacheService cache;
 
-        public DocumentService(IDocumentRepository documentRepository, IUserRepository userRepo, IDocumentChangelogRepository documentChangelogRepository)
+        public DocumentService(ICacheService cache, IDocumentRepository documentRepository, IUserRepository userRepo, IDocumentChangelogRepository documentChangelogRepository)
         {
             this.documentRepository = documentRepository ?? throw new ArgumentNullException(nameof(documentRepository));
             this.documentChangelogRepository = documentChangelogRepository ?? throw new ArgumentNullException(nameof(documentChangelogRepository));
             this.userRepo = userRepo ?? throw new ArgumentNullException(nameof(userRepo));
+            this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         public async Task<IEnumerable<Document>> GetAllByTypeIdAsync(int typeId)
         {
-            return await documentRepository.GetAllByTypeIdAsync(typeId);
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetAllByTypeIdAsync)}",
+                async () => await documentRepository.GetAllByTypeIdAsync(typeId)
+            );
+        }
+
+        public async Task<bool> DocumentExists(Guid docId, Guid userCreatedId)
+        {
+            return await documentRepository.DocumentExists(docId, userCreatedId);
         }
 
         public async Task<IList<DocumentTitlesVM>> SearchDocumentsByFilter(string filter, Guid userId)
@@ -62,8 +75,10 @@ namespace Appology.Write.Service
 
         public async Task<IList<DocumentTitlesVM>> GetDocumentTitles(Guid userId)
         {
-            var tt = await documentRepository.GetDocumentTitles(userId);
-            return await DocTitles(tt);
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetDocumentTitles)}",
+                async () => await DocTitles(await documentRepository.GetDocumentTitles(userId))
+            );
         }
 
         public async Task<DocumentTitlesVM> GetDocumentTitle(Guid docId)
@@ -91,62 +106,71 @@ namespace Appology.Write.Service
 
         public async Task<Document> LoadDocument(Guid docId, User user)
         {
-            var doc = await documentRepository.GetAsync(docId, user.UserID);
-
-            if (doc == null)
-            {
-                return null;
-            }
-
-            var docCreator = await userRepo.GetByUserIDAsync(doc.UserCreatedId);
-            doc.UserCreatedName = docCreator.Name;
-
-            if (doc.EditedById.HasValue)
-            {
-                var editor = await userRepo.GetByUserIDAsync(doc.EditedById.Value);
-                doc.EditedBy = $"Edited {DateUtils.GetPrettyDate(doc.EditedDate.Value)} by {editor.Name}";
-            }
-
-            if (user.PinnedDocIdsList.Any())
-            {
-                doc.Pinned = user.PinnedDocIdsList.Contains(docId);
-            }
-
-            doc.Changelog = (await documentChangelogRepository.GetDocChangelogTitles(docId)) ?? Enumerable.Empty<DocumentChangelog>();
-
-            if (doc.Changelog.Any())
-            {
-                var collaborators = await userRepo.GetCollaboratorsAsync(doc.Changelog.Select(x => x.UserId));
-
-                doc.Changelog.Select(x =>
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(LoadDocument)}.{docId}",
+                async () =>
                 {
-                    var editedBy = collaborators.FirstOrDefault(c => c.CollaboratorId == x.UserId);
-                    
-                    x.EditedByAvatar = CalendarUtils.AvatarSrc(editedBy.CollaboratorId, editedBy.Avatar, editedBy.Name);
-                    x.EditedBy = $"Edited {DateUtils.GetPrettyDate(x.Date)} by {editedBy.Name}";
-                    x.EditedDate = x.Date.ToString("dd/MM/yyyy HH:mm");
+                    var doc = await documentRepository.GetAsync(docId, user.UserID);
 
-                    return x;
-                })
-                .OrderByDescending(x => x.Date)
-                .ToList();
-            }
+                    if (doc == null)
+                    {
+                        return null;
+                    }
 
-            return doc;
+                    var docCreator = await userRepo.GetByUserIDAsync(doc.UserCreatedId);
+                    doc.UserCreatedName = docCreator.Name;
+
+                    if (doc.EditedById.HasValue)
+                    {
+                        var editor = await userRepo.GetByUserIDAsync(doc.EditedById.Value);
+                        doc.EditedBy = $"Edited {DateUtils.GetPrettyDate(doc.EditedDate.Value)} by {editor.Name}";
+                    }
+
+                    if (user.PinnedDocIdsList.Any())
+                    {
+                        doc.Pinned = user.PinnedDocIdsList.Contains(docId);
+                    }
+
+                    doc.Changelog = (await documentChangelogRepository.GetDocChangelogTitles(docId)) ?? Enumerable.Empty<DocumentChangelog>();
+
+                    if (doc.Changelog.Any())
+                    {
+                        var collaborators = await userRepo.GetCollaboratorsAsync(doc.Changelog.Select(x => x.UserId));
+
+                        doc.Changelog.Select(x =>
+                        {
+                            var editedBy = collaborators.FirstOrDefault(c => c.CollaboratorId == x.UserId);
+
+                            x.EditedByAvatar = CalendarUtils.AvatarSrc(editedBy.CollaboratorId, editedBy.Avatar, editedBy.Name);
+                            x.EditedBy = $"Edited {DateUtils.GetPrettyDate(x.Date)} by {editedBy.Name}";
+                            x.EditedDate = x.Date.ToString("dd/MM/yyyy HH:mm");
+
+                            return x;
+                        })
+                        .OrderByDescending(x => x.Date)
+                        .ToList();
+                    }
+
+                    return doc;
+                }
+            );
         }
 
         public async Task<bool> DeleteDocument(Guid docId)
         {
+            RemoveCache();
             return await documentRepository.DeleteDocument(docId);
         }
 
         public async Task<bool> InsertOrUpdateAsync(DocumentDTO doc)
         {
+            RemoveCache();
             return await documentRepository.InsertOrUpdateAsync(doc);
         }
 
         public async Task<bool> MoveAsync(Guid docId, int moveToId)
         {
+            RemoveCache();
             return await documentRepository.MoveAsync(docId, moveToId);
         }
 
@@ -157,6 +181,7 @@ namespace Appology.Write.Service
 
         public async Task<bool> PinDoc(Guid userId, string docIds)
         {
+            RemoveCache();
             return await userRepo.PinDoc(userId, docIds);
         }
 
@@ -218,5 +243,9 @@ namespace Appology.Write.Service
             return await documentRepository.GetAllDocumentUserTags(userId) ?? Enumerable.Empty<(Guid, string)>();
         }
 
+        private void RemoveCache()
+        {
+            cache.RemoveAll(cachePrefix);
+        }
     }
 }

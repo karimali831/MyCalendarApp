@@ -37,5 +37,7 @@ namespace Appology.Website.ViewModels
         public bool FinanceCategories { get; set; }
         public bool Monzo { get; set; }
         public bool None { get; set; }
+        // admin
+        public bool Cache { get; set; }
     }
 }

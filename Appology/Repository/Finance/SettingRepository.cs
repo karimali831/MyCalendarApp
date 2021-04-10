@@ -1,10 +1,9 @@
 ﻿using Appology.Enums;
 using Appology.MiFinance.Model;
-using Dapper;
+using Appology.Repository;
 using DFM.Utils;
 using System;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Appology.MiFinance.Repository
@@ -16,22 +15,17 @@ namespace Appology.MiFinance.Repository
         Task UpdateCashBalanceAsync(decimal cashBalance);
     }
 
-    public class SettingRepository : ISettingRepository
+    public class SettingRepository : DapperBaseRepository, ISettingRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Settings);
         private static readonly string[] FIELDS = typeof(Setting).DapperFields();
 
-        public SettingRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public SettingRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
 
         public async Task<Setting> GetAsync()
         {
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<Setting>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).First();
+            return await QueryFirstOrDefaultAsync<Setting>($"{DapperHelper.SELECT(TABLE, FIELDS)}");
         }
 
         public async Task UpdateAsync(Setting settings)
@@ -43,9 +37,7 @@ namespace Appology.MiFinance.Repository
                 StartingDate = @StartingDate
             ";
 
-            using var sql = dbConnectionFactory();
-
-            await sql.ExecuteAsync(sqlTxt, new 
+            await ExecuteAsync(sqlTxt, new 
             {
                 settings.AvailableCredit,
                 settings.AvailableCash,
@@ -55,10 +47,7 @@ namespace Appology.MiFinance.Repository
 
         public async Task UpdateCashBalanceAsync(decimal cashBalance)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                await sql.ExecuteAsync($"UPDATE {TABLE} SET AvailableCash += @CashBalance", new { CashBalance = cashBalance } );
-            }
+            await ExecuteAsync($"UPDATE {TABLE} SET AvailableCash += @CashBalance", new { CashBalance = cashBalance });
         }
     }
 }

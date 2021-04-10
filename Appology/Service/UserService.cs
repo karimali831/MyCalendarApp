@@ -41,62 +41,82 @@ namespace Appology.Service
 
     public class UserService : IUserService
     {
+        public static readonly string cachePrefix = typeof(UserService).FullName;
         private readonly IUserRepository userRepository;
         private readonly ITypeService typeService;
         private readonly ITagService tagService;
         private readonly ICronofyService cronofyService;
         private readonly ITagRepository tagRepository;
+        private readonly ICacheService cache;
 
         public UserService(
             ITagService tagService,
             IUserRepository userRepository,
             ICronofyService cronofyService,
             ITagRepository tagRepository,
-            ITypeService typeService)
+            ITypeService typeService,
+            ICacheService cache)
         {
             this.userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             this.tagService = tagService ?? throw new ArgumentNullException(nameof(tagService));
             this.cronofyService = cronofyService ?? throw new ArgumentNullException(nameof(cronofyService));
             this.tagRepository = tagRepository ?? throw new ArgumentNullException(nameof(tagRepository));
             this.typeService = typeService ?? throw new ArgumentNullException(nameof(typeService));
+            this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            return await userRepository.GetAllAsync();
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetAllAsync)}",
+                async () => await userRepository.GetAllAsync()
+            );
         }
 
         public async Task<IList<User>> GetBuddys(Guid userId)
         {
-            var buddyIds = (await userRepository.GetByUserIDAsync(userId))?.BuddyIds ?? null;
-            var buddyList = new List<User>();
-
-            if (!string.IsNullOrEmpty(buddyIds))
-            {
-                var getBuddyList = buddyIds.Split(',').Select(x => Guid.Parse(x)).ToList();
-
-                foreach (var buddy in getBuddyList)
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetBuddys)}",
+                async () =>
                 {
-                    var buddyProfile = await userRepository.GetByUserIDAsync(buddy);
-                    buddyList.Add(buddyProfile);
-                }
-            }
+                    var buddyIds = (await GetByUserIDAsync(userId))?.BuddyIds ?? null;
+                    var buddyList = new List<User>();
 
-            return buddyList;
+
+                    if (!string.IsNullOrEmpty(buddyIds))
+                    {
+                        var getBuddyList = buddyIds.Split(',').Select(x => Guid.Parse(x)).ToList();
+
+                        foreach (var buddy in getBuddyList)
+                        {
+                            var buddyProfile = await GetByUserIDAsync(buddy);
+                            buddyList.Add(buddyProfile);
+                        }
+                    }
+
+                    return buddyList;
+                }
+            );
         }
 
         public async Task<IEnumerable<Types>> UserCalendars(Guid userId, bool userCreated = false)
         {
-            var userCalendars = (
-                await typeService.GetUserTypesAsync(userId, TypeGroup.Calendars))
-                    .Where(x => userCreated && x.UserCreatedId == userId || !userCreated);
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(UserCalendars)}.userCreated-{userCreated}",
+                 async () =>
+                 {
+                     var userCalendars = (
+                        await typeService.GetUserTypesAsync(userId, TypeGroup.Calendars))
+                            .Where(x => userCreated && x.UserCreatedId == userId || !userCreated);
 
-            foreach (var calendar in userCalendars)
-            {
-                calendar.CreatorName = (await GetByUserIDAsync(calendar.UserCreatedId)).Name;
-            }
+                     foreach (var calendar in userCalendars)
+                     {
+                         calendar.CreatorName = (await GetByUserIDAsync(calendar.UserCreatedId)).Name;
+                     }
 
-            return userCalendars;
+                     return userCalendars;
+                 }
+            );
         }
 
         public object GetUserTypes(User user, IEnumerable<Types> userTypes)
@@ -119,7 +139,10 @@ namespace Appology.Service
 
         public async Task<User> GetByUserIDAsync(Guid userID)
         {
-            return await userRepository.GetByUserIDAsync(userID);
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetByUserIDAsync)}.{userID}",
+                async () => await userRepository.GetByUserIDAsync(userID)
+            );
         }
 
         public async Task<Tag> GetUserTagAysnc(Guid tagID)
@@ -149,81 +172,103 @@ namespace Appology.Service
                     }
                 }
 
+                RemoveCache(nameof(GetUserTags));
                 return await tagRepository.UpdateUserTagsAsync(tags, userId);
             }
             else
             {
                 await tagRepository.DeleteAllUserTagsAsync(userId);
+                RemoveCache(nameof(GetUserTags));
+
                 return true;
             }
+
         }
 
         public async Task<bool> SaveUserInfo(UserInfoDTO dto)
         {
+            RemoveCache(nameof(GetUser));
             return await userRepository.SaveUserInfo(dto);
         }
 
         public async Task<bool> SaveCalendarSettings(CalendarSettingsDTO dto)
         {
+            RemoveCache($"{nameof(UserCalendars)}.userCreated-true");
+            RemoveCache($"{nameof(UserCalendars)}.userCreated-false");
             return await userRepository.SaveCalendarSettings(dto);
         }
 
         public async Task<User> GetUser(string email = null, string password = null)
         {
-            var user = await userRepository.GetAsync(email ?? SessionPersister.Email, password);
+            email ??= SessionPersister.Email;
 
-            if (user != null)
-            {
-                user.Authenticated = true;
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetUser)}.{email}",
+                 async () =>
+                 {
+                     var user = await userRepository.GetAsync(email, password);
 
-                if (!user.EnableCronofy)
-                {
-                    user.CronofyReady = CronofyStatus.Disabled;
-                }
-                else if (string.IsNullOrEmpty(user.CronofyUid) || string.IsNullOrEmpty(user.AccessToken) || string.IsNullOrEmpty(user.RefreshToken))
-                {
-                    user.CronofyReady = CronofyStatus.NotAuthenticated;
-                }
-                else
-                {
-                    cronofyService.LoadUser(user);
+                     if (user != null)
+                     {
+                         user.Authenticated = true;
 
-                    var getCalendarNames = cronofyService.GetProfiles().Select(x => Utils.UppercaseFirst(x.ProviderName));
-                    user.CronofyReadyCalendarName = string.Format("{0} Calendar{1}", string.Join(", ", getCalendarNames), getCalendarNames.Count() > 1 ? "s" : "");
+                         if (!user.EnableCronofy)
+                         {
+                             user.CronofyReady = CronofyStatus.Disabled;
+                         }
+                         else if (string.IsNullOrEmpty(user.CronofyUid) || string.IsNullOrEmpty(user.AccessToken) || string.IsNullOrEmpty(user.RefreshToken))
+                         {
+                             user.CronofyReady = CronofyStatus.NotAuthenticated;
+                         }
+                         else
+                         {
+                             cronofyService.LoadUser(user);
 
-                    if (user.ExtCalendarRights != null && user.ExtCalendarRights.Any(x => x.Read || x.Delete || x.Save))
-                    {
-                        user.CronofyReady = CronofyStatus.AuthenticatedRightsSet;
-                    }
-                    else
-                    {
-                        user.CronofyReady = CronofyStatus.AuthenticatedNoRightsSet;
-                    }
+                             var getCalendarNames = cronofyService.GetProfiles().Select(x => Utils.UppercaseFirst(x.ProviderName));
+                             user.CronofyReadyCalendarName = string.Format("{0} Calendar{1}", string.Join(", ", getCalendarNames), getCalendarNames.Count() > 1 ? "s" : "");
 
-                }
+                             if (user.ExtCalendarRights != null && user.ExtCalendarRights.Any(x => x.Read || x.Delete || x.Save))
+                             {
+                                 user.CronofyReady = CronofyStatus.AuthenticatedRightsSet;
+                             }
+                             else
+                             {
+                                 user.CronofyReady = CronofyStatus.AuthenticatedNoRightsSet;
+                             }
 
-                return user;
-            }
+                         }
 
-            return null;
+                         return user;
+                     }
+
+                     RemoveCache(nameof(GetUser));
+                     return null;
+                 }
+            );
         }
 
         public async Task<IEnumerable<Tag>> GetUserTags(Guid userId)
         {
-            var user = await GetByUserIDAsync(userId);
-            var userTags = await userRepository.GetTagsByUserAsync(userId);
-
-            if (userTags != null && userTags.Any())
-            {
-                foreach (var tag in userTags)
+            return await cache.GetAsync(
+                $"{cachePrefix}.{nameof(GetUserTags)}",
+                async () =>
                 {
-                    tag.UpdateDisabled = tag.UserID != user.UserID;
+                    var user = await GetByUserIDAsync(userId);
+                    var userTags = await userRepository.GetTagsByUserAsync(userId);
+
+                    if (userTags != null && userTags.Any())
+                    {
+                        foreach (var tag in userTags)
+                        {
+                            tag.UpdateDisabled = tag.UserID != user.UserID;
+                        }
+
+                        return userTags;
+                    }
+
+                    return Enumerable.Empty<Tag>();
                 }
-
-                return userTags;
-            }
-
-            return Enumerable.Empty<Tag>();
+            );
         }
 
         public async Task<(bool Status, Types UserType)> SaveUserType(UserTypeDTO dto)
@@ -269,6 +314,7 @@ namespace Appology.Service
 
         public async Task<bool> UpdateBuddys(string buddys, Guid userId)
         {
+            RemoveCache(nameof(GetBuddys));
             return await userRepository.UpdateBuddys(buddys, userId);
         }
 
@@ -340,6 +386,8 @@ namespace Appology.Service
                     var updateInvitee = await UpdateBuddys(user.BuddyIds, user.UserID);
                     var updateInviter = await UpdateBuddys(inviter.BuddyIds, inviter.UserID);
 
+                    RemoveCache(nameof(GetBuddys));
+
                     status = (updateInvitee && updateInviter)
                         ? (Status.Success, $"You and {inviter.Name} are now buddys")
                         : (Status.Failed, $"There was an issue adding you or {inviter.Name}'s as a buddy");
@@ -356,12 +404,19 @@ namespace Appology.Service
 
         public async Task<bool> UpdateCronofyUserCredentials(string cronofyUid, string accessToken, string refreshToken, Guid userId)
         {
+            RemoveCache(nameof(GetUser));
             return await userRepository.UpdateCronofyUserCredentials(cronofyUid, accessToken, refreshToken, userId);
         }
 
         public async Task<bool> UpdateCronofyCalendarRights(IEnumerable<ExtCalendarRights> rights, Guid userId)
         {
+            RemoveCache(nameof(GetUser));
             return await userRepository.UpdateCronofyCalendarRights(rights, userId);
+        }
+
+        private void RemoveCache(string key)
+        {
+            cache.Remove($"{cachePrefix}.{key}");
         }
     }
 }

@@ -39,7 +39,9 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.FinanceCategories, "/finance/app/categories"),
                 new KeyValuePair<Section, string>(Section.FinanceSettings, "/finance/app/settings"),
                 new KeyValuePair<Section, string>(Section.Monzo, "/finance/Monzo/ApproveDataAccess"),
-                new KeyValuePair<Section, string>(Section.MonzoAuthenticate, "/finance/Monzo/Login")
+                new KeyValuePair<Section, string>(Section.MonzoAuthenticate, "/finance/Monzo/Login"),
+                // admin
+                new KeyValuePair<Section, string>(Section.Cache, "/admin/cache/index")
             };
         }
 

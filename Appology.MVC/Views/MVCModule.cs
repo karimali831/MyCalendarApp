@@ -15,6 +15,7 @@ namespace Appology.Ninject
             Bind<ICategoryService>().To<CategoryService>();
             Bind<ITypeService>().To<TypeService>();
             Bind<INotificationService>().To<NotificationService>();
+            Bind<ICacheService>().To<CacheService>().InSingletonScope(); // create one copy and re-use it everytime.
 
             // Repositories
             Bind<IUserRepository>().To<UserRepository>();

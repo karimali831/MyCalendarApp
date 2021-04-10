@@ -23,8 +23,8 @@ namespace Appology.MiFinance.Service
         Task<IEnumerable<FinanceVM>> GetFinances(bool resyncNextDueDates);
         Task InsertAsync(FinanceDTO dto);
         int? CalculateDays(DateTime? Date1, DateTime? Date2);
-        int? DaysLastPaid(int Id);
-        PaymentStatus PaymentStatusAsync(int Id, DateTime? nextDueDate, DateTime? endDate);
+        Task<int?> DaysLastPaid(int Id);
+        Task<PaymentStatus> PaymentStatusAsync(int Id, DateTime? nextDueDate, DateTime? endDate);
         Task<IEnumerable<MonthComparisonChartVM>> GetIncomeExpenseTotalsByMonth(DateFilter filter);
         Task<RemindersVM> GetNotifications();
         Task<IEnumerable<MonthComparisonChartVM>> GetFinanceTotalsByMonth(MonthComparisonChartRequestDTO request);
@@ -84,7 +84,7 @@ namespace Appology.MiFinance.Service
                         OverrideNextDueDate = x.OverrideNextDueDate,
                         ManualPayment = x.ManualPayment,
                         DaysUntilDue = CalculateDays(x.NextDueDate, DateTime.UtcNow),
-                        PaymentStatus = PaymentStatusAsync(x.Id, x.NextDueDate, x.EndDate),
+                        PaymentStatus = await PaymentStatusAsync(x.Id, x.NextDueDate, x.EndDate),
                         DirectDebit = x.DirectDebit,
                         MonzoTag = x.MonzoTag,
                         SuperCatId = x.SuperCatId
@@ -197,7 +197,7 @@ namespace Appology.MiFinance.Service
             {
                 foreach(var finance in finances)
                 {
-                    var expenseLastPaid = spendingService.ExpenseLastPaid(finance.Id);
+                    var expenseLastPaid = await spendingService.ExpenseLastPaid(finance.Id);
 
                     // if average monthly amount varies get the amount from last paid amount
                     if (finance.AvgMonthlyAmount == 0 && expenseLastPaid.Date.HasValue)
@@ -264,13 +264,13 @@ namespace Appology.MiFinance.Service
             return (int)(Date1.Value.Date - Date2.Value.Date).TotalDays;
         }
 
-        public int? DaysLastPaid(int Id)
+        public async Task<int?> DaysLastPaid(int Id)
         {
-            var expenseLastPaidDate = spendingService.ExpenseLastPaid(Id);
+            var expenseLastPaidDate = await spendingService.ExpenseLastPaid(Id);
             return CalculateDays(DateTime.UtcNow, expenseLastPaidDate.Date);
         }
 
-        public PaymentStatus PaymentStatusAsync(int Id, DateTime? nextDueDate, DateTime? endDate)
+        public async Task<PaymentStatus> PaymentStatusAsync(int Id, DateTime? nextDueDate, DateTime? endDate)
         {
             if (!nextDueDate.HasValue)
             {
@@ -278,7 +278,7 @@ namespace Appology.MiFinance.Service
             }
 
             var daysUntilDue = CalculateDays(nextDueDate, DateTime.UtcNow);
-            var daysLastPaid = DaysLastPaid(Id);
+            var daysLastPaid = await DaysLastPaid(Id);
 
             if (endDate.HasValue && DateTime.UtcNow.Date > endDate.Value)
             {

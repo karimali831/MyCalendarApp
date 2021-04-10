@@ -1,15 +1,13 @@
 ﻿using Appology.Enums;
 using Appology.Helpers;
 using Appology.MiFinance.DTOs;
-using Appology.MiFinance.Enums;
 using Appology.MiFinance.Model;
 using Appology.MiFinance.ViewModels;
-using Dapper;
+using Appology.Repository;
 using DFM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using Categories = Appology.MiFinance.Enums.Categories;
 
@@ -21,7 +19,7 @@ namespace Appology.MiFinance.Repository
         Task<IEnumerable<(int Year, int Month)>> MissedCreditCardInterestEntriesAsync(string card);
         Task<int?> GetIdFromFinanceAsync(int Id);
         Task MakeSpendingFinanceless(int id, int catId, int? secondCatId);
-        (DateTime? Date, decimal Amount) ExpenseLastPaid(int financeId);
+        Task<(DateTime? Date, decimal Amount)> ExpenseLastPaid(int financeId);
         Task InsertAsync(SpendingDTO dto);
         Task<IEnumerable<SpendingSummaryDTO>> GetSpendingsSummaryAsync(DateFilter dateFilter);
         Task<IEnumerable<MonthComparisonChartVM>> GetSpendingsByCategoryAndMonthAsync(DateFilter dateFilter, int catId, bool isSecondCat, bool isFinance);
@@ -31,17 +29,12 @@ namespace Appology.MiFinance.Repository
         Task<bool> MonzoTransactionExists(string transId);
     }
 
-    public class SpendingRepository : ISpendingRepository
+    public class SpendingRepository : DapperBaseRepository, ISpendingRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Spendings);
-        private static readonly string[] FIELDS = typeof(Spending).DapperFields();
         private static readonly string[] DTOFIELDS = typeof(SpendingDTO).DapperFields();
 
-        public SpendingRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public SpendingRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<IEnumerable<Spending>> GetAllAsync(DateFilter dateFilter)
         {
@@ -70,10 +63,7 @@ namespace Appology.MiFinance.Repository
                     Display = 1
                     {(dateFilter != null && dateFilter.Frequency.HasValue ? " AND " + DateUtils.FilterDateSql(dateFilter) : null)}";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Spending>(sqlTxt)).ToArray();
-            }
+            return await QueryAsync<Spending>(sqlTxt);
         }
 
         public async Task<IEnumerable<MonthComparisonChartVM>> GetSpendingsByMonthAsync(DateFilter dateFilter)
@@ -103,10 +93,9 @@ namespace Appology.MiFinance.Repository
                     c1.Id, c2.Id, F.Id, c1.SuperCatId, c2.SuperCatId, f.SuperCatId
                 ORDER BY 
                     YearMonth, Total DESC";
-            
 
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<MonthComparisonChartVM>(sqlTxt)).ToArray();
+
+            return await QueryAsync<MonthComparisonChartVM>(sqlTxt);
         }
 
 
@@ -169,8 +158,7 @@ namespace Appology.MiFinance.Repository
                         YearMonth";
             }
 
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<MonthComparisonChartVM>(sqlTxt, new { CatId = catId })).ToArray();
+            return await QueryAsync<MonthComparisonChartVM>(sqlTxt, new { CatId = catId });
         }
 
         public async Task<IEnumerable<SpecialCatsSpendingSummary>> GetSpecialCatsSpendingsSummaryAsync(DateFilter dateFilter)
@@ -208,11 +196,8 @@ namespace Appology.MiFinance.Repository
                 GROUP BY SuperCatId, SuperCategory
                 ORDER BY Total DESC";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<SpecialCatsSpendingSummary>(sqlTxt)).ToArray();
 
-            }
+            return await QueryAsync<SpecialCatsSpendingSummary>(sqlTxt);
         }
 
         public async Task<IEnumerable<SpendingSummaryDTO>> GetSpendingsSummaryAsync(DateFilter dateFilter)
@@ -251,60 +236,42 @@ namespace Appology.MiFinance.Repository
                 ORDER BY 
                     Total DESC";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<SpendingSummaryDTO>(sqlTxt)).ToArray();
-
-            }
+            return await QueryAsync<SpendingSummaryDTO>(sqlTxt);
         }
 
         public async Task<int?> GetIdFromFinanceAsync(int Id)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return 
-                    (await sql.QueryAsync<int?>($@"SELECT Id FROM {TABLE} WHERE FinanceId = @Id", new { Id })).FirstOrDefault();
-            }
+            return await QueryFirstOrDefaultAsync<int?>($@"SELECT Id FROM {TABLE} WHERE FinanceId = @Id", new { Id });
         }
 
         public async Task MakeSpendingFinanceless(int id, int catId, int? secondCatId = null)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                await sql.ExecuteAsync($@"
-                    UPDATE {TABLE} SET CatId = @CatId, SecondCatId = @SecondCatId, FinanceId = null WHERE Id = @Id", 
-                    new { 
-                        CatId = catId,
-                        SecondCatId = secondCatId,
-                        Id = id
-                    }
-                );
-            }
+            await ExecuteAsync($@"
+                UPDATE {TABLE} SET CatId = @CatId, SecondCatId = @SecondCatId, FinanceId = null WHERE Id = @Id", 
+                new { 
+                    CatId = catId,
+                    SecondCatId = secondCatId,
+                    Id = id
+                }
+            );
         }
 
-        public (DateTime? Date, decimal Amount) ExpenseLastPaid(int financeId)
+        public async Task<(DateTime? Date, decimal Amount)> ExpenseLastPaid(int financeId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return   
-                    (sql.Query<(DateTime?, decimal)>($@"
-                            SELECT Date, Amount
-                            FROM {TABLE}
-                            WHERE FinanceId = @FinanceId 
-                            AND Amount != 0
-                            ORDER BY Date DESC",
-                            new { FinanceId = financeId }
-                    ))
-                    .FirstOrDefault();
-            }
+            return
+                await QueryFirstOrDefaultAsync<(DateTime?, decimal)>($@"
+                    SELECT Date, Amount
+                    FROM {TABLE}
+                    WHERE FinanceId = @FinanceId 
+                    AND Amount != 0
+                    ORDER BY Date DESC",
+                        new { FinanceId = financeId }
+                );
         }
 
         public async Task InsertAsync(SpendingDTO dto)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                await sql.ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
-            }
+            await ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
         }
 
         public async Task<IEnumerable<(int Year, int Month)>> MissedCreditCardInterestEntriesAsync(string card)
@@ -334,22 +301,17 @@ namespace Appology.MiFinance.Repository
                 AND Name like @Card
                 ";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<(int Year, int Month)>(sqlTxt, new { Card = $"%{card}%" })).ToArray();
+                return await QueryAsync<(int Year, int Month)>(sqlTxt, new { Card = $"%{card}%" });
 
-            }
+            
         }
 
         public async Task<bool> MonzoTransactionExists(string transId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.ExecuteScalarAsync<bool>($@"
-                    SELECT count(1) FROM {TABLE} WHERE MonzoTransId = @Id",
-                    new { Id = transId }
-                ));
-            }
+            return await ExecuteScalarAsync<bool>($@"
+                SELECT count(1) FROM {TABLE} WHERE MonzoTransId = @Id",
+                new { Id = transId }
+            );
         }
 
         public async Task<IEnumerable<(string MonzoTransId, DateTime Date)>> RecentMonzoSyncedTranIds(int max)
@@ -360,11 +322,7 @@ namespace Appology.MiFinance.Repository
                 WHERE MonzoTransId is not null
 				ORDER BY Date DESC";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<(string, DateTime)>(sqlTxt, new { max })).ToArray();
-
-            }
+            return await QueryAsync<(string, DateTime)>(sqlTxt, new { max });
         }
     }
 }

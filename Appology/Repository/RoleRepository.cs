@@ -1,11 +1,9 @@
-﻿using Dapper;
-using DFM.Utils;
+﻿using DFM.Utils;
 using Appology.Enums;
 using Appology.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Appology.Repository
@@ -16,32 +14,21 @@ namespace Appology.Repository
         Task<Role> GetAsync(Guid Id);
     }
 
-    public class RoleRepository : IRoleRepository
+    public class RoleRepository : DapperBaseRepository, IRoleRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Roles);
         private static readonly string[] FIELDS = typeof(Role).DapperFields();
 
-        public RoleRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public RoleRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<IEnumerable<Role>> GetAllAsync()
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Role>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
-            }
+            return await QueryAsync<Role>($"{DapperHelper.SELECT(TABLE, FIELDS)}");
         }
 
         public async Task<Role> GetAsync(Guid Id)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Role>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id", new { Id })).FirstOrDefault();
-            }
+            return await QueryFirstOrDefaultAsync<Role>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE Id = @Id", new { Id });
         }
-
     }
 }

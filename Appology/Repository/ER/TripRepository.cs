@@ -1,15 +1,11 @@
-﻿using Dapper;
-using DFM.Utils;
+﻿using DFM.Utils;
 using Appology.ER.Model;
 using Appology.Helpers;
 using System;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using Appology.Enums;
-using DFM.ExceptionHandling;
-using DFM.ExceptionHandling.Sentry;
-using System.Configuration;
+using Appology.Repository;
 
 namespace Appology.ER.Repository
 {
@@ -22,96 +18,50 @@ namespace Appology.ER.Repository
         Task<bool> DeleteTripByOrderId(Guid orderId);
     }
 
-    public class TripRepository : ITripRepository
+    public class TripRepository : DapperBaseRepository, ITripRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
-        private readonly IExceptionHandlerService exceptionHandlerService;
         private static readonly string TABLE = Tables.Name(Table.Trips);
         private static readonly string[] FIELDS = typeof(Trip).DapperFields();
 
-        public TripRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-            this.exceptionHandlerService = new ExceptionHandlerService(ConfigurationManager.AppSettings["DFM.ExceptionHandling.Sentry.Environment"]);
-        }
+        public TripRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<Trip> GetAsync(Guid tripId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<Trip>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE TripId = @tripId", new { tripId })).FirstOrDefault();
-            }
+            return await QueryFirstOrDefaultAsync<Trip>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE TripId = @tripId", new { tripId });
         }
 
         public async Task<(Trip Trip, bool Status)> GetByOrderIdAsync(Guid orderId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                try
-                {
-                    var trip = (await sql.QueryAsync<Trip>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE OrderId = @orderId", new { orderId })).FirstOrDefault();
-                    return (trip, true);
-
-                }
-                catch (Exception exp)
-                {
-                    exceptionHandlerService.ReportException(exp).Submit();
-                    return (null, false);
-                }
-            }
+            var trip = await QueryFirstOrDefaultAsync<Trip>($"{DapperHelper.SELECT(TABLE, FIELDS)} WHERE OrderId = @orderId", new { orderId });
+            return (trip, trip != null);
         }
 
         public async Task<bool> DeleteTripByOrderId(Guid orderId)
         {
-            try
-            {
-                using var sql = dbConnectionFactory();
-                await sql.ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
-
-                return true;
-
-            }
-            catch (Exception exp)
-            {
-                exceptionHandlerService.ReportException(exp).Submit();
-                return false;
-            }
+            return await ExecuteAsync($@"{DapperHelper.DELETE(TABLE)} WHERE OrderId = @orderId", new { orderId });
         }
 
         public async Task<bool> TripExists(Guid tripId)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                return await sql.ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE TripId = @tripId", new { tripId });
-            }
+            return await ExecuteScalarAsync<bool>($"SELECT count(1) FROM {TABLE} WHERE TripId = @tripId", new { tripId });
         }
 
         public async Task<(Trip Trip, bool Status)> InsertOrUpdateAsync(Trip trip)
         {
-            using (var sql = dbConnectionFactory())
+
+            trip.Modified = DateUtils.FromTimeZoneToUtc(DateUtils.DateTime());
+
+            if (!await TripExists(trip.TripId))
             {
-                try
-                {
-                    trip.Modified = DateUtils.FromTimeZoneToUtc(DateUtils.DateTime());
-
-                    if (!await TripExists(trip.TripId))
-                    {
-                        trip.TripId = Guid.NewGuid();
-                        await sql.ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", trip);
-                    }
-                    else
-                    {
-                        await sql.ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE TripId = @TripId", trip);
-                    }
-
-                    return (await GetAsync(trip.TripId), true);
-                }
-                catch (Exception exp)
-                {
-                    exceptionHandlerService.ReportException(exp).Submit();
-                    return (null, false);
-                }
+                trip.TripId = Guid.NewGuid();
+                await ExecuteAsync($"{DapperHelper.INSERT(TABLE, FIELDS)}", trip);
             }
+            else
+            {
+                await ExecuteAsync($"{DapperHelper.UPDATE(TABLE, FIELDS, "")} WHERE TripId = @TripId", trip);
+            }
+
+            return (await GetAsync(trip.TripId), true);
         }
     }
 }

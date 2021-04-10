@@ -1,15 +1,13 @@
 ﻿using Appology.Enums;
 using Appology.Helpers;
 using Appology.MiFinance.DTOs;
-using Appology.MiFinance.Enums;
 using Appology.MiFinance.Model;
 using Appology.MiFinance.ViewModels;
-using Dapper;
+using Appology.Repository;
 using DFM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 using Categories = Appology.MiFinance.Enums.Categories;
 
@@ -25,74 +23,62 @@ namespace Appology.MiFinance.Repository
         Task<IEnumerable<string>> RecentMonzoSyncedTranIds(int max);
     }
 
-    public class IncomeRepository : IIncomeRepository
+    public class IncomeRepository : DapperBaseRepository, IIncomeRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.Incomes);
-        private static readonly string[] FIELDS = typeof(Income).DapperFields();
         private static readonly string[] DTOFIELDS = typeof(IncomeDTO).DapperFields();
 
-        public IncomeRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public IncomeRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<IEnumerable<Income>> GetAllAsync(DateFilter dateFilter)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                string sqlTxt = $@"
-                    SELECT 
-                        i.Id,
-                        i.Name,
-                        i.Date,
-                        i.Amount,
-                        i.SourceId,
-                        i.SecondSourceId,
-                        i.WeekNo,
-                        c1.Name AS Source,
-                        c2.Name AS SecondSource,
-                        i.MonzoTransId
-                    FROM {TABLE} i
-                    INNER JOIN {Tables.Name(Table.FinanceCategories)} c1
-                        ON c1.Id = i.SourceId
-                    LEFT JOIN {Tables.Name(Table.FinanceCategories)} c2
-                        ON c2.Id = i.SecondSourceId
-                    {(dateFilter != null && dateFilter.Frequency.HasValue ? " WHERE " + DateUtils.FilterDateSql(dateFilter) : null)}";;
+            string sqlTxt = $@"
+                SELECT 
+                    i.Id,
+                    i.Name,
+                    i.Date,
+                    i.Amount,
+                    i.SourceId,
+                    i.SecondSourceId,
+                    i.WeekNo,
+                    c1.Name AS Source,
+                    c2.Name AS SecondSource,
+                    i.MonzoTransId
+                FROM {TABLE} i
+                INNER JOIN {Tables.Name(Table.FinanceCategories)} c1
+                    ON c1.Id = i.SourceId
+                LEFT JOIN {Tables.Name(Table.FinanceCategories)} c2
+                    ON c2.Id = i.SecondSourceId
+                {(dateFilter != null && dateFilter.Frequency.HasValue ? " WHERE " + DateUtils.FilterDateSql(dateFilter) : null)}";
 
-                return (await sql.QueryAsync<Income>(sqlTxt)).ToArray();
-            }
+            return await QueryAsync<Income>(sqlTxt);
         }
 
         public async Task<IEnumerable<IncomeSummaryDTO>> GetSummaryAsync(DateFilter dateFilter)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                string sqlTxt = $@"
-                    SELECT 
-	                    i.SourceId AS CatId,
-						i.SecondSourceId AS SecondCatId,
-	                    c1.Name AS Cat1,
-                        c2.Name AS Cat2,
-	                    SUM(i.Amount) as Total,
-                        c1.SecondTypeId,
-                        FORMAT(AVG(i.Amount), 'C', 'en-gb') as Average
-                    FROM 
-	                    {TABLE} as i
-                    LEFT JOIN {Tables.Name(Table.FinanceCategories)} c1
-	                    ON c1.Id = i.SourceId
-                    LEFT JOIN {Tables.Name(Table.FinanceCategories)} c2
-	                    ON c2.Id = i.SecondSourceId
-                    WHERE 
-                         {DateUtils.FilterDateSql(dateFilter)}
-                    GROUP BY 
-	                    i.SourceId, i.SecondSourceId, c1.Name, c2.Name, c1.SecondTypeId
-                    ORDER BY 
-	                    Total DESC";
+            string sqlTxt = $@"
+                SELECT 
+	                i.SourceId AS CatId,
+					i.SecondSourceId AS SecondCatId,
+	                c1.Name AS Cat1,
+                    c2.Name AS Cat2,
+	                SUM(i.Amount) as Total,
+                    c1.SecondTypeId,
+                    FORMAT(AVG(i.Amount), 'C', 'en-gb') as Average
+                FROM 
+	                {TABLE} as i
+                LEFT JOIN {Tables.Name(Table.FinanceCategories)} c1
+	                ON c1.Id = i.SourceId
+                LEFT JOIN {Tables.Name(Table.FinanceCategories)} c2
+	                ON c2.Id = i.SecondSourceId
+                WHERE 
+                        {DateUtils.FilterDateSql(dateFilter)}
+                GROUP BY 
+	                i.SourceId, i.SecondSourceId, c1.Name, c2.Name, c1.SecondTypeId
+                ORDER BY 
+	                Total DESC";
 
-
-                    return (await sql.QueryAsync<IncomeSummaryDTO>(sqlTxt)).ToArray();
-            }
+            return await QueryAsync<IncomeSummaryDTO>(sqlTxt);
         }
 
         public async Task<IEnumerable<MonthComparisonChartVM>> GetIncomesByCategoryAndMonthAsync(DateFilter dateFilter, int catId, bool isSecondCat)
@@ -146,19 +132,13 @@ namespace Appology.MiFinance.Repository
                         YearMonth";
             }
 
-
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<MonthComparisonChartVM>(sqlTxt, new { CatId = catId })).ToArray();
-            }
+            return await QueryAsync<MonthComparisonChartVM>(sqlTxt, new { CatId = catId });
+  
         }
 
         public async Task InsertAsync(IncomeDTO dto)
         {
-            using (var sql = dbConnectionFactory())
-            {
-                await sql.ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
-            }
+            await ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
         }
 
         public async Task<IEnumerable<(int Year, int Week)>> MissedIncomeEntriesAsync(string dateColumn, int weekArrears, Categories category, string recsBegan = "2019-08-07")
@@ -186,18 +166,13 @@ namespace Appology.MiFinance.Repository
                 WHERE SourceId = @IncomeStream
             ";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<(int Year, int Week)>(sqlTxt, 
-                    new {
-                        @IncomeStream = (int)category,
-                        @DateColumn = dateColumn,
-                        @WeekArrears = weekArrears,
-                        @RecsBegan = recsBegan
-                    }
-                )).ToArray();
-
-            }
+            return await QueryAsync<(int Year, int Week)>(sqlTxt,
+                new {
+                    @IncomeStream = (int)category,
+                    @DateColumn = dateColumn,
+                    @WeekArrears = weekArrears,
+                    @RecsBegan = recsBegan
+                });
         }
 
         public async Task<IEnumerable<string>> RecentMonzoSyncedTranIds(int max)
@@ -211,11 +186,8 @@ namespace Appology.MiFinance.Repository
                 SELECT MonzoTransId from DistinctIds
                 order by Date DESC";
 
-            using (var sql = dbConnectionFactory())
-            {
-                return (await sql.QueryAsync<string>(sqlTxt, new { max })).ToArray();
+            return await QueryAsync<string>(sqlTxt, new { max });
 
-            }
         }
     }
 }

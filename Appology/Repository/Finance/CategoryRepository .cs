@@ -1,12 +1,11 @@
 ﻿using Appology.Enums;
 using Appology.MiFinance.DTOs;
 using Appology.MiFinance.Model;
-using Dapper;
+using Appology.Repository;
 using DFM.Utils;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Appology.MiFinance.Repository
@@ -19,40 +18,32 @@ namespace Appology.MiFinance.Repository
         Task<int> GetSecondTypeId(int catId);
     }
 
-    public class CategoryRepository : ICategoryRepository
+    public class CategoryRepository : DapperBaseRepository, ICategoryRepository
     {
-        private readonly Func<IDbConnection> dbConnectionFactory;
         private static readonly string TABLE = Tables.Name(Table.FinanceCategories);
         private static readonly string[] FIELDS = typeof(Category).DapperFields();
         private static readonly string[] DTOFIELDS = typeof(CategoryDTO).DapperFields();
 
-        public CategoryRepository(Func<IDbConnection> dbConnectionFactory)
-        {
-            this.dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
-        }
+        public CategoryRepository(Func<IDbConnection> dbConnectionFactory) : base(dbConnectionFactory) { }
 
         public async Task<IEnumerable<Category>> GetAllAsync()
         {
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<Category>($"{DapperHelper.SELECT(TABLE, FIELDS)}")).ToArray();
+            return await QueryAsync<Category>($"{DapperHelper.SELECT(TABLE, FIELDS)}");
         }
 
         public async Task<string> GetCategoryName(int id)
         {
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<string>($"SELECT Name FROM {TABLE} WHERE Id = @Id", new { Id = id })).FirstOrDefault();
+            return await QueryFirstOrDefaultAsync<string>($"SELECT Name FROM {TABLE} WHERE Id = @Id", new { Id = id });
         }
 
         public async Task AddCategory(CategoryDTO dto)
         {
-            using var sql = dbConnectionFactory();
-            await sql.ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
+            await ExecuteAsync($@"{DapperHelper.INSERT(TABLE, DTOFIELDS)}", dto);
         }
 
         public async Task<int> GetSecondTypeId(int catId)
         {
-            using var sql = dbConnectionFactory();
-            return (await sql.QueryAsync<int>($"SELECT SecondTypeId FROM {TABLE} WHERE Id = @Id", new { Id = catId })).FirstOrDefault();
+            return await QueryFirstOrDefaultAsync<int>($"SELECT SecondTypeId FROM {TABLE} WHERE Id = @Id", new { Id = catId });
         }
     }
 }

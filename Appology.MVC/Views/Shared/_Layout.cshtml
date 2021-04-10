@@ -3,6 +3,7 @@
 @using Appology.Website.ViewModels
 @using Appology.MiCalendar.Enums
 @using Appology.Enums
+@using StackExchange.Profiling
 @{
     var Model = ViewData[nameof(BaseVM)] as BaseVM;
     var AppName = ConfigurationManager.AppSettings["AppName"];
@@ -163,6 +164,14 @@
                                             <i class="fas fa-user-edit"></i> Profile
                                         </a>
                                     </li>
+                                    @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Admin))
+                                    {
+                                        <li>
+                                            <a style="@(Model.MenuItem.Cache ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Cache)">
+                                                <i class="fas fa-user-shield"></i> Cache
+                                            </a>
+                                        </li>
+                                    }
                                     <li>
                                         <a href="@Url.MvcRouteUrl(Section.Logout)">
                                             <i class="fas fa-sign-out-alt"></i> Logout
@@ -187,7 +196,7 @@
     <div class="container body-container">
         <div class="body-content" style="padding-top: 120px">
             @*<i class="fa-3x fas fa-circle-notch fa-spin"></i>*@
-            
+
             @RenderBody()
         </div>
         <div class="container">
@@ -212,5 +221,6 @@
 
     <script src="~/Scripts/navik.menu.js"></script>
     @RenderSection("Scripts", false)
+    @MiniProfiler.Current.RenderIncludes()
 </body>
 </html>
