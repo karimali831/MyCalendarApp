@@ -1,0 +1,17 @@
+20/04/2021 14:01:04 - karimali831@googlemail.com 
+                SELECT 
+	                fr.RoleIds, 
+	                fr.FeatureId, 
+	                fr.Name AS FeatureRoleName, 
+	                fr.ReadRight, 
+	                fr.SaveRight, 
+	                fr.DeleteRight, 
+	                fr.FullRights, 
+	                f.Name AS FeatureName, 
+	                g.Name AS GroupName,
+                    g.Id As GroupId
+                FROM FeatureRoles fr
+                LEFT JOIN Groups g
+                ON fr.FeatureId = g.FeatureId
+                LEFT JOIN Features f
+                ON f.Id = g.FeatureId

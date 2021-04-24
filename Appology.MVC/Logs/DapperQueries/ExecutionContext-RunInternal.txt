@@ -1,0 +1,1 @@
+11/04/2021 20:18:55 - (no user) UPDATE [ER.Trips] SET TripId=@TripId, OrderId=@OrderId, AssignedRunnerId=@AssignedRunnerId, PickupId=@PickupId, PickupPlace=@PickupPlace, PickupLat=@PickupLat, PickupLng=@PickupLng, Distance=@Distance, Duration=@Duration, DropOffAddress=@DropOffAddress, DropOffPostcode=@DropOffPostcode, Modified=@Modified WHERE TripId = @TripId

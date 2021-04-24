@@ -1,0 +1,6 @@
+11/04/2021 14:53:32 - karimali831@googlemail.com  
+                SELECT t.Id, t.UserId, t.TypeId, t.Name, t.ThemeColor, ty.InviteeIds, ty.Name AS TypeName
+                FROM Tags t
+                LEFT JOIN Types ty
+                ON t.TypeID = ty.Id
+                WHERE t.Id = @tagID

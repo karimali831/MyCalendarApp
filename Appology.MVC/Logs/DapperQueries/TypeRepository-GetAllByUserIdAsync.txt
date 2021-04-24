@@ -1,0 +1,6 @@
+12/04/2021 11:31:10 - karimali831@googlemail.com 
+                SELECT Id, GroupId, Name, UserCreatedId, InviteeIds, SuperTypeId FROM Types 
+                WHERE (UserCreatedId = 'e252d5b5-63a5-4432-9a5e-d6ac16a8a45b'
+                )
+                
+                ORDER BY SuperTypeId, Name ASC

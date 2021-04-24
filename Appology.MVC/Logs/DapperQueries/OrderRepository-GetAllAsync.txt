@@ -1,0 +1,1 @@
+11/04/2021 20:18:49 - (no user) SELECT OrderId, CustomerId, ServiceId, Items, OrderValue, ServiceFee, OrderFee, DeliveryFee, TotalItems, Invoice, NET, DriverFee, DriverEarning, DeliveryDate, Timeslot, Dispatched, Paid, StripePaymentConfirmationId, Modified FROM [ER.Orders]  WHERE CustomerId = @customerId

@@ -1,0 +1,6 @@
+11/04/2021 20:18:54 - (no user) 
+                SELECT o.OrderId, o.ServiceId, c.Name AS ServiceName, o.Items, o.OrderValue, o.ServiceFee, o.OrderFee, o.DeliveryFee, o.TotalItems, o.Invoice, o.Created, o.Modified, o.DeliveryDate, o.Timeslot, o.Dispatched, o.Paid, o.StripePaymentConfirmationId
+                FROM [ER.Orders] AS o
+                LEFT JOIN Categories AS c
+                ON c.Id = o.ServiceId
+                WHERE OrderId = '3718f291-1080-47a2-ba8a-0f68d8668114'

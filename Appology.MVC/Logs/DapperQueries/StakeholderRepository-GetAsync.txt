@@ -1,0 +1,1 @@
+11/04/2021 20:18:51 - (no user) SELECT Id, StakeholderId, FirstName, LastName, Email, Address1, Address2, Town, Postcode, ContactNo1, ContactNo2, Modified, ApiLat, ApiLng, ApiFormattedAddress, PaymentIds FROM [ER.Stakeholders]  WHERE Id = @Id

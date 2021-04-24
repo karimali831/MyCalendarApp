@@ -1,0 +1,5 @@
+11/04/2021 14:53:09 - karimali831@googlemail.com 
+                    SELECT Alarm FROM Events
+                    WHERE TagId = @tagId AND Alarm IS NOT NULL
+                    GROUP BY TagId, Alarm
+                    ORDER BY MAX(Created) DESC
