@@ -39,5 +39,6 @@ namespace Appology.Website.ViewModels
         public bool None { get; set; }
         // admin
         public bool Cache { get; set; }
+        public bool Dashboard { get; set; }
     }
 }

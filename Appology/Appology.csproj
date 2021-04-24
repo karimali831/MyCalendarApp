@@ -282,7 +282,6 @@
     <Compile Include="Security\SessionPersister.cs" />
     <Compile Include="Service\CacheService.cs" />
     <Compile Include="Service\Calendar\CronofyService.cs" />
-    <Compile Include="Service\CacheServiceCust.cs" />
     <Compile Include="Service\Write\DocumentService.cs" />
     <Compile Include="Service\ER\TripService.cs" />
     <Compile Include="Service\ER\OrderService.cs" />

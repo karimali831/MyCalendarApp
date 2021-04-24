@@ -177,9 +177,21 @@ namespace Appology.Areas.MiFinance.Controllers
                 //var pots = await client.GetPotsAsync();
                 var balance = await client.GetBalanceAsync(accounts[0].Id);
                 var savingsBalance = await client.GetBalanceAsync(accounts[0].Id);
-                var getTransactions = (await client.GetTransactionsAsync(accounts[0].Id, expand: "merchant"))
+                var lastSyncedAccountSummary = await monzoService.MonzoAccountSummary();
+
+                var getTransactions = 
+                    (
+                        await client.GetTransactionsAsync(
+                            accounts[0].Id, 
+                            expand: "merchant",
+                            paginationOptions: new PaginationOptions
+                            {
+                                BeforeTime = DateUtils.DateTime(),
+                                SinceTime = lastSyncedAccountSummary.Created
+                            }
+                        )
+                    )
                     .OrderByDescending(x => x.Created)
-                    .Take(150)
                     .ToList();
 
                 var spentToday = getTransactions
@@ -225,17 +237,15 @@ namespace Appology.Areas.MiFinance.Controllers
         public async Task<ActionResult> ApproveDataAccess(string accessToken = null, bool showPotAndTags = false, bool? deletedTrans = null)
         {
             await BaseViewModel(new MenuItem { Monzo = true });
-            var initialData = await monzoService.MonzoAccountSummary();
+            var data = await monzoService.MonzoAccountSummary();
             var viewModel = new MonzoAccountSummaryVM();
  
             // if requesting new authorization from monzo api...
-            if (initialData == null || accessToken != null)
+            if (data == null || accessToken != null)
             {
                 await MonzoClientAuthorisation(accessToken);
                 return RedirectToAction("ApproveDataAccess");
             }
-
-            var data = await monzoService.MonzoAccountSummary();
 
             viewModel.SpentToday = data.SpentToday;
             viewModel.AccountNo = data.AccountNo;

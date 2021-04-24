@@ -24,7 +24,7 @@ namespace Appology.Website.Areas.Admin
                 "Admin_default",
                 "Admin/{controller}/{action}/{id}",
                 new { action = "Index", id = UrlParameter.Optional },
-                new { controller = "Cache" },
+                new { controller = "Cache|App" },
                 new[] { "Appology.Areas.Admin.Controllers" }
             );
         }

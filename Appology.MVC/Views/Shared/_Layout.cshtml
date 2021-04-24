@@ -156,7 +156,7 @@
                                     </ul>
                                 </li>
                             }
-                            <li class="submenu-right @(Model.MenuItem.Settings ? "current-menu" : "")">
+                            <li class="submenu-right @(Model.MenuItem.Settings || Model.MenuItem.Dashboard || Model.MenuItem.Cache ? "current-menu" : "")">
                                 <a href="#">@Model.User.Name</a>
                                 <ul>
                                     <li>
@@ -168,7 +168,12 @@
                                     {
                                         <li>
                                             <a style="@(Model.MenuItem.Cache ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Cache)">
-                                                <i class="fas fa-user-shield"></i> Cache
+                                                <i class="fas fa-sitemap"></i> Cache
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a style="@(Model.MenuItem.Dashboard ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Dashboard)">
+                                                <i class="fas fa-users-cog"></i> Admin
                                             </a>
                                         </li>
                                     }

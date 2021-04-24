@@ -25,6 +25,7 @@
         Document,
         DocLink,
         // Admin,
-        Cache
+        Cache,
+        Dashboard
     }
 }

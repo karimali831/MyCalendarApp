@@ -94,8 +94,11 @@
     <Reference Include="MiniProfiler.Shared, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b44f9351044011a3, processorArchitecture=MSIL">
       <HintPath>..\packages\MiniProfiler.Shared.4.2.22\lib\net461\MiniProfiler.Shared.dll</HintPath>
     </Reference>
-    <Reference Include="Monzo, Version=0.11.0.21, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Monzo.0.11.0.21\lib\netstandard1.1\Monzo.dll</HintPath>
+    <Reference Include="Monzo, Version=0.12.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Monzo.0.12.0\lib\netstandard1.1\Monzo.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ninject, Version=3.3.4.0, Culture=neutral, PublicKeyToken=c7192dc5380945e7, processorArchitecture=MSIL">
       <HintPath>..\packages\Ninject.3.3.4\lib\net45\Ninject.dll</HintPath>
@@ -329,9 +332,6 @@
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.4\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml.ReaderWriter, Version=4.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Xml.ReaderWriter.4.3.0\lib\net46\System.Xml.ReaderWriter.dll</HintPath>
@@ -351,9 +351,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System.Web.Http.WebHost">
       <HintPath>..\packages\Microsoft.AspNet.WebApi.WebHost.5.2.4\lib\net45\System.Web.Http.WebHost.dll</HintPath>
     </Reference>
@@ -395,6 +392,8 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Areas\Admin\AdminAreaRegistration.cs" />
+    <Compile Include="Areas\Admin\Controllers\API\AdminController.cs" />
+    <Compile Include="Areas\Admin\Controllers\AppController.cs" />
     <Compile Include="Areas\Admin\Controllers\CacheController.cs" />
     <Compile Include="Areas\Admin\ViewModels\CacheVM.cs" />
     <Compile Include="Areas\Write\WriteAreaRegistration.cs" />
@@ -452,6 +451,7 @@
     <Compile Include="Views\MVCModule.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\img\admin\AppSidebarBg.jpg" />
     <Content Include="Logs\**" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
@@ -857,12 +857,15 @@
     <Content Include="Areas\Admin\Views\_ViewStart.cshtml" />
     <Content Include="Areas\Admin\Views\Web.config" />
     <Content Include="Areas\Admin\Views\Cache\Index.cshtml" />
+    <Content Include="Areas\Admin\Views\App\Index.cshtml" />
+    <Content Include="libman.json" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="Scripts\dist\admin\bundle.js" />
     <Content Include="Scripts\dist\errandrunner\bundle.js" />
     <Content Include="Scripts\dist\finance\bundle.js" />
     <Content Include="Scripts\dist\fullcalendar\bundle.js" />
@@ -969,6 +972,7 @@
     <Content Include="Scripts\dist\finance\bundle.js.map" />
     <Content Include="Scripts\dist\profile\bundle.js.map" />
     <Content Include="Scripts\dist\write\bundle.js.map" />
+    <Content Include="Scripts\dist\admin\bundle.js.map" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
@@ -1099,7 +1103,6 @@
     <Folder Include="App_Data\" />
     <Folder Include="Areas\ER\ViewModels\" />
     <Folder Include="Areas\Write\ViewModels\" />
-    <Folder Include="Logs\DapperQueries\Failed\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
