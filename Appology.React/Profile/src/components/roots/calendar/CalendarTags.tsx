@@ -1,14 +1,14 @@
-import * as React from 'react';
-import Form from 'react-bootstrap/Form'
-import Table from 'react-bootstrap/Table'
-import { IUserTag } from 'src/models/IUserTag';
-import Button from 'react-bootstrap/Button'
-import InputGroup from 'react-bootstrap/InputGroup'
-import { FaMinus, FaPlus } from 'react-icons/fa';
-import { ActionButton } from 'src/components/utils/ActionButtons';
-import { api } from 'src/Api/Api';
 import { Variant } from '@appology/react-components';
 import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
+import * as React from 'react';
+import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
+import Table from 'react-bootstrap/Table';
+import { FaMinus, FaPlus } from 'react-icons/fa';
+import { api } from 'src/Api/Api';
+import { ActionButton } from 'src/components/utils/ActionButtons';
+import { IUserTag } from 'src/models/IUserTag';
 
 export interface IOwnState {
     userTags: IUserTag[],
@@ -41,6 +41,7 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                     <tr>
                         <th>Label</th>
                         <th>Theme</th>
+                        <th>Weekly Target (Hours)</th>
                         <th>Group</th>
                     </tr>
                 </thead>
@@ -50,7 +51,7 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                         return (
                             <>
                                 <tr>
-                                    <td width="40%">
+                                    <td width="30%">
                                         <Form.Control 
                                             name="name"
                                             value={x.name}
@@ -61,6 +62,13 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                                             name="themeColor"
                                             type="color"
                                             value={x.themeColor}
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
+                                    </td>
+                                    <td width="10%">
+                                        <Form.Control 
+                                            name="weeklyHourlyTarget"
+                                            type="number"
+                                            value={x.weeklyHourlyTarget}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => this.handleInputChange(e, i)} />
                                     </td>
                                     <td width="40%">
@@ -112,7 +120,7 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
 
     private saveTags = () => {
 
-        if (this.state.userTags.some(x => x.name === "" || x.typeID === 0 || x.themeColor === "")) {
+        if (this.state.userTags.some(x => x.name === "" || x.typeID === 0 || x.themeColor === "" || isNaN(x.weeklyHourlyTarget))) {
             this.props.showAlert("All inputs must be filled", Variant.Danger)
         }
         else
@@ -163,6 +171,7 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
             [...this.state.userTags, {
                     name: "",
                     themeColor: "",
+                    weeklyHourlyTarget: 0,
                     typeID: 0,
                     id: ""
                 }

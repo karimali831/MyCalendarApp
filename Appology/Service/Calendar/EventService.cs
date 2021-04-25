@@ -416,7 +416,7 @@ namespace Appology.MiCalendar.Service
 
                             if (minutesWorked > 0)
                             {
-                                string additionalInfo = EventOverviewAdditionalText(minutesWorked, dateFilter, isFlexTag: tag.Subject == "Flex");
+                                var additionalInfo = EventOverviewAdditionalText(minutesWorked, dateFilter, isFlexTag: tag.Subject == "Flex");
                                 string text;
 
                                 if (dateFilter.Frequency == DateFrequency.Upcoming)
@@ -426,7 +426,27 @@ namespace Appology.MiCalendar.Service
                                 }
                                 else
                                 {
-                                    text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo} with {tag.Subject}.");
+                                    text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo.Text} with {tag.Subject}.");
+                                }
+
+                                int progressBarPercentage = (int)Math.Round((double)(100 * additionalInfo.WeeklyHours) / tag.WeeklyHourlyTarget);
+                                string progressBarColor = "";
+
+                                if (progressBarPercentage < 35)
+                                {
+                                    progressBarColor = "bg-danger";
+                                }
+                                else if (progressBarPercentage >= 35 && progressBarPercentage < 75)
+                                {
+                                    progressBarColor = "bg-warning";
+                                }
+                                else if (progressBarPercentage >= 75 && progressBarPercentage < 100)
+                                {
+                                    progressBarColor = "bg-info";
+                                }
+                                else if (progressBarPercentage >= 100)
+                                {
+                                    progressBarColor = "bg-success";
                                 }
 
                                 hoursWorkedInTag.Add(new HoursWorkedInTag
@@ -437,7 +457,11 @@ namespace Appology.MiCalendar.Service
                                     MultiUsers = multiUser,
                                     Color = tag.ThemeColor,
                                     Avatars = inviteeAvatars.Distinct().ToList(),
-                                    ActivityTag = multiUser ? "fa-user-friends" : "fa-tag"
+                                    ActivityTag = multiUser ? "fa-user-friends" : "fa-tag",
+                                    ActualWeeklyHours = additionalInfo.WeeklyHours,
+                                    TargetWeeklyHours = tag.WeeklyHourlyTarget,
+                                    ProgressBarPercentage =  progressBarPercentage,
+                                    ProgressBarColor = progressBarColor
                                 });
                             }
                         }
@@ -462,7 +486,7 @@ namespace Appology.MiCalendar.Service
 
                             if (minutesSpent > 0)
                             {
-                                group.Text += EventOverviewAdditionalText(minutesSpent, dateFilter);
+                                group.Text += EventOverviewAdditionalText(minutesSpent, dateFilter).Text;
                             }
                         }
                     }
@@ -472,7 +496,7 @@ namespace Appology.MiCalendar.Service
             return eventsOverview;
         }
 
-        private string EventOverviewAdditionalText(double minutesSpent, BaseDateFilter dateFilter, bool isFlexTag = false)
+        private (string Text, int WeeklyHours) EventOverviewAdditionalText(double minutesSpent, BaseDateFilter dateFilter, bool isFlexTag = false)
         {
             int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesSpent);
             int? monthsBetween = DateUtils.MonthsBetweenRanges(dateFilter);
@@ -488,12 +512,12 @@ namespace Appology.MiCalendar.Service
                         double averageWeeklyEarning = (hoursFromMinutes * 14 * 1.15) / monthsBetween.Value / 4;
                         string earning = Utils.ToCurrency((decimal)averageWeeklyEarning);
 
-                        return $" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week";
+                        return ($" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week", averageWeeklyHours);
                     }
                     else
                     {
 
-                        return $" averaging {averageWeeklyHours} hour{(averageWeeklyHours > 1 ? "s" : "")} a week";
+                        return ($" averaging {averageWeeklyHours} hour{(averageWeeklyHours > 1 ? "s" : "")} a week", averageWeeklyHours);
                     }
                 }
             }
@@ -501,11 +525,11 @@ namespace Appology.MiCalendar.Service
             {
                 if (isFlexTag)
                 {
-                    return $" earning approx £{hoursFromMinutes * 14 * 1.15}";
+                    return ($" earning approx £{hoursFromMinutes * 14 * 1.15}", 0);
                 }
             }
            
-            return "";
+            return ("", 0);
         }
 
         public void DeleteCronofyEvent(string syncFromCalendarId, Guid eventId)

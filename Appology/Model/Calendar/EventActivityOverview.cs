@@ -23,5 +23,9 @@ namespace Appology.MiCalendar.Model
         public string ActivityTag { get; set; }
         public string Color { get; set; }
         public IList<string> Avatars { get; set; }
+        public int TargetWeeklyHours { get; set; }
+        public int ActualWeeklyHours { get; set; }
+        public int ProgressBarPercentage { get; set; }
+        public string ProgressBarColor { get; set; }
     }
 }

@@ -34,6 +34,8 @@ namespace Appology.MiCalendar.Model
         [DbIgnore]
         public string ThemeColor { get; set; }
         [DbIgnore]
+        public int WeeklyHourlyTarget { get; set; }
+        [DbIgnore]
         public string InviteeIds { get; set; }
         [DbIgnore]
         public int TagGroupId { get; set; } // If reminder this is null

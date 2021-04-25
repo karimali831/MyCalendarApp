@@ -15,6 +15,7 @@ namespace Appology.MiCalendar.Model
         public int TypeID { get; set; }
         public string Name { get; set; }
         public string ThemeColor { get; set; }
+        public int WeeklyHourlyTarget { get; set; }
         [DbIgnore]
         public string TypeName { get; set; }
         [DbIgnore]

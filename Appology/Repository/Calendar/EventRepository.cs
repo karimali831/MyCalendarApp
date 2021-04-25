@@ -39,7 +39,7 @@ namespace Appology.MiCalendar.Repository
         public async Task<Event> GetAsync(Guid eventId)
         {
             string sqlTxt = $@"
-                SELECT e.EventID, e.CalendarId, e.Reminder, u.Name, u.Avatar, e.Description, t.Name AS Subject, e.StartDate, e.EndDate, e.IsFullDay, t.ThemeColor, e.UserId, e.TagID, e.Tentative, e.EventUid, e.CalendarUid, e.Alarm, e.Provider
+                SELECT e.EventID, e.CalendarId, e.Reminder, u.Name, u.Avatar, e.Description, t.Name AS Subject, e.StartDate, e.EndDate, e.IsFullDay, t.ThemeColor, t.WeeklyHourlyTarget, e.UserId, e.TagID, e.Tentative, e.EventUid, e.CalendarUid, e.Alarm, e.Provider
                 FROM {TABLE} e
                 LEFT JOIN {Tables.Name(Table.Users)} u
                 ON e.UserID = u.UserID
@@ -61,7 +61,7 @@ namespace Appology.MiCalendar.Repository
         public async Task<IEnumerable<Event>> GetAllAsync(RequestEventDTO request)
         {
             string sqlTxt = $@"
-                SELECT e.EventID,e.CalendarId,e.UserID,u.Name,u.Avatar,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm, e.Provider, e.Created, e.Modified, e.Reminder, t.TypeId AS TagGroupId, ty.Name AS TagGroupName
+                SELECT e.EventID,e.CalendarId,e.UserID,u.Name,u.Avatar,e.TagID,e.Description,e.StartDate,e.EndDate,e.IsFullDay, e.Tentative, t.ThemeColor, t.WeeklyHourlyTarget, t.Name AS Subject, e.EventUid, e.CalendarUid, ty.InviteeIds, e.Alarm, e.Provider, e.Created, e.Modified, e.Reminder, t.TypeId AS TagGroupId, ty.Name AS TagGroupName
                 FROM {TABLE} e
                 LEFT JOIN {Tables.Name(Table.Users)} u
                 ON e.UserID = u.UserID

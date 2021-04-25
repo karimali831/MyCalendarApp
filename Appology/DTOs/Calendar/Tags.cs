@@ -15,6 +15,7 @@ namespace Appology.MiCalendar.DTOs
         public Guid[] UserCreatedId { get; set; }
         public string[] Name { get; set; }
         public string[] ThemeColor { get; set; }
+        public int[] WeeklyHourlyTarget { get; set; }
         public int[] TypeID { get; set; }
     }
 }

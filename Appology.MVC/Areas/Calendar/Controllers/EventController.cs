@@ -5,7 +5,6 @@ using Appology.Helpers;
 using Appology.MiCalendar.Enums;
 using Appology.MiCalendar.Model;
 using Appology.MiCalendar.Service;
-using Appology.Model;
 using Appology.Service;
 using Appology.Website.Areas.MiCalendar.ViewModels;
 using Appology.Website.ViewModels;
@@ -216,6 +215,11 @@ namespace Appology.Areas.MiCalendar.Controllers
                     foreach (var e in tagGroup.Value.Where(x => x.TagGroupId == tagGroup.Key.TagGroupdId))
                     {
                         html += $"<div class='list-group-item'><span class='fas {e.ActivityTag}' style='color: {e.Color}'></span> <small> {e.Text}</small>";
+
+                        if (e.TargetWeeklyHours != 0)
+                        {
+                            html += $"<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated {e.ProgressBarColor}' role='progressbar' aria-valuenow='{e.ActualWeeklyHours}' aria-valuemin='0' aria-valuemax='{e.TargetWeeklyHours}' style='width: {e.ProgressBarPercentage}%'>{e.ProgressBarPercentage}% complete targetting {e.TargetWeeklyHours} hours</div></div>";
+                        }
 
                         foreach (var avatar in e.Avatars)
                         {

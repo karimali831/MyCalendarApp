@@ -67,6 +67,14 @@
                                 {
                                     <div class="list-group-item">
                                         <span class="fas @e.ActivityTag" style="color: @e.Color"></span> <small> @e.Text</small>
+                                        @if (e.TargetWeeklyHours != 0)
+                                        {
+                                            <div class="progress">
+                                              <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBarColor" role="progressbar" aria-valuenow="@e.ActualWeeklyHours" aria-valuemin="0" aria-valuemax="@e.TargetWeeklyHours" style="width: @(e.ProgressBarPercentage)%">
+                                                  @(e.ProgressBarPercentage)% complete targetting @e.TargetWeeklyHours hours
+                                              </div>
+                                            </div>
+                                        }
                                         @foreach (var avatar in e.Avatars)
                                         {
                                             if (avatar.Length == 2)
