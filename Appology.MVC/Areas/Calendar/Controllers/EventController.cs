@@ -167,8 +167,8 @@ namespace Appology.Areas.MiCalendar.Controllers
 
             var dateFilter = new DateFilter
             {
-                Frequency = DateFrequency.LastXDays,
-                Interval = 7
+                Frequency = DateFrequency.LastXMonths,
+                Interval = 1
             };
 
             var eventsOverview = await eventService.EventActivityTagGroup(baseVM.User, dateFilter);
@@ -216,9 +216,9 @@ namespace Appology.Areas.MiCalendar.Controllers
                     {
                         html += $"<div class='list-group-item'><span class='fas {e.ActivityTag}' style='color: {e.Color}'></span> <small> {e.Text}</small>";
 
-                        if (e.TargetWeeklyHours != 0)
+                        if (e.ProgressBarWeeklyHours.TargetWeeklyHours != 0 && e.ProgressBarWeeklyHours.ProgressBarPercentage > 0)
                         {
-                            html += $"<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated {e.ProgressBarColor}' role='progressbar' aria-valuenow='{e.ActualWeeklyHours}' aria-valuemin='0' aria-valuemax='{e.TargetWeeklyHours}' style='width: {e.ProgressBarPercentage}%'>{e.ProgressBarPercentage}% complete targetting {e.TargetWeeklyHours} hours</div></div>";
+                            html += $"<div class='progress'><div class='progress-bar progress-bar-striped progress-bar-animated {e.ProgressBarWeeklyHours.ProgressBarColor}' role='progressbar' aria-valuenow='{e.ProgressBarWeeklyHours.ActualWeeklyHours}' aria-valuemin='0' aria-valuemax='{e.ProgressBarWeeklyHours.TargetWeeklyHours}' style='width: {e.ProgressBarWeeklyHours.ProgressBarPercentage}%'>{e.ProgressBarWeeklyHours.ProgressBarPercentage}% complete targetting {e.ProgressBarWeeklyHours.TargetWeeklyHours} hours a week</div></div>";
                         }
 
                         foreach (var avatar in e.Avatars)

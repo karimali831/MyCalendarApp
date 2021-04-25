@@ -356,6 +356,37 @@ namespace Appology.MiCalendar.Service
             return (await eventRepository.InsertOrUpdateAsync(dto)).e;
         }
 
+        private ProgressBarWeeklyHours ProgressBarWeeklyHours(int actualHours, int targetHours)
+        {
+            int progressBarPercentage = (int)Math.Round((double)(100 * actualHours) / targetHours);
+            string progressBarColor = "";
+
+            if (progressBarPercentage < 50)
+            {
+                progressBarColor = "bg-danger";
+            }
+            else if (progressBarPercentage >= 50 && progressBarPercentage < 75)
+            {
+                progressBarColor = "bg-warning";
+            }
+            else if (progressBarPercentage >= 75 && progressBarPercentage < 100)
+            {
+                progressBarColor = "bg-info";
+            }
+            else if (progressBarPercentage >= 100)
+            {
+                progressBarColor = "bg-success";
+            }
+
+            return new ProgressBarWeeklyHours
+            {
+                TargetWeeklyHours = targetHours,
+                ActualWeeklyHours = actualHours,
+                ProgressBarPercentage = progressBarPercentage,
+                ProgressBarColor = progressBarColor
+            };
+        }
+
         public async Task<Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>> EventActivityTagGroup(User user, BaseDateFilter dateFilter)
         {
             var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
@@ -429,25 +460,7 @@ namespace Appology.MiCalendar.Service
                                     text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo.Text} with {tag.Subject}.");
                                 }
 
-                                int progressBarPercentage = (int)Math.Round((double)(100 * additionalInfo.WeeklyHours) / tag.WeeklyHourlyTarget);
-                                string progressBarColor = "";
-
-                                if (progressBarPercentage < 50)
-                                {
-                                    progressBarColor = "bg-danger";
-                                }
-                                else if (progressBarPercentage >= 50 && progressBarPercentage < 75)
-                                {
-                                    progressBarColor = "bg-warning";
-                                }
-                                else if (progressBarPercentage >= 75 && progressBarPercentage < 100)
-                                {
-                                    progressBarColor = "bg-info";
-                                }
-                                else if (progressBarPercentage >= 100)
-                                {
-                                    progressBarColor = "bg-success";
-                                }
+          
 
                                 hoursWorkedInTag.Add(new HoursWorkedInTag
                                 {
@@ -458,10 +471,7 @@ namespace Appology.MiCalendar.Service
                                     Color = tag.ThemeColor,
                                     Avatars = inviteeAvatars.Distinct().ToList(),
                                     ActivityTag = multiUser ? "fa-user-friends" : "fa-tag",
-                                    ActualWeeklyHours = additionalInfo.WeeklyHours,
-                                    TargetWeeklyHours = tag.WeeklyHourlyTarget,
-                                    ProgressBarPercentage =  progressBarPercentage,
-                                    ProgressBarColor = progressBarColor
+                                    ProgressBarWeeklyHours = ProgressBarWeeklyHours(additionalInfo.WeeklyHours, tag.WeeklyHourlyTarget)
                                 });
                             }
                         }
