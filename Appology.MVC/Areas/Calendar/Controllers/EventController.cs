@@ -167,8 +167,8 @@ namespace Appology.Areas.MiCalendar.Controllers
 
             var dateFilter = new DateFilter
             {
-                Frequency = DateFrequency.LastXMonths,
-                Interval = 1
+                Frequency = DateFrequency.LastXDays,
+                Interval = 7
             };
 
             var eventsOverview = await eventService.EventActivityTagGroup(baseVM.User, dateFilter);

@@ -432,11 +432,11 @@ namespace Appology.MiCalendar.Service
                                 int progressBarPercentage = (int)Math.Round((double)(100 * additionalInfo.WeeklyHours) / tag.WeeklyHourlyTarget);
                                 string progressBarColor = "";
 
-                                if (progressBarPercentage < 35)
+                                if (progressBarPercentage < 50)
                                 {
                                     progressBarColor = "bg-danger";
                                 }
-                                else if (progressBarPercentage >= 35 && progressBarPercentage < 75)
+                                else if (progressBarPercentage >= 50 && progressBarPercentage < 75)
                                 {
                                     progressBarColor = "bg-warning";
                                 }
