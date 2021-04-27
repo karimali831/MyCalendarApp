@@ -36,7 +36,8 @@ namespace Appology.Enums
         Documents,
         DocumentChangelog,
         Tags,
-        Types
+        Types,
+        ActivityHub
     }
 
     public static class Tables
@@ -66,6 +67,7 @@ namespace Appology.Enums
                 // calendar
                 new KeyValuePair<Table, string>(Table.Tags, "Tags"),
                 new KeyValuePair<Table, string>(Table.Events, "Events"),
+                new KeyValuePair<Table, string>(Table.ActivityHub, "ActivityHub"),
                 // finance
                 new KeyValuePair<Table, string>(Table.FinanceCategories, "[Finance.Categories]"),
                 new KeyValuePair<Table, string>(Table.Finances, "[Finance.Finances]"),

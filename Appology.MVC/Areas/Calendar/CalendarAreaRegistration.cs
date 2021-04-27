@@ -24,7 +24,7 @@ namespace Appology.Website.Areas.MiCalendar
                 "calendar_default",
                 "Calendar/{controller}/{action}/{id}",
                 new { action = "Index", id = UrlParameter.Optional },
-                new { controller = "Cronofy|Document|Event" },
+                new { controller = "Cronofy|Event|ActivityHub" },
                 new[] { "Appology.Areas.MiCalendar.Controllers" }
             );
         }

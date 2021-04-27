@@ -19,12 +19,12 @@ namespace Appology.MiCalendar.Service
     public interface IEventService
     {
         Task<Event> GetAsync(Guid eventId);
+        Task<IEnumerable<Event>> GetEventsAsync(RequestEventDTO request, bool cacheRemove = false);
         Task<IEnumerable<Event>> GetAllAsync(User user, RequestEventDTO request);
         Task<bool> SaveEvent(Event dto);
         Task<Event> SaveGetEvent(Event dto);
         Task<bool> DeleteEvent(Guid eventId, string eventUid = null);
         Task<IEnumerable<Event>> GetCurrentActivityAsync();
-        Task<Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>> EventActivityTagGroup(User user, BaseDateFilter dateFilter);
         Task<bool> EventExistsInCalendar(int calendarId);
         Task<IEnumerable<Types>> GetAccessibleCalendars(Guid userId);
         Task<IEnumerable<Types>> GetUserCalendars(Guid userId);
@@ -169,12 +169,16 @@ namespace Appology.MiCalendar.Service
             return currentActivity;
         }
 
-        private async Task<IEnumerable<Event>> GetAllAsync(RequestEventDTO request)
+        public async Task<IEnumerable<Event>> GetEventsAsync(RequestEventDTO request, bool cacheRemove = false)
         {
-            return await cache.GetAsync(
-                $"{cachePrefix}.{nameof(GetAllAsync)}.{Json.Encode(request)}",
-                async () => await eventRepository.GetAllAsync(request)
-            );
+            string cacheName = $"{cachePrefix}.{nameof(GetAllAsync)}.{Json.Encode(request)}";
+
+            if (cacheRemove)
+            {
+                cache.Remove(cacheName);
+            }
+
+            return await cache.GetAsync(cacheName, async () => await eventRepository.GetAllAsync(request));
         }
 
         public async Task<IEnumerable<Event>> GetAllAsync(User user, RequestEventDTO request)
@@ -186,7 +190,7 @@ namespace Appology.MiCalendar.Service
                 throw new ApplicationException("No permission to view calendar events");
             }
 
-            var events = await GetAllAsync(request);
+            var events = await GetEventsAsync(request);
 
             if (user.CronofyReady == CronofyStatus.AuthenticatedRightsSet)
             {
@@ -354,192 +358,6 @@ namespace Appology.MiCalendar.Service
         {
             RemoveAll();
             return (await eventRepository.InsertOrUpdateAsync(dto)).e;
-        }
-
-        private ProgressBarWeeklyHours ProgressBarWeeklyHours(int actualHours, int targetHours)
-        {
-            int progressBarPercentage = (int)Math.Round((double)(100 * actualHours) / targetHours);
-            string progressBarColor = "";
-
-            if (progressBarPercentage < 50)
-            {
-                progressBarColor = "bg-danger";
-            }
-            else if (progressBarPercentage >= 50 && progressBarPercentage < 75)
-            {
-                progressBarColor = "bg-warning";
-            }
-            else if (progressBarPercentage >= 75 && progressBarPercentage < 100)
-            {
-                progressBarColor = "bg-info";
-            }
-            else if (progressBarPercentage >= 100)
-            {
-                progressBarColor = "bg-success";
-            }
-
-            return new ProgressBarWeeklyHours
-            {
-                TargetWeeklyHours = targetHours,
-                ActualWeeklyHours = actualHours,
-                ProgressBarPercentage = progressBarPercentage,
-                ProgressBarColor = progressBarColor
-            };
-        }
-
-        public async Task<Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>> EventActivityTagGroup(User user, BaseDateFilter dateFilter)
-        {
-            var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
-
-            var eventRequest = new RequestEventDTO
-            {
-                CalendarIds = userCalendarIds,
-                DateFilter = dateFilter
-            };
-
-            var events = (await GetAllAsync(eventRequest))
-                .Where(x => x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID) && !x.Reminder);
-         
-            var eventsOverview = new Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>>();
-  
-            if (events != null && events.Any())
-            {
-                var hoursWorkedInTag = new List<HoursWorkedInTag>();
-
-                foreach (var tagGroup in events.GroupBy(x => new { x.TagGroupId, x.TagGroupName }))
-                {
-                    foreach (var e in tagGroup.Where(x => x.TagGroupId == tagGroup.Key.TagGroupId).GroupBy(x => x.TagID))
-                    {
-                        if (e.Key.HasValue && e.Key != Guid.Empty)
-                        {
-                            var tag = e.FirstOrDefault(x => x.TagID == e.Key.Value);
-                            string userName = "You";
-                            bool multiUser = false;
-
-                            var inviteeAvatars = new List<string>();
-
-                            if (tag.InviteeIdsList.Any())
-                            {
-                                inviteeAvatars.Add(CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name));
-
-                                var inviteeList = new List<string>();
-                                var invitees = await userService.GetCollaboratorsAsync(tag.InviteeIdsList);
-
-                                foreach (var invitee in invitees)
-                                {
-                                    if (invitee.CollaboratorId != user.UserID)
-                                    {
-                                        inviteeList.Add(invitee.Name);
-                                        inviteeAvatars.Add(CalendarUtils.AvatarSrc(invitee.CollaboratorId, invitee.Avatar, invitee.Name));
-                                    }
-                                    else if (tag.UserID != user.UserID)
-                                    {
-                                        inviteeList.Add(tag.Name);
-                                        inviteeAvatars.Add(CalendarUtils.AvatarSrc(tag.UserID, tag.Avatar, tag.Name));
-                                    }
-                                }
-
-                                userName += ", " + string.Join(", ", inviteeList.Distinct());
-                                multiUser = true;
-                            }
-
-                            double minutesWorked = e.Sum(x => x.EndDate.HasValue ? DateUtils.MinutesBetweenDates(x.EndDate.Value, x.StartDate) : 1440);
-
-                            if (minutesWorked > 0)
-                            {
-                                var additionalInfo = EventOverviewAdditionalText(minutesWorked, dateFilter, isFlexTag: tag.Subject == "Flex");
-                                string text;
-
-                                if (dateFilter.Frequency == DateFrequency.Upcoming)
-                                {
-                                    string multipleEvents = e.Count() > 1 ? "have upcoming events totalling" : "have an upcoming event for";
-                                    text = string.Format($"{userName} {multipleEvents} {DateUtils.HoursDurationFromMinutes(minutesWorked)} with {tag.Subject}.");
-                                }
-                                else
-                                {
-                                    text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo.Text} with {tag.Subject}.");
-                                }
-
-          
-
-                                hoursWorkedInTag.Add(new HoursWorkedInTag
-                                {
-                                    TagGroupId = tagGroup.Key.TagGroupId,
-                                    Text = text,
-                                    TotalMinutes = minutesWorked,
-                                    MultiUsers = multiUser,
-                                    Color = tag.ThemeColor,
-                                    Avatars = inviteeAvatars.Distinct().ToList(),
-                                    ActivityTag = multiUser ? "fa-user-friends" : "fa-tag",
-                                    ProgressBarWeeklyHours = ProgressBarWeeklyHours(additionalInfo.WeeklyHours, tag.WeeklyHourlyTarget)
-                                });
-                            }
-                        }
-                    }
-
-                    eventsOverview.Add(new EventActivityTagGroup
-                    {
-                        TagGroupdId = tagGroup.Key.TagGroupId,
-                        TagGroupName = tagGroup.Key.TagGroupName
-                    }, hoursWorkedInTag);
-
-    
-                    foreach (var group in eventsOverview.Keys)
-                    {
-                        var groupEventActivity = hoursWorkedInTag.Where(x => x.TagGroupId == group.TagGroupdId);
-
-                        if (groupEventActivity.Count() > 1)
-                        {
-                            double minutesSpent = groupEventActivity.Sum(x => x.TotalMinutes);
-
-                            group.Text = DateUtils.HoursDurationFromMinutes(minutesSpent);
-
-                            if (minutesSpent > 0)
-                            {
-                                group.Text += EventOverviewAdditionalText(minutesSpent, dateFilter).Text;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return eventsOverview;
-        }
-
-        private (string Text, int WeeklyHours) EventOverviewAdditionalText(double minutesSpent, BaseDateFilter dateFilter, bool isFlexTag = false)
-        {
-            int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesSpent);
-            int? monthsBetween = DateUtils.MonthsBetweenRanges(dateFilter);
-
-            if (monthsBetween.HasValue && monthsBetween.Value != 0)
-            {
-                int averageWeeklyHours = (hoursFromMinutes / monthsBetween.Value / 4);
-
-                if (averageWeeklyHours > 0)
-                {
-                    if (isFlexTag)
-                    {
-                        double averageWeeklyEarning = (hoursFromMinutes * 14 * 1.15) / monthsBetween.Value / 4;
-                        string earning = Utils.ToCurrency((decimal)averageWeeklyEarning);
-
-                        return ($" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week", averageWeeklyHours);
-                    }
-                    else
-                    {
-
-                        return ($" averaging {averageWeeklyHours} hour{(averageWeeklyHours > 1 ? "s" : "")} a week", averageWeeklyHours);
-                    }
-                }
-            }
-            else
-            {
-                if (isFlexTag)
-                {
-                    return ($" earning approx £{hoursFromMinutes * 14 * 1.15}", 0);
-                }
-            }
-           
-            return ("", 0);
         }
 
         public void DeleteCronofyEvent(string syncFromCalendarId, Guid eventId)

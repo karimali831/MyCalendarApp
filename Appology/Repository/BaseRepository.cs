@@ -159,7 +159,7 @@ namespace Appology.Repository
             (string Type, string Method) Name = ("", "");
 
             StackTrace stackTrace = new StackTrace();
-            var frame = stackTrace.GetFrame(6);
+            var frame = stackTrace.GetFrame(7);
 
             if (frame != null)
             {

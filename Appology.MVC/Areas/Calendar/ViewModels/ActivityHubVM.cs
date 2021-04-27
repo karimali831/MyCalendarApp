@@ -4,9 +4,10 @@ using System.Collections.Generic;
 
 namespace Appology.Website.Areas.MiCalendar.ViewModels
 {
-    public class EventActivityHubVM
+    public class ActivityHubVM
     {
         public BaseDateFilter Filter { get; set; }
-        public Dictionary<EventActivityTagGroup, IList<HoursWorkedInTag>> EventsOverview { get; set; }
+        public IEnumerable<Tag> UserTags { get; set; }
+        public Dictionary<ActivityTagGroup, IList<HoursWorkedInTag>> Activities { get; set; }
     }
 }

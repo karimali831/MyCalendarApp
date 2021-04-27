@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Appology.MiCalendar.Model
 {
 
-    public class EventActivityTagGroup
+    public class ActivityTagGroup
     {
         public string TagGroupName { get; set; }
         public int TagGroupdId { get; set; }

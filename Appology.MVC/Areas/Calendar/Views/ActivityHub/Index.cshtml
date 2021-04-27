@@ -1,7 +1,7 @@
 ﻿@using Appology.Enums
 @using Appology.Helpers
 @using System.Configuration
-@model Appology.Website.Areas.MiCalendar.ViewModels.EventActivityHubVM
+@model Appology.Website.Areas.MiCalendar.ViewModels.ActivityHubVM
 @{
     ViewBag.Title = "Activity Hub";
     ViewBag.Frequency = ((DateFrequency)Model.Filter.Frequency);
@@ -12,8 +12,8 @@
         <h4>
             <span class="fas fa-chart-bar"> Activity Hub</span>
         </h4>
-        <div class="form-inline" role="form">
-            <div class="row" style="margin: 10px !important">
+        <div role="form" style="margin-left: 10px !important">
+            <div class="row">
                 <div class="form-group">
                     <select class="form-control" id="frequency" style="width:150px; display: inline">
                         @foreach (DateFrequency frequency in Enum.GetValues(typeof(DateFrequency)))
@@ -39,14 +39,35 @@
                         @Html.TextBoxFor(x => x.Filter.ToDateRange, "{0:yyyy-MM-dd}", new { id = "toDate", style = "width:170px", @class = "form-control", required = "required", @type = "date" })
                     </div>
                 </div>
+                <div class="form-group">
+                    <select id="tagId" class="form-control" style="display: inline">
+                        <option value="0">Add Activity</option>
+                        @foreach (var tag in Model.UserTags)
+                        {
+                            <option value="@tag.Id">@tag.Name</option>
+                        }
+                    </select>
+                </div>
+                <div id="activity-hub-form" style="display:none ">
+                    <div class="form-group">
+                        <select id="minutes" class="form-control" style="display: inline">
+                            <option value="0">Select Minutes</option>
+                            @for (int i = 1; i <= 180; i++)
+                            {
+                                <option value="@i">@DateUtils.HoursDurationFromMinutes(i)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
                 <div id="load-activities" style="display: none; margin-left: 5px">
                     <div class="loader loader-medium"></div>
                 </div>
             </div>
         </div>
+
         <div class="just-padding">
             <div class="list-group list-group-root well" id="activities">
-                @foreach (var tagGroup in Model.EventsOverview)
+                @foreach (var tagGroup in Model.Activities)
                 {
                     if (!string.IsNullOrEmpty(tagGroup.Key.TagGroupName))
                     {
@@ -69,10 +90,10 @@
                                         <span class="fas @e.ActivityTag" style="color: @e.Color"></span> <small> @e.Text</small>
                                         @if (e.ProgressBarWeeklyHours.TargetWeeklyHours != 0 && e.ProgressBarWeeklyHours.ProgressBarPercentage > 0)
                                         {
-                                            <div class="progress">
-                                              <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBarWeeklyHours.ProgressBarColor" role="progressbar" aria-valuenow="@e.ProgressBarWeeklyHours.ActualWeeklyHours" aria-valuemin="0" aria-valuemax="@e.ProgressBarWeeklyHours.TargetWeeklyHours" style="width: @(e.ProgressBarWeeklyHours.ProgressBarPercentage)%">
-                                                  @(e.ProgressBarWeeklyHours.ProgressBarPercentage)% complete targetting @e.ProgressBarWeeklyHours.TargetWeeklyHours hours a week
-                                              </div>
+                                            <div class="progress" style="height: 20px">
+                                                <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBarWeeklyHours.ProgressBarColor" role="progressbar" aria-valuenow="@e.ProgressBarWeeklyHours.ActualWeeklyHours" aria-valuemin="0" aria-valuemax="@e.ProgressBarWeeklyHours.TargetWeeklyHours" style="width: @(e.ProgressBarWeeklyHours.ProgressBarPercentage)%; padding: 10px">
+                                                    Averaging @e.ProgressBarWeeklyHours.ActualWeeklyHours / @e.ProgressBarWeeklyHours.TargetWeeklyHours hours a week
+                                                </div>
                                             </div>
                                         }
                                         @foreach (var avatar in e.Avatars)
@@ -101,6 +122,23 @@
     <script>
         $(document).ready(function () {
 
+            $("#tagId").change(function () {
+                if ($(this).val() != 0) {
+                    $('#activity-hub-form').show(500);
+                }
+                else {
+                    $('#activity-hub-form').hide(500);
+                }
+            });
+
+            $("#minutes").change(function () {
+                if ($(this).val() != 0 && $("#tagId").val() != 0) {
+
+                    addActivity();
+                    getEventsActivity();
+                }
+            });
+
             $("#interval").change(function () {
                 getEventsActivity();
             });
@@ -128,6 +166,34 @@
                 }
             });
 
+            function addActivity() {
+                $.ajax({
+                    type: "GET",
+                    data: {
+                        'tagId': $('#tagId').val(),
+                        'minutes': $('#minutes').val()
+                    },
+                    url: "@Url.MvcRoute(Section.ActivityHubAdd).RouteUrl",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        $('#minutes').val(0)
+                        $('#tagId').val(0)
+                        $('#activity-hub-form').hide(500);
+
+                        if (!response) {
+                            alert("An error occured");
+                        }
+                    },
+                    error: function (result) {
+                        $('#minutes').val(0)
+                        $('#tagId').val(0)
+                        $('#activity-hub-form').hide(500);
+                        alert("Error: " + result.status);
+                    }
+                })
+            }
+
             function getEventsActivity() {
                 var interval = $('#interval').val() == "" ? '@Model.Filter.Interval' : $('#interval').val();
                 var fromDate = $('#fromDate').val() == "" ? '@Model.Filter.FromDateRange' : $('#fromDate').val();
@@ -142,7 +208,7 @@
                         'fromDate': fromDate,
                         'toDate': toDate
                     },
-                    url: "/Event/FilteredActivityHub/",
+                    url: "@Url.MvcRoute(Section.ActivityHubFilter).RouteUrl",
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {

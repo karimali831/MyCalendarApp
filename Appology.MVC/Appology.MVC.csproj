@@ -396,6 +396,7 @@
     <Compile Include="Areas\Admin\Controllers\AppController.cs" />
     <Compile Include="Areas\Admin\Controllers\CacheController.cs" />
     <Compile Include="Areas\Admin\ViewModels\CacheVM.cs" />
+    <Compile Include="Areas\Calendar\Controllers\ActivityHubController.cs" />
     <Compile Include="Areas\Write\WriteAreaRegistration.cs" />
     <Compile Include="Areas\Write\WriteModule.cs" />
     <Compile Include="Areas\Write\Controllers\API\DocumentController.cs" />
@@ -441,7 +442,7 @@
     <Compile Include="Areas\Calendar\ViewModels\CalendarVM.cs" />
     <Compile Include="Areas\Calendar\ViewModels\CronofyVM.cs" />
     <Compile Include="Areas\Calendar\ViewModels\Event.cs" />
-    <Compile Include="Areas\Calendar\ViewModels\EventActivityHubVM.cs" />
+    <Compile Include="Areas\Calendar\ViewModels\ActivityHubVM.cs" />
     <Compile Include="Areas\Calendar\ViewModels\SchedulerVM.cs" />
     <Compile Include="ViewModels\AvatarVM.cs" />
     <Compile Include="ViewModels\BaseVM.cs" />
@@ -1064,7 +1065,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </Content>
     <Content Include="Areas\Calendar\Views\Event\MultiAdd.cshtml" />
-    <Content Include="Areas\Calendar\Views\Event\ActivityHub.cshtml" />
+    <Content Include="Areas\Calendar\Views\ActivityHub\Index.cshtml" />
     <Content Include="Areas\Calendar\Views\Cronofy\Profiles.cshtml" />
     <Content Include="Areas\Calendar\Views\Cronofy\Calendar.cshtml" />
     <Content Include="Areas\Calendar\Views\Cronofy\Event.cshtml" />

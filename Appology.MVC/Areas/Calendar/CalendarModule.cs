@@ -13,10 +13,12 @@ namespace Appology.Ninject
             Bind<IEventService>().To<EventService>();
             Bind<ITagService>().To<TagService>();
             Bind<ICronofyService>().To<CronofyService>();
+            Bind<IActivityHubService>().To<ActivityHubService>();
 
             // Repositories
             Bind<IEventRepository>().To<EventRepository>();
             Bind<ITagRepository>().To<TagRepository>();
+            Bind<IActivityHubRepository>().To<ActivityHubRepository>();
         }
     }
 }

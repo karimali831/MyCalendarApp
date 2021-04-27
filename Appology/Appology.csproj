@@ -222,6 +222,7 @@
     <Compile Include="Helpers\MVCRoutes.cs" />
     <Compile Include="Helpers\UrlHelper.cs" />
     <Compile Include="Helpers\Utils.cs" />
+    <Compile Include="Model\Calendar\ActivityHub.cs" />
     <Compile Include="Model\ER\Place.cs" />
     <Compile Include="Model\ER\Trip.cs" />
     <Compile Include="Model\ER\Order.cs" />
@@ -240,6 +241,7 @@
     <Compile Include="Model\Finance\Spending.cs" />
     <Compile Include="Model\Notification.cs" />
     <Compile Include="Model\Write\DocumentChangelog.cs" />
+    <Compile Include="Repository\Calendar\ActivityHubRepository.cs" />
     <Compile Include="Repository\ER\PlaceRepository.cs" />
     <Compile Include="Repository\BaseRepository.cs" />
     <Compile Include="Repository\NotificationRepository.cs" />
@@ -282,6 +284,7 @@
     <Compile Include="Security\SessionPersister.cs" />
     <Compile Include="Service\CacheService.cs" />
     <Compile Include="Service\Calendar\CronofyService.cs" />
+    <Compile Include="Service\Calendar\ActivtyHubService.cs" />
     <Compile Include="Service\Write\DocumentService.cs" />
     <Compile Include="Service\ER\TripService.cs" />
     <Compile Include="Service\ER\OrderService.cs" />

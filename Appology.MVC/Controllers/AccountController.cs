@@ -11,8 +11,11 @@ namespace Appology.Controllers
 {
     public class AccountController : UserMvcController
     {
+        private readonly ICacheService cacheService;
+
         public AccountController(
             IUserService userService, 
+            ICacheService cacheService,
             IFeatureRoleService featureRoleService,
             INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
@@ -66,6 +69,8 @@ namespace Appology.Controllers
         public ActionResult Logout()
         {
             SessionPersister.Email = string.Empty;
+            cacheService.RemoveAll();
+
             return RedirectToRoute(Url.Login());
         }
 

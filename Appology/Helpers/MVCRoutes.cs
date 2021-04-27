@@ -17,16 +17,18 @@ namespace Appology.Helpers
         {
             return  new List<KeyValuePair<Section, string>>() {
                 // base
-                new KeyValuePair<Section, string>(Section.Login, "/account/index"),
+                new KeyValuePair<Section, string>(Section.Login, "/account"),
                 new KeyValuePair<Section, string>(Section.LoginSubmit, "/account/login"),
-                new KeyValuePair<Section, string>(Section.Home, "/home/index"),
+                new KeyValuePair<Section, string>(Section.Home, "/home"),
                 new KeyValuePair<Section, string>(Section.Profile, "/account/settings"),
                 new KeyValuePair<Section, string>(Section.Logout, "/account/logout"),
                 new KeyValuePair<Section, string>(Section.Invite, "/invite/user"),
                 new KeyValuePair<Section, string>(Section.RemoveBuddy, "/invite/remove"),
                 // calendar app
-                new KeyValuePair<Section, string>(Section.ActivityHub, "/calendar/event/activityhub"),
                 new KeyValuePair<Section, string>(Section.Scheduler, "/calendar/event/multiadd"),
+                new KeyValuePair<Section, string>(Section.ActivityHub, "/calendar/activityhub"),
+                new KeyValuePair<Section, string>(Section.ActivityHubFilter, "/calendar/activityhub/filter"),
+                new KeyValuePair<Section, string>(Section.ActivityHubAdd, "/calendar/activityhub/add"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/calendar/cronofy/profiles"),
                 // write app
                 new KeyValuePair<Section, string>(Section.Document, "/write/document"),
@@ -41,7 +43,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.Monzo, "/finance/Monzo/ApproveDataAccess"),
                 new KeyValuePair<Section, string>(Section.MonzoAuthenticate, "/finance/Monzo/Login"),
                 // admin
-                new KeyValuePair<Section, string>(Section.Cache, "/admin/cache/index"),
+                new KeyValuePair<Section, string>(Section.Cache, "/admin/cache"),
                 new KeyValuePair<Section, string>(Section.Dashboard, "/admin/app")
             };
         }

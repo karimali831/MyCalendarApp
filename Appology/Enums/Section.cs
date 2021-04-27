@@ -8,6 +8,8 @@
         Invite,
         RemoveBuddy,
         ActivityHub,
+        ActivityHubFilter,
+        ActivityHubAdd,
         Scheduler,
         CronofyProfiles,
         Profile,

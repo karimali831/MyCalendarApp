@@ -13,7 +13,7 @@ namespace Appology.Model
         public Features FeatureId { get; set; }
     }
 
-    public class CategoryMap : EntityTypeConfiguration<Feature>
+    public class CategoryMap : EntityTypeConfiguration<Category>
     {
         public CategoryMap()
         {
