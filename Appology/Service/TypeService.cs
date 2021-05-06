@@ -13,7 +13,7 @@ namespace Appology.Service
 {
     public interface ITypeService
     {
-        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null, bool userCreatedOnly = true);
+        Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId = null, bool userCreatedOnly = true, bool creatorAsCollaborator = false);
         Task<IEnumerable<Types>> GetUserTypesAsync(Guid userId, TypeGroup groupId);
         Task<Types> GetAsync(int Id);
         Task<bool> UpdateTypeAsync(Types type);
@@ -39,7 +39,7 @@ namespace Appology.Service
             this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
-        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId, bool userCreatedOnly = true)
+        public async Task<IEnumerable<Types>> GetAllByUserIdAsync(Guid userId, TypeGroup? groupId, bool userCreatedOnly = true, bool creatorAsCollaborator = false)
         {
             string cacheTypeName = groupId.HasValue ? groupId.Value.ToString() : "all";
 
@@ -54,7 +54,7 @@ namespace Appology.Service
                     foreach (var userType in userTypes)
                     {
                         userType.Children = await UserTagsTree(userId, userType, groupId, userCreatedOnly);
-                        userType.Collaborators = await GetCollaborators(userId, userType.UserCreatedId, userType.InviteeIdsList.ToList());
+                        userType.Collaborators = await GetCollaborators(userId, userType.UserCreatedId, userType.InviteeIdsList.ToList(), creatorAsCollaborator);
 
                         result.Add(userType);
                     }
@@ -64,9 +64,12 @@ namespace Appology.Service
             );
         }
 
-        private async Task<IList<Collaborator>> GetCollaborators(Guid userId, Guid creatorId, IList<Guid> inviteeIds)
+        private async Task<IList<Collaborator>> GetCollaborators(Guid userId, Guid creatorId, IList<Guid> inviteeIds, bool creatorAsCollaborator = false)
         {
-            inviteeIds.Add(creatorId);
+            if (creatorAsCollaborator)
+            {
+                inviteeIds.Add(creatorId);
+            }
 
             return (await userRepo.GetCollaboratorsAsync(inviteeIds))
                 .Select(x =>

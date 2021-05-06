@@ -11,14 +11,15 @@ namespace Appology.Controllers
 {
     public class AccountController : UserMvcController
     {
-        private readonly ICacheService cacheService;
+        private readonly ICacheService cache;
 
         public AccountController(
             IUserService userService, 
-            ICacheService cacheService,
+            ICacheService cache,
             IFeatureRoleService featureRoleService,
             INotificationService notificationService) : base(userService, featureRoleService, notificationService)
         {
+            this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
         public ActionResult Index(Guid? inviteeId = null, string errorMsg = null, Guid? docId = null)
@@ -68,9 +69,9 @@ namespace Appology.Controllers
 
         public ActionResult Logout()
         {
+            cache.RemoveAll();
             SessionPersister.Email = string.Empty;
-            cacheService.RemoveAll();
-
+            
             return RedirectToRoute(Url.Login());
         }
 

@@ -13,6 +13,7 @@ using Appology.MiCalendar.Repository;
 using Appology.MiCalendar.Enums;
 using Appology.DTOs;
 using Appology.Write.DTOs;
+using Appology.MiCalendar.Helpers;
 
 namespace Appology.Service
 {
@@ -207,10 +208,11 @@ namespace Appology.Service
                  async () =>
                  {
                      var user = await userRepository.GetAsync(email, password);
-
+          
                      if (user != null)
                      {
                          user.Authenticated = true;
+                         user.AvatarSrc = CalendarUtils.AvatarSrc(user.UserID, user.Avatar, user.Name, absoluteUrl: true);
 
                          if (!user.EnableCronofy)
                          {

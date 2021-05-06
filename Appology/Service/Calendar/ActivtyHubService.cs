@@ -16,8 +16,12 @@ namespace Appology.MiCalendar.Service
 {
     public interface IActivityHubService
     {
+        Task<ActivityHub> GetAsync(Guid Id);
+        Task<bool> DeleteAsync(Guid Id);
         Task<bool> AddAsync(ActivityHub activity);
-        Task<Dictionary<ActivityTagGroup, IList<HoursWorkedInTag>>> GetActivities(User user, BaseDateFilter dateFilter, bool cacheRemove = false);
+        Task<ActivityHubStats> GetStats(Guid userId);
+        Task<Dictionary<ActivityTagGroup, IList<ActivityTagProgress>>> GetActivities(User user, BaseDateFilter dateFilter, bool cacheRemove = false);
+        Task<IEnumerable<ActivityHub>> GetAllByUserIdAsync(Guid userId, BaseDateFilter dateFilter, bool cacheRemove = false);
     }
 
     public class ActivityHubService : IActivityHubService
@@ -40,24 +44,26 @@ namespace Appology.MiCalendar.Service
             this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
         }
 
-        public async Task<bool> AddAsync(ActivityHub activity)
+        public async Task<ActivityHub> GetAsync(Guid Id)
+        {
+            return await activtyHubRepository.GetAsync(Id);
+        }
+
+        public async Task<bool> DeleteAsync(Guid Id)
         {
             cache.Remove($"{cachePrefix}.{nameof(GetAllByUserIdAsync)}");
+            return await activtyHubRepository.DeleteAsync(Id);
+        }
+
+        public async Task<bool> AddAsync(ActivityHub activity)
+        {
             return await activtyHubRepository.AddAsync(activity);
         }
 
-        public async Task<Dictionary<ActivityTagGroup, IList<HoursWorkedInTag>>> GetActivities(User user, BaseDateFilter dateFilter, bool cacheRemove = false)
+        private async Task<IEnumerable<ActivityHub>> GetActivityEvents(RequestEventDTO eventRequest, Guid userId, bool cacheRemove)
         {
-            var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
-
-            var eventRequest = new RequestEventDTO
-            {
-                CalendarIds = userCalendarIds,
-                DateFilter = dateFilter
-            };
-
-            var events = (await eventService.GetEventsAsync(eventRequest, cacheRemove))
-                .Where(x => (x.UserID == user.UserID || x.InviteeIdsList.Contains(user.UserID)) && !x.Reminder && x.TagID.HasValue && x.WeeklyHourlyTarget != -1)
+            return (await eventService.GetEventsAsync(eventRequest, cacheRemove))
+                .Where(x => (x.UserID == userId || x.InviteeIdsList.Contains(userId)) && !x.Reminder && x.EndDate.HasValue && x.TagID.HasValue && x.TargetUnit != "disable")
                 .Select(x => new ActivityHub
                 {
                     Id = x.EventID,
@@ -71,19 +77,35 @@ namespace Appology.MiCalendar.Service
                     IsEvent = true,
                     Subject = x.Subject,
                     ThemeColor = x.ThemeColor,
-                    WeeklyHourlyTarget = x.WeeklyHourlyTarget,
-                    StartDate = x.StartDate,
-                    EndDate = x.EndDate
+                    TargetFrequency = x.TargetFrequency,
+                    TargetValue = x.TargetValue,
+                    TargetUnit = x.TargetUnit,
+                    StartDate = DateUtils.FromUtcToLocalTime(x.StartDate),
+                    EndDate = DateUtils.FromUtcToLocalTime(x.EndDate.Value)
                 });
+        }
 
-            var getHubActivities = await GetAllByUserIdAsync(user.UserID, dateFilter);
-            var activityHub = events.Concat(getHubActivities);
+        public async Task<Dictionary<ActivityTagGroup, IList<ActivityTagProgress>>> GetActivities(User user, BaseDateFilter dateFilter, bool cacheRemove = false)
+        {
+            var userCalendarIds = (await userService.UserCalendars(user.UserID)).Select(x => x.Id).ToArray();
 
-            var eventsOverview = new Dictionary<ActivityTagGroup, IList<HoursWorkedInTag>>();
+            var eventRequest = new RequestEventDTO
+            {
+                CalendarIds = userCalendarIds,
+                DateFilter = dateFilter
+            };
+
+            var eventsByFilter = await GetActivityEvents(eventRequest, user.UserID, cacheRemove);
+            var stats = await GetStats(user.UserID);
+
+            var getHubActivities = await GetAllByUserIdAsync(user.UserID, dateFilter, cacheRemove);
+            var activityHub = eventsByFilter.Concat(getHubActivities);
+
+            var eventsOverview = new Dictionary<ActivityTagGroup, IList<ActivityTagProgress>>();
 
             if (activityHub != null && activityHub.Any())
             {
-                var hoursWorkedInTag = new List<HoursWorkedInTag>();
+                var ActivityTagProgress = new List<ActivityTagProgress>();
 
                 foreach (var tagGroup in activityHub.GroupBy(x => new { x.TagGroupId, x.TagGroupName }))
                 {
@@ -121,36 +143,51 @@ namespace Appology.MiCalendar.Service
                         }
 
 
-                        double minutesWorked = e.Sum(x => x.IsEvent ? x.EndDate.HasValue ? DateUtils.MinutesBetweenDates(x.EndDate.Value, x.StartDate.Value) : 1440 : x.Minutes);
+                        double value = e.Sum(x => x.IsEvent ? x.EndDate.HasValue ? DateUtils.MinutesBetweenDates(x.EndDate.Value, x.StartDate.Value) : 1440 : x.Value);
 
-                        if (minutesWorked > 0)
+                        if (value > 0 && tag.TargetFrequency.HasValue)
                         {
-                            var additionalInfo = ActivityAdditionalText(minutesWorked, dateFilter, isFlexTag: tag.Subject == "Flex");
+                            var additionalInfo = ActivityAdditionalText(value, tag.TargetUnit, tag.TargetFrequency.Value, dateFilter, isGroup: false, tag.Subject);
                             string text;
 
                             if (dateFilter.Frequency == DateFrequency.Upcoming)
                             {
                                 string multipleEvents = e.Count() > 1 ? "have upcoming events totalling" : "have an upcoming event for";
-                                text = string.Format($"{userName} {multipleEvents} {DateUtils.HoursDurationFromMinutes(minutesWorked)} with {tag.Subject}.");
+                                text = string.Format($"{userName} {multipleEvents} {DateUtils.HoursDurationFromMinutes(value)} with {tag.Subject}.");
                             }
                             else
                             {
-                                text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(minutesWorked)} {additionalInfo.Text} with {tag.Subject}.");
+                                if (tag.TargetUnit == "hours")
+                                {
+                                    text = string.Format($"{userName} spent {DateUtils.HoursDurationFromMinutes(value)} {additionalInfo.Text} with {tag.Subject}.");
+                                }
+                                else
+                                {
+                                    text = string.Format($"{userName} completed {value} {tag.TargetUnit} {additionalInfo.Text} with {tag.Subject}.");
+                                }
                             }
 
-
-
-                            hoursWorkedInTag.Add(new HoursWorkedInTag
+                            if (tag.TargetValue.HasValue && tag.TargetFrequency.HasValue)
                             {
-                                TagGroupId = tagGroup.Key.TagGroupId,
-                                Text = text,
-                                TotalMinutes = minutesWorked,
-                                MultiUsers = multiUser,
-                                Color = tag.ThemeColor,
-                                Avatars = inviteeAvatars.Distinct().ToList(),
-                                ActivityTag = multiUser ? "fa-user-friends" : "fa-tag",
-                                ProgressBarWeeklyHours = ProgressBarWeeklyHours(additionalInfo.WeeklyHours, tag.WeeklyHourlyTarget)
-                            });
+
+
+
+                                ActivityTagProgress.Add(new ActivityTagProgress
+                                {
+                                    TagGroupId = tagGroup.Key.TagGroupId,
+                                    TargetUnit = tag.TargetUnit,
+                                    Text = text,
+                                    Value = value,
+                                    MultiUsers = multiUser,
+                                    Color = tag.ThemeColor,
+                                    Avatars = inviteeAvatars.Distinct().ToList(),
+                                    ActivityTag = multiUser ? "fa-user-friends" : "fa-tag",
+                                    ProgressBar = ProgressBar(additionalInfo.Hours, tag.TargetFrequency.Value, tag.TargetValue.Value, tag.TargetUnit),
+                                    PreviousMonthTotalValue = stats.PrevMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0,
+                                    PreviousSecondMonthTotalValue = stats.PrevSecondMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0,
+                                    ThisWeekTotalValue = stats.ThisWeek.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0
+                                });
+                            }
                         }
 
                     }
@@ -159,22 +196,22 @@ namespace Appology.MiCalendar.Service
                     {
                         TagGroupdId = tagGroup.Key.TagGroupId,
                         TagGroupName = tagGroup.Key.TagGroupName
-                    }, hoursWorkedInTag);
+                    }, ActivityTagProgress);
 
 
                     foreach (var group in eventsOverview.Keys)
                     {
-                        var groupEventActivity = hoursWorkedInTag.Where(x => x.TagGroupId == group.TagGroupdId);
+                        var groupEventActivity = ActivityTagProgress.Where(x => x.TagGroupId == group.TagGroupdId && x.TargetUnit == "hours");
 
                         if (groupEventActivity.Count() > 1)
                         {
-                            double minutesSpent = groupEventActivity.Sum(x => x.TotalMinutes);
+                            double value = groupEventActivity.Sum(x => x.Value);
 
-                            group.Text = DateUtils.HoursDurationFromMinutes(minutesSpent);
+                            group.Text = $"Totalling {DateUtils.HoursDurationFromMinutes(value)}";
 
-                            if (minutesSpent > 0)
+                            if (value > 0)
                             {
-                                group.Text += ActivityAdditionalText(minutesSpent, dateFilter).Text;
+                                group.Text += $" {ActivityAdditionalText(value, "hours", TimeFrequency.Weekly, dateFilter, isGroup: true).Text}";
                             }
                         }
                     }
@@ -184,19 +221,70 @@ namespace Appology.MiCalendar.Service
             return eventsOverview;
         }
 
-        private async Task<IEnumerable<ActivityHub>> GetAllByUserIdAsync(Guid userId, BaseDateFilter dateFilter)
+        private IList<ActivityHubStatsMonth> GetStatsFilter(IEnumerable<ActivityHubStatsMonth> stats)
+        {
+            return stats
+                .Select(x => {
+                    x.TotalValue = x.TargetUnit == "hours" ? DateUtils.GetHoursFromMinutes(x.TotalValue) : x.TotalValue;
+                    return x;
+                })
+                .ToList();
+        }
+
+        public async Task<ActivityHubStats> GetStats(Guid userId)
+        {
+            string prevMonth = DateUtils.DateTime().AddMonths(-1).ToString("MMMM");
+            string prevSecondMonth = DateUtils.DateTime().AddMonths(-2).ToString("MMMM");
+
+
+            var prevMonthDateFilter = new DateFilter
+            {
+                Frequency = Utils.ParseEnum<DateFrequency>(prevMonth)
+            };
+
+            var prevSecondMonthFilter = new DateFilter
+            {
+                Frequency = Utils.ParseEnum<DateFrequency>(prevSecondMonth)
+            };
+
+            var (Start, End) = DateUtils.GetWeek(DayOfWeek.Tuesday, DayOfWeek.Wednesday);
+
+            var thisWeekFilter = new DateFilter
+            {
+                Frequency = DateFrequency.DateRange,
+                FromDateRange = Start,
+                ToDateRange = End
+            };
+
+            var prevMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, prevMonthDateFilter));
+            var prevSecondMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, prevSecondMonthFilter));
+            var thisWeekStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, thisWeekFilter));
+
+            return new ActivityHubStats
+            {
+                PrevMonth = prevMonthStats,
+                PrevSecondMonth = prevSecondMonthStats,
+                ThisWeek = thisWeekStats
+            };
+        }
+
+        public async Task<IEnumerable<ActivityHub>> GetAllByUserIdAsync(Guid userId, BaseDateFilter dateFilter, bool cacheRemove = false)
         {
             dateFilter.DateField = "Date";
 
-            return await cache.GetAsync(
-                $"{cachePrefix}.{nameof(GetAllByUserIdAsync)}",
-                async () => await activtyHubRepository.GetAllByUserIdAsync(userId, dateFilter)
-            );
+            string cacheName = $"{cachePrefix}.{nameof(GetAllByUserIdAsync)}";
+
+            if (cacheRemove)
+            {
+                cache.Remove(cacheName);
+            }
+
+            return await cache.GetAsync(cacheName, async () => await activtyHubRepository.GetAllByUserIdAsync(userId, dateFilter));
         }
 
-        private ProgressBarWeeklyHours ProgressBarWeeklyHours(int actualHours, int targetHours)
+        private ProgressBar ProgressBar(double actualHours, TimeFrequency targetFrequency, int targetValue, string targetUnit)
         {
-            int progressBarPercentage = (int)Math.Round((double)(100 * actualHours) / targetHours);
+            int progressBarPercentage = (int)Math.Round((double)(100 * actualHours) / targetValue);
             string progressBarColor = "";
 
             if (progressBarPercentage < 50)
@@ -216,48 +304,101 @@ namespace Appology.MiCalendar.Service
                 progressBarColor = "bg-success";
             }
 
-            return new ProgressBarWeeklyHours
+            return new ProgressBar
             {
-                TargetWeeklyHours = targetHours,
-                ActualWeeklyHours = actualHours,
+                TargetFrequency = targetFrequency,
+                TargetUnit = targetUnit,
+                TargetValue = targetValue,
+                ActualValue = Math.Round(actualHours, 2),
                 ProgressBarPercentage = progressBarPercentage,
                 ProgressBarColor = progressBarColor
             };
         }
 
-
-        private (string Text, int WeeklyHours) ActivityAdditionalText(double minutesSpent, BaseDateFilter dateFilter, bool isFlexTag = false)
+        private string CalculateApproxAverageEarning(string subject, double value, TimeFrequency frequency, int? monthsBetween)
         {
-            int hoursFromMinutes = DateUtils.GetHoursFromMinutes(minutesSpent);
+            if (subject == "Flex" || subject == "Deliveroo")
+            {
+                double calcApproxEarning;
+
+                switch (subject)
+                {
+                    case "Flex":
+                        calcApproxEarning = value * 14 * 1.15;
+                        break;
+                    case "Deliveroo":
+                        calcApproxEarning = value * 5.50;
+                        break;
+                    default:
+                        calcApproxEarning = value;
+                        break;
+                }
+
+                double averageEarning = CalculateAverageHoursByFrequency(frequency, calcApproxEarning, monthsBetween.Value);
+                return $" earning approx {Utils.ToCurrency((decimal)averageEarning)} {frequency.ToString().ToLower()}";
+                //return "";
+            }
+            return "";
+        }
+
+        private double CalculateAverageHoursByFrequency(TimeFrequency frequency, double value, int monthsBetween)
+        {
+            switch (frequency)
+            {
+                case TimeFrequency.Daily:
+                    return value / monthsBetween / 4 / 7;
+
+                case TimeFrequency.Weekly:
+                    return value / monthsBetween / 4;
+
+                case TimeFrequency.Monthly:
+                    return value / monthsBetween;
+
+                default:
+                    return value / monthsBetween / 4;
+            }
+        }
+
+        private (string Text, double Hours) ActivityAdditionalText(double value, string unit, TimeFrequency frequency, BaseDateFilter dateFilter, bool isGroup, string subject = null)
+        {
+            double hoursFromMinutes = DateUtils.GetHoursFromMinutes(value);
             int? monthsBetween = DateUtils.MonthsBetweenRanges(dateFilter);
 
             if (monthsBetween.HasValue && monthsBetween.Value != 0)
             {
-                int averageWeeklyHours = (hoursFromMinutes / monthsBetween.Value / 4);
-
-                if (averageWeeklyHours > 0)
+                if (unit == "hours")
                 {
-                    if (isFlexTag)
-                    {
-                        double averageWeeklyEarning = (hoursFromMinutes * 14 * 1.15) / monthsBetween.Value / 4;
-                        string earning = Utils.ToCurrency((decimal)averageWeeklyEarning);
+                    double averageHours = CalculateAverageHoursByFrequency(frequency, hoursFromMinutes, monthsBetween.Value);
 
-                        return ($" averaging {averageWeeklyHours } hour{(averageWeeklyHours > 1 ? "s" : "")}, {earning} a week", averageWeeklyHours);
-                    }
-                    else
+                    if (averageHours > 0)
                     {
+                        string averaging = isGroup ?
+                            $" averaging {averageHours} hour{(averageHours > 1 ? "s" : "")} {frequency.ToString().ToLower()}" :
+                             CalculateApproxAverageEarning(subject, hoursFromMinutes, frequency, monthsBetween);
 
-                        return ($" averaging {averageWeeklyHours} hour{(averageWeeklyHours > 1 ? "s" : "")} a week", averageWeeklyHours);
+                        return (averaging, averageHours);
                     }
+                }
+                else
+                {
+                    string averaging = CalculateApproxAverageEarning(subject, value, frequency, monthsBetween);
+                    double averageHours = CalculateAverageHoursByFrequency(frequency, value, monthsBetween.Value);
+                        
+                    return (averaging, averageHours);
                 }
             }
             else
             {
-                if (isFlexTag)
+                if (subject == "Flex")
                 {
                     return ($" earning approx £{hoursFromMinutes * 14 * 1.15}", 0);
                 }
+                else if (subject == "Deliveroo")
+                {
+                    return ($" earning approx £{value * 5.50}", 0);
+                }
             }
+            
 
             return ("", 0);
         }

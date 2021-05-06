@@ -10,7 +10,19 @@ namespace Appology.Helpers
 {
     public static class DateUtils
     {
-        public static int GetHoursFromMinutes(double minutes)
+        public static (DateTime Start, DateTime End) GetWeek(DayOfWeek endDayOfWeek, DayOfWeek startDayOfWeek)
+        {
+            DateTime nextDay = DateTime().AddDays(1);
+            while (nextDay.DayOfWeek != endDayOfWeek)
+                nextDay = nextDay.AddDays(1);
+            DateTime lastDay = DateTime().AddDays(-1);
+            while (lastDay.DayOfWeek != startDayOfWeek)
+                lastDay = lastDay.AddDays(-1);
+
+            return (lastDay, nextDay);
+        }
+
+        public static double GetHoursFromMinutes(double minutes)
         {
             int rtnNo = 0;
             TimeSpan span = TimeSpan.FromMinutes(minutes);
@@ -189,7 +201,15 @@ namespace Appology.Helpers
             //return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
         }
 
-        public static DateTime UtcDateTime() => FromTimeZoneToUtc(DateTime());
+        public static DateTime FromTimeZoneToUtcc(this DateTime dateTime, string timezone = "Europe/London")
+        {
+            DateTimeZone zone = DateTimeZoneProviders.Tzdb[timezone];
+            var localtime = LocalDateTime.FromDateTime(dateTime);
+            var zonedtime = localtime.InZoneLeniently(zone);
+            return zonedtime.ToInstant().InZone(zone).ToDateTimeUtc();
+        }
+
+        public static DateTime UtcDateTime() => FromTimeZoneToUtcc(DateTime());
 
         public static IList<KeyValuePair<string, string>> TimePresets()
         {
@@ -245,7 +265,7 @@ namespace Appology.Helpers
 
             if (dateFilter.UpcomingIncEndDate)
             {
-                filteredDate += dateFilter.Frequency == DateFrequency.Upcoming ? "" : " AND EndDate < GETUTCDATE()";
+                filteredDate += dateFilter.Frequency == DateFrequency.Upcoming ? "" : $" AND [{dateFilter.DateField}] < GETUTCDATE()";
             }
 
             return filteredDate;

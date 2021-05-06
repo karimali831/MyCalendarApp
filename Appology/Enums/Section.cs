@@ -10,6 +10,7 @@
         ActivityHub,
         ActivityHubFilter,
         ActivityHubAdd,
+        ActivityHubDelete,
         Scheduler,
         CronofyProfiles,
         Profile,

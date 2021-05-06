@@ -1,8 +1,8 @@
-import { Load, Variant, AlertModal, ConfirmModal } from '@appology/react-components';
+import { AlertModal, ConfirmModal, Load, Variant } from '@appology/react-components';
 import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
 import * as React from 'react';
-import Accordion from 'react-bootstrap/Accordion'
-import Card from 'react-bootstrap/Card'
+import Accordion from 'react-bootstrap/Accordion';
+import Card from 'react-bootstrap/Card';
 import { FaCalendarCheck, FaPenAlt, FaUser, FaUserFriends } from 'react-icons/fa';
 import { MenuSection } from 'src/Enums/MenuSection';
 import { IUser } from 'src/models/IUser';

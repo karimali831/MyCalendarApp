@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { Modal } from 'react-bootstrap'
-import { ActionButton } from './ActionButtons';
-import Button from 'react-bootstrap/Button'
 import { Variant } from '@appology/react-components';
+import * as React from 'react';
+import { Modal } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import { ActionButton } from './ActionButtons';
 
 export interface IOwnState {
 }
@@ -12,11 +12,14 @@ export interface IOwnProps {
     content: JSX.Element[],
     titleIcon?: JSX.Element
     delete?: boolean,
+    deleteTxt?: string,
+    closeTxt?: string,
+    saveTxt?: string,
     save: boolean,
     show: boolean, 
     handleClose: () => void,
-    onDelete: React.MouseEventHandler<HTMLButtonElement>,
-    onSave: React.MouseEventHandler<HTMLButtonElement>
+    onDelete?: React.MouseEventHandler<HTMLButtonElement>,
+    onSave?: React.MouseEventHandler<HTMLButtonElement>
 }
 
 export class EditModal extends React.Component<IOwnProps, IOwnState> {
@@ -41,9 +44,9 @@ export class EditModal extends React.Component<IOwnProps, IOwnState> {
                     {this.props.content}
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={this.props.handleClose}>Close</Button>
-                    {this.props.delete !== undefined && <ActionButton variant={Variant.Danger} loading={this.props.delete} onClick={this.props.onDelete} value="Delete" />}
-                    <ActionButton loading={this.props.save} onClick={this.props.onSave} />
+                    <Button variant="secondary" onClick={this.props.handleClose}>{this.props.closeTxt ?? "Close"}</Button>
+                    {this.props.delete !== undefined && <ActionButton variant={Variant.Danger} loading={this.props.delete} onClick={this.props.onDelete} value={this.props.deleteTxt ?? "Delete"} />}
+                    <ActionButton loading={this.props.save} onClick={this.props.onSave} value={this.props.saveTxt} />
                 </Modal.Footer>
             </Modal>
         );

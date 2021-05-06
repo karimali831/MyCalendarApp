@@ -30,6 +30,8 @@ namespace Appology.Model
         public string RecentOpenedDocIds { get; set; }
         public string PinnedDocIds { get; set; }
         [DbIgnore]
+        public string AvatarSrc { get; set; }
+        [DbIgnore]
         public IEnumerable<int> SelectedCalendarsList => !string.IsNullOrEmpty(SelectedCalendars) ? SelectedCalendars.Split(',').Select(x => int.Parse(x)) : Enumerable.Empty<int>();
         [DbIgnore]
         public IEnumerable<Guid> RoleIdsList => !string.IsNullOrEmpty(RoleIds) ? RoleIds.Split(',').Select(x => Guid.Parse(x)) : Enumerable.Empty<Guid>();

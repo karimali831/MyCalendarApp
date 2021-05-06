@@ -109,7 +109,11 @@ namespace Appology.Controllers.Api
                         x.TypeID,
                         x.Name,
                         x.ThemeColor,
-                        x.WeeklyHourlyTarget
+                        x.TargetFrequency,
+                        x.TargetValue,
+                        x.TargetUnit,
+                        x.StartDayOfWeek,
+                        x.EndDayOfWeek
                     }),
                     calendarSettings = new
                     {

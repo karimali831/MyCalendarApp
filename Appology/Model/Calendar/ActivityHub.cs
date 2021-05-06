@@ -1,4 +1,5 @@
 ﻿using Appology.Enums;
+using Appology.MiCalendar.Enums;
 using DFM.Utils;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Appology.MiCalendar.Model
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public Guid TagId { get; set; }
-        public int Minutes { get; set; }
+        public double Value { get; set; }
         public DateTime Date { get; set; }
         [DbIgnore]
         public bool IsEvent { get; set; } = false;
@@ -21,7 +22,11 @@ namespace Appology.MiCalendar.Model
         [DbIgnore]
         public string ThemeColor { get; set; }
         [DbIgnore]
-        public int WeeklyHourlyTarget { get; set; }
+        public TimeFrequency? TargetFrequency { get; set; }
+        [DbIgnore]
+        public int? TargetValue { get; set; }
+        [DbIgnore]
+        public string TargetUnit { get; set; }
         [DbIgnore]
         public string Name { get; set; }
         [DbIgnore]
@@ -38,6 +43,23 @@ namespace Appology.MiCalendar.Model
         public DateTime? StartDate { get; set; }
         [DbIgnore]
         public DateTime? EndDate { get; set; }
+    }
+
+    public class ActivityHubStatsMonth
+    {
+        public Guid TagId { get; set; }
+        public DayOfWeek StartDayOfWeek { get; set; }
+        public DayOfWeek EndDayOfWeek { get; set; }
+        public string TargetUnit { get; set; }
+        public string TagName { get; set; }
+        public double TotalValue { get; set; }
+    }
+
+    public class ActivityHubStats
+    {
+        public IEnumerable<ActivityHubStatsMonth> PrevMonth { get; set; }
+        public IEnumerable<ActivityHubStatsMonth> PrevSecondMonth { get; set; }
+        public IEnumerable<ActivityHubStatsMonth> ThisWeek { get; set; }
     }
 
     public class ActivityHubMap : EntityTypeConfiguration<ActivityHub>

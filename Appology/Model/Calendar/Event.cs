@@ -34,7 +34,11 @@ namespace Appology.MiCalendar.Model
         [DbIgnore]
         public string ThemeColor { get; set; }
         [DbIgnore]
-        public int WeeklyHourlyTarget { get; set; }
+        public TimeFrequency? TargetFrequency { get; set; }
+        [DbIgnore]
+        public int? TargetValue { get; set; }
+        [DbIgnore]
+        public string TargetUnit { get; set; }
         [DbIgnore]
         public string InviteeIds { get; set; }
         [DbIgnore]

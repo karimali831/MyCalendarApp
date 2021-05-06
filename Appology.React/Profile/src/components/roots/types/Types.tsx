@@ -1,14 +1,14 @@
 import { InputElement, Load, ToggleSwitch, Variant } from '@appology/react-components';
-import * as React from 'react';
-import ListGroup from 'react-bootstrap/ListGroup'
-import { Tab } from 'react-bootstrap'
-import { FaPlus, FaUserFriends } from 'react-icons/fa';
-import { EditModal } from 'src/components/utils/EditModal';
-import { api, ITypeChangeResponse } from 'src/Api/Api';
-import IUserBuddy from '@appology/react-components/dist/UserTypes/IUserBuddy';
 import IGroup from '@appology/react-components/dist/UserTypes/IGroup';
+import IUserBuddy from '@appology/react-components/dist/UserTypes/IUserBuddy';
 import IUserType from '@appology/react-components/dist/UserTypes/IUserType';
 import IUserTypeDTO from '@appology/react-components/dist/UserTypes/IUserTypeDTO';
+import * as React from 'react';
+import { Tab } from 'react-bootstrap';
+import ListGroup from 'react-bootstrap/ListGroup';
+import { FaPlus, FaUserFriends } from 'react-icons/fa';
+import { api, ITypeChangeResponse } from 'src/Api/Api';
+import { EditModal } from 'src/components/utils/EditModal';
 import TypesTree from './TypesTree';
 
 export interface IOwnState {
@@ -136,6 +136,7 @@ export class Types extends React.Component<IOwnProps, IOwnState> {
         else{
             selectedType = this.initialStateSelectedType(0, addToKey)
         }
+
 
         this.setState({ selectedType: selectedType })
     }

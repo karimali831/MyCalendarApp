@@ -40,22 +40,21 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <select id="tagId" class="form-control" style="display: inline">
+                    <select id="tagId" class="form-control">
                         <option value="0">Add Activity</option>
                         @foreach (var tag in Model.UserTags)
                         {
-                            <option value="@tag.Id">@tag.Name</option>
+                            <option value="@(tag.TargetUnit).@(tag.Id)">@tag.Name</option>
                         }
                     </select>
                 </div>
                 <div id="activity-hub-form" style="display:none ">
                     <div class="form-group">
-                        <select id="minutes" class="form-control" style="display: inline">
-                            <option value="0">Select Minutes</option>
-                            @for (int i = 1; i <= 180; i++)
-                            {
-                                <option value="@i">@DateUtils.HoursDurationFromMinutes(i)</option>
-                            }
+                        <input type="date" id="date" class="form-control"  style="display:inline" />
+                    </div>
+                    <div class="form-group">
+                        <select id="value" class="form-control"  style="display:inline">
+                            <option value="0"></option>
                         </select>
                     </div>
                 </div>
@@ -64,8 +63,43 @@
                 </div>
             </div>
         </div>
-
-        <div class="just-padding">
+        <div id="hub-activities" class="just-padding" style="display: none">
+            <i class="fas fa-chevron-right"></i> <span id="view-stats">Hub Stats</span>
+            @if (Model.ActivityHub != null && Model.ActivityHub.Any())
+            {
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Tag</th>
+                            <th scope="col">Value</th>
+                            <th scope="col">Date</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="hub">
+                        @foreach (var act in Model.ActivityHub)
+                        {
+                            <tr>
+                 
+                                <td><span class="fas fa-tag" style="color: @act.ThemeColor"></span> @act.Subject</td>
+                                <td>@act.Value @(act.TargetUnit == "hours" ? "minutes" : act.TargetUnit)</td>
+                                <td>@act.Date.ToString("dd/MM/yyyy")</td>
+                                <td data-model-id="@act.Id" onclick="deleteActivity(this)">
+                                    <div class="deleting-@act.Id" style="display: none">
+                                        <div class="loader loader-small"></div>
+                                    </div>
+                                    <div class="delete-@act.Id">
+                                        <i class='fas fa-times'></i>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+        <div id="hub-stats" class="just-padding">
+            <i class="fas fa-chevron-right"></i> <span id="view-activities">Added Activities</span>
             <div class="list-group list-group-root well" id="activities">
                 @foreach (var tagGroup in Model.Activities)
                 {
@@ -76,10 +110,10 @@
                         <div class="list-group">
                             <a href="#@key" class="list-group-item" data-toggle="collapse">
                                 <i class="fas fa-chevron-down"></i> @tagGroup.Key.TagGroupName
-                                @if (tagGroup.Value.Count(x => x.TagGroupId == tagGroup.Key.TagGroupdId) > 1)
+                                @if (tagGroup.Value.Count(x => x.TagGroupId == tagGroup.Key.TagGroupdId && x.TargetUnit == "hours") > 1)
                                 {
                                     <span class="float-right" style="color: #000; font-size: small">
-                                        <i class="fas fa-tags"></i> @tagGroup.Key.Text
+                                        <i class="fas fa-clock"></i> @tagGroup.Key.Text
                                     </span>
                                 }
                             </a>
@@ -88,13 +122,38 @@
                                 {
                                     <div class="list-group-item">
                                         <span class="fas @e.ActivityTag" style="color: @e.Color"></span> <small> @e.Text</small>
-                                        @if (e.ProgressBarWeeklyHours.TargetWeeklyHours != 0 && e.ProgressBarWeeklyHours.ProgressBarPercentage > 0)
+                                        @if (e.ProgressBar.TargetValue.HasValue && e.ProgressBar.ProgressBarPercentage > 0)
                                         {
-                                            <div class="progress" style="height: 20px">
-                                                <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBarWeeklyHours.ProgressBarColor" role="progressbar" aria-valuenow="@e.ProgressBarWeeklyHours.ActualWeeklyHours" aria-valuemin="0" aria-valuemax="@e.ProgressBarWeeklyHours.TargetWeeklyHours" style="width: @(e.ProgressBarWeeklyHours.ProgressBarPercentage)%; padding: 10px">
-                                                    Averaging @e.ProgressBarWeeklyHours.ActualWeeklyHours / @e.ProgressBarWeeklyHours.TargetWeeklyHours hours a week
+                                            <div>
+                                                <div class="ah-stats">
+                                                    <span class="ah-badge badge badge-@(e.PreviousSecondMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "success" : "danger")">
+                                                        <i class="fas fa-arrow-@(e.PreviousSecondMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "up" : "down")"></i>
+                                                        <span class="prev-secondmonth-desktop">@e.PreviousSecondMonthTotalValue @e.TargetUnit in @Model.PrevSecondMonthName</span>
+                                                        <span class="prev-secondmonth-mobile">@Model.PrevSecondMonthNameAbbrev @e.PreviousSecondMonthTotalValue</span>
+                                                    </span>
+                                                    <span class="ah-badge badge badge-@(e.PreviousMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "success" : "danger")">
+                                                        <i class="fas fa-arrow-@(e.PreviousMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "up" : "down")"></i>
+                                                        <span class="prev-month-desktop">@e.PreviousMonthTotalValue @e.TargetUnit in @Model.PrevMonthName</span>
+                                                        <span class="prev-month-mobile">@Model.PrevMonthNameAbbrev @e.PreviousMonthTotalValue</span>
+                                                    </span>
+                                                    <span class="ah-badge badge badge-info">
+                                                        <i class="fas fa-clock"></i>
+                                                        <span class="this-week-desktop">@e.ThisWeekTotalValue @e.TargetUnit this week</span>
+                                                        <span class="this-week-mobile">@e.ThisWeekTotalValue Week</span>
+                                                    </span>
+                                                    <span class="ah-badge badge badge-primary">
+                                                        <i class="fas fa-bullseye"></i>
+                                                        <span class="target-desktop">@e.ProgressBar.TargetFrequency Target @e.ProgressBar.TargetValue @e.ProgressBar.TargetUnit</span>
+                                                        <span class="target-mobile">Target  @e.ProgressBar.TargetValue</span>
+                                                    </span>
+                                                </div>
+                                                <div class="progress" style="height: 20px">
+                                                    <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBar.ProgressBarColor" role="progressbar" aria-valuenow="@e.ProgressBar.ActualValue" aria-valuemin="0" aria-valuemax="@e.ProgressBar.TargetValue.Value" style="width: @(e.ProgressBar.ProgressBarPercentage)%; padding: 10px">
+                                                        Averaging @e.ProgressBar.ActualValue @e.ProgressBar.TargetUnit @e.ProgressBar.TargetFrequency.ToString().ToLower()
+                                                    </div>
                                                 </div>
                                             </div>
+
                                         }
                                         @foreach (var avatar in e.Avatars)
                                         {
@@ -120,20 +179,87 @@
 
 @section Scripts{
     <script>
+        function deleteActivity(obj) {
+            var ele = $(obj);
+            var Id = ele.data("model-id");
+
+            if (confirm('Are you sure you want to delete this?')) {
+                $('.deleting-' + Id).show();
+                $('.delete-' + Id).hide();
+
+                $.ajax({
+                    type: "GET",
+                    data: { 'Id': Id },
+                    url: "@Url.MvcRoute(Section.ActivityHubDelete).RouteUrl",
+                    success: function (response) {
+                        $('.deleting-' + Id).hide();
+                        $('.delete-' + Id).show();
+                        ele.closest("tr").remove();
+
+                        if (!respose) {
+                            alert("An error occured");
+                        }
+                    },
+                    error: function (result) {
+                        $('.deleting-' + Id).hide();
+                        $('.delete-' + Id).show();
+                        alert("Error: " + result.status);
+                    }
+                });
+            }
+        }
+
         $(document).ready(function () {
+            setInterval(function () {
+                getEventsActivity(); // this will run after every 5 seconds
+            }, 300000);
+
+            $('#view-activities').click(function () {
+                $('#hub-stats').slideUp('slow');
+                $('#hub-activities').slideDown('slow');
+            });
+
+            $('#view-stats').click(function () {
+                $('#hub-activities').slideUp('slow');
+                $('#hub-stats').slideDown('slow');
+
+            });
 
             $("#tagId").change(function () {
                 if ($(this).val() != 0) {
                     $('#activity-hub-form').show(500);
+
+                    var unit = $('#tagId').val().split(".")[0];
+                    $("#value option:first").text("Select " + unit);
+                    $("#value").find('option').not(':first').remove();
+                    $("#date").val(new Date().toISOString().split('T')[0]);
+
+                    if (unit == "hours") {
+                        for (var i = 1; i <= 300; i++) {
+                            jQuery('<option/>', {
+                                value: i,
+                                html: convertMinsToHrsMins(i)
+                            }).appendTo('#value');
+                        }
+                    }
+                    else {
+
+                        for (var i = 1; i <= 300; i++) {
+                            jQuery('<option/>', {
+                                value: i,
+                                html: i + " " + unit
+                            }).appendTo('#value');
+                        }
+                    }
+
                 }
                 else {
                     $('#activity-hub-form').hide(500);
                 }
             });
 
-            $("#minutes").change(function () {
+            $("#value").change(function () {
                 if ($(this).val() != 0 && $("#tagId").val() != 0) {
-
                     addActivity();
                     getEventsActivity();
                 }
@@ -166,32 +292,58 @@
                 }
             });
 
-            function addActivity() {
-                $.ajax({
-                    type: "GET",
-                    data: {
-                        'tagId': $('#tagId').val(),
-                        'minutes': $('#minutes').val()
-                    },
-                    url: "@Url.MvcRoute(Section.ActivityHubAdd).RouteUrl",
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function (response) {
-                        $('#minutes').val(0)
-                        $('#tagId').val(0)
-                        $('#activity-hub-form').hide(500);
+            function convertMinsToHrsMins(minutes) {
+                var hours = (minutes / 60);
+                var rhours = Math.floor(hours);
+                var minutes = (hours - rhours) * 60;
+                var rminutes = Math.round(minutes);
 
-                        if (!response) {
-                            alert("An error occured");
-                        }
-                    },
-                    error: function (result) {
-                        $('#minutes').val(0)
-                        $('#tagId').val(0)
-                        $('#activity-hub-form').hide(500);
-                        alert("Error: " + result.status);
+                if (rhours == 0) {
+                    return rminutes + " minute" + (rminutes > 1 ? "s" : "");
+                }
+                else {
+
+                    if (rminutes === 0) {
+                        return rhours + " hour" + (rhours > 1 ? "s" : "");
                     }
-                })
+                    else {
+                        return rhours + " hour" + (rhours > 1 ? "s" : "") + ", " + rminutes + " minute" + (rminutes > 1 ? "s" : "");
+                    }
+                }
+            }
+
+            function addActivity() {
+                var tagId = $('#tagId').val().split(".")[1];
+                var value = $('#value').val();
+
+                if (confirm('Add ' + value + ' to this tag?')) {
+                    $.ajax({
+                        type: "GET",
+                        data: {
+                            'tagId': tagId,
+                            'value': value,
+                            'dateStr': $('#date').val()
+                        },
+                        url: "@Url.MvcRoute(Section.ActivityHubAdd).RouteUrl",
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {
+                            $('#value').val(0)
+                            $('#tagId').val(0)
+                            $('#activity-hub-form').hide(500);
+
+                            if (!response) {
+                                alert("An error occured");
+                            }
+                        },
+                        error: function (result) {
+                            $('#value').val(0)
+                            $('#tagId').val(0)
+                            $('#activity-hub-form').hide(500);
+                            alert("Error: " + result.status);
+                        }
+                    });
+                }
             }
 
             function getEventsActivity() {
@@ -214,15 +366,27 @@
                     success: function (response) {
                         $("#load-activities").hide();
                         $("#activities").html("");
+                        $("#hub").html("");
 
-                        var trHTML = response.Content;
-                        if (response.Content == 0) {
+                        /* stats */
+                        var trHTML = response.stats.Content;
+                        if (response.stats.Content == 0) {
                             trHTML += '<div class="list-group-item"><span class="fas fa-times-circle"> No activities found</span></div>';
                         } else {
-                            trHTML = response.Content;
+                            trHTML = response.stats.Content;
                         }
 
                         $('#activities').append(trHTML);
+
+                        /* hub */
+                        var trHTML = response.hub.Content;
+                        if (response.hub.Content == 0) {
+                            trHTML += '<tr><td colspan="4"><i class="fas fa-times-circle"> No activities found</td></tr>';
+                        } else {
+                            trHTML = response.hub.Content;
+                        }
+
+                        $('#hub').append(trHTML);
                     },
                     error: function (result) {
                         alert("Error: " + result.status);

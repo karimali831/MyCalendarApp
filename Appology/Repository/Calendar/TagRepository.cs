@@ -29,7 +29,7 @@ namespace Appology.MiCalendar.Repository
         public async Task<Tag> GetAsync(Guid tagID)
         {
             return await QueryFirstOrDefaultAsync<Tag>(@$" 
-                SELECT t.Id, t.UserId, t.TypeId, t.Name, t.ThemeColor, t.WeeklyHourlyTarget, ty.InviteeIds, ty.Name AS TypeName
+                SELECT t.Id, t.UserId, t.TypeId, t.Name, t.ThemeColor, t.TargetFrequency, t.TargetValue, t.TargetUnit, ty.InviteeIds, ty.Name AS TypeName
                 FROM {TABLE} t
                 LEFT JOIN {Tables.Name(Table.Types)} ty
                 ON t.TypeID = ty.Id
@@ -66,7 +66,11 @@ namespace Appology.MiCalendar.Repository
                             typeId = t.TypeID,
                             name = t.Name,
                             themeColor = t.ThemeColor,
-                            weeklyHourlyTarget = t.WeeklyHourlyTarget
+                            targetValue = t.TargetUnit != "disable" ? t.TargetValue : null,
+                            targetUnit = t.TargetUnit,
+                            targetFrequency = t.TargetUnit != "disable" ? t.TargetFrequency : null,
+                            startDayOfWeek = t.StartDayOfWeek,
+                            endDayOfWeek = t.EndDayOfWeek
                         };
 
                     var existing = await UserTagExists(tag.Id);

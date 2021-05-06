@@ -61,25 +61,6 @@ textarea {
     color: #09c;
 }
 
-/* Add responsiveness - display the form controls vertically instead of horizontally on screens that are less than 800px wide */
-@media (max-width: 800px) {
-    .form-inline input {
-        margin: 10px 0;
-    }
-
-    .form-inline {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .add-type, .edit-type{
-        display: none;
-    }
-
-    .notification-alert {
-
-    }
-}
 
 .card-header {
     height: 55px;
@@ -259,32 +240,6 @@ textarea {
 }
 
 
-@media (max-width: 800px) {
-    .notification-alerts {
-        position: absolute;
-        top: 25px;
-        left: 0px
-    }
-
-    .body-container {
-        padding: 0px !important;
-        margin: 0px !important;
-    
-    }
-
-    table, #root {
-        font-size: 13px;
-    }
-
-    .bank-details {
-        font-size: 75% !important;
-    }
-
-    .content-inner {
-        padding: 5px;
-    }
-}
-
 .pull-right {
     float: right;
 }
@@ -327,27 +282,106 @@ h4:after {
     overflow: hidden;
 }
 
-    .list-group.list-group-root .list-group {
-        margin-bottom: 0;
-    }
+.list-group.list-group-root .list-group {
+    margin-bottom: 0;
+}
 
-    .list-group.list-group-root .list-group-item {
-        border-radius: 0;
-        border-width: 1px 0 0 0;
-    }
+.list-group.list-group-root .list-group-item {
+    border-radius: 0;
+    border-width: 1px 0 0 0;
+}
 
-    .list-group.list-group-root > .list-group-item:first-child {
-        border-top-width: 0;
-    }
+.list-group.list-group-root > .list-group-item:first-child {
+    border-top-width: 0;
+}
 
-    .list-group.list-group-root > .list-group > .list-group-item {
-        padding-left: 30px;
-    }
+.list-group.list-group-root > .list-group > .list-group-item {
+    padding-left: 30px;
+}
 
-    .list-group.list-group-root > .list-group > .list-group > .list-group-item {
-        padding-left: 45px;
-    }
+.list-group.list-group-root > .list-group > .list-group > .list-group-item {
+    padding-left: 45px;
+}
 
 .list-group-item .glyphicon {
     margin-right: 5px;
+}
+
+/* activity hub */
+
+.ah-stats {
+    font-size: smaller;
+}
+
+.ah-badge {
+    margin-right: 3px;
+}
+
+.prev-secondmonth-mobile, .prev-month-mobile, .this-week-mobile, .target-mobile {
+    display: none;
+}
+
+/* tablet or smaller */
+@media (max-width: 1024px) {
+    .prev-secondmonth-desktop, .prev-month-desktop, .this-week-desktop, .target-desktop {
+        display: none;
+    }
+
+    .prev-secondmonth-mobile, .prev-month-mobile, .this-week-mobile, .target-mobile {
+        display: block;
+    }
+}
+
+/* native screens */
+@media (max-width: 800px) {
+    .form-inline input {
+        margin: 10px 0;
+    }
+
+    .form-inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .add-type, .edit-type {
+        display: none;
+    }
+
+    .notification-alert {
+    }
+
+    .notification-alerts {
+        position: absolute;
+        top: 25px;
+        left: 0px
+    }
+
+    .body-container {
+        padding: 0px !important;
+        margin: 0px !important;
+    }
+
+    table, #root {
+        font-size: 13px;
+    }
+
+    .bank-details {
+        font-size: 75% !important;
+    }
+
+    .content-inner {
+        padding: 10px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group-item {
+        padding-left: 15px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group-item {
+        padding-left: 25px;
+    }
+
+    .just-padding {
+        padding: 0px;
+    }
 }

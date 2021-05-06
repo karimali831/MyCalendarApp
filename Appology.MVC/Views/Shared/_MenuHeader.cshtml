@@ -1,0 +1,179 @@
+﻿@using Appology.Enums
+@using Appology.Helpers
+@using Appology.Website.ViewModels
+@using Appology.Enums
+@using Appology.MiCalendar.Enums
+
+@{
+    var Model = ViewData[nameof(BaseVM)] as BaseVM;
+}
+
+
+<div class="navik-header header-shadow header-dark">
+    <div class="container">
+        <div class="navik-header-container">
+            <div class="logo" data-mobile-logo="@Url.Content("~/Content/img/logo.png")" data-sticky-logo="@Url.Content("~/Content/img/logo.png")">
+                <a href="@Url.MvcRouteUrl(Section.Home)">
+                    <img style="width:230px; height: 30px" src="~/Content/img/logo.png" alt="logo" />
+                </a>
+            </div>
+            @*data-trigger="focus"*@
+            @if (Model != null && Model.User != null && Model.Notifications.Count > 0)
+            {
+                <div class="notification-alerts">
+                    <a href="#">
+                        <span class="fa-stack fa-lg"
+                              data-count="@Model.Notifications.Count"
+                              tabindex="0"
+                              data-placement="bottom"
+                              data-toggle="popover"
+                              title="Notifications"
+                              data-content="@Model.Notifications.Content.Content">
+                            <i class="fa fa-circle fa-stack-2x"></i>
+                            <i class="fas fa-bell fa-stack-1x fa-inverse"></i>
+                        </span>
+                    </a>
+                </div>
+            }
+            <div class="burger-menu">
+                <div class="line-menu line-half first-line"></div>
+                <div class="line-menu"></div>
+                <div class="line-menu line-half last-line"></div>
+            </div>
+            <nav class="navik-menu separate-line submenu-top-border submenu-scale">
+                <ul>
+                    @if (Model != null && Model.User != null)
+                    {
+                        if (Model.AccessibleFeatures.Any(x => x.Id == Features.Calendar))
+                        {
+                            <li class="@(Model.MenuItem.Home || Model.MenuItem.MultiAdd || Model.MenuItem.ActivityHub || Model.MenuItem.Cronofy ? "current-menu" : "")">
+                                <a href="#">Calendar</a>
+                                <ul>
+                                    <li>
+                                        <a style="@(Model.MenuItem.Home ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Home)">
+                                            <i class="fas fa-calendar">
+                                            </i>  Calendar
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.MultiAdd ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Scheduler)">
+                                            <i class="fas fa-calendar-check"></i> Scheduler
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.ActivityHub ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.ActivityHub)">
+                                            <i class="fas fa-chart-bar"></i> Activity Hub
+                                        </a>
+                                    </li>
+                                    @if (Model.User.CronofyReady != CronofyStatus.Disabled)
+                                    {
+                                        <li>
+                                            <a style="@(Model.MenuItem.Cronofy ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.CronofyProfiles)">
+                                                <i class="fas fa-link"></i> Calendar Sync
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </li>
+                        }
+                        if (Model.AccessibleFeatures.Any(x => x.Id == Features.Write))
+                        {
+                            <li class="@(Model.MenuItem.Documents ? "current-menu" : "")">
+                                <a href="@Url.MvcRouteUrl(Section.Document)">
+                                    Write
+                                </a>
+                            </li>
+                        }
+                        if (Model.AccessibleFeatures.Any(x => x.Id == Features.ErrandRunner))
+                        {
+                            <li class="@(Model.MenuItem.ERNewOrder ? "current-menu" : "")">
+                                <a href="#">Errand Runner</a>
+                                <ul>
+                                    <li>
+                                        <a style="@(Model.MenuItem.ERNewOrder ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.ErrandRunnerNewOrder)">
+                                            <i class="fas fa-user-edit"></i> New Order
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        if (Model.AccessibleFeatures.Any(x => x.Id == Features.Finance))
+                        {
+                            <li class="@(Model.MenuItem.FinanceApp || Model.MenuItem.FinanceCategories | Model.MenuItem.FinanceSettings ? "current-menu" : "")">
+                                <a href="#">Finance</a>
+                                <ul>
+                                    <li>
+                                        <a style="@(Model.MenuItem.FinanceAppAddSpending ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.FinanceAppAddSpending)">
+                                            <i class="fas fa-plus"></i> Add Spending
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.FinanceApp ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.FinanceApp)">
+                                            <i class="fas fa-chart-pie"></i> Finance App
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.Monzo ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Monzo)">
+                                            <i class="fas fa-wallet"></i> Monzo Transactions
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.MvcRouteUrl(Section.MonzoAuthenticate)">
+                                            <i class="fas fa-external-link-alt"></i> Monzo Authenticate
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.FinanceCategories ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.FinanceCategories)">
+                                            <i class="fas fa-list"></i> Categories
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.FinanceSettings ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.FinanceSettings)">
+                                            <i class="fas fa-sliders-h"></i> Settings
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        <li class="submenu-right @(Model.MenuItem.Settings || Model.MenuItem.Dashboard || Model.MenuItem.Cache ? "current-menu" : "")">
+                            <a href="#">@Model.User.Name</a>
+                            <ul>
+                                <li>
+                                    <a style="@(Model.MenuItem.Settings ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Profile)">
+                                        <i class="fas fa-user-edit"></i> Profile
+                                    </a>
+                                </li>
+                                @if (Model.AccessibleFeatures.Any(x => x.Id == Features.Admin))
+                                {
+                                    <li>
+                                        <a style="@(Model.MenuItem.Cache ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Cache)">
+                                            <i class="fas fa-sitemap"></i> Cache
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a style="@(Model.MenuItem.Dashboard ? "color:#09c" : "")" href="@Url.MvcRouteUrl(Section.Dashboard)">
+                                            <i class="fas fa-users-cog"></i> Admin
+                                        </a>
+                                    </li>
+                                }
+                                <li>
+                                    <a href="@Url.MvcRouteUrl(Section.Logout)">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="submenu-right">
+                            <a href="@Url.MvcRouteUrl(Section.Login)">
+                                <span class="fas fa-sign-in-alt"></span>  Login / Register
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>

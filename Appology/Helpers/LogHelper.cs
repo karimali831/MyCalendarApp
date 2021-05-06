@@ -21,7 +21,17 @@ namespace Appology.Helpers
             string fileName = string.Format("{0}{1}-{2}.txt", queryLogDir, type, method);
             string contents = string.Format("{0} - {1} {2}", DateTime.Now, SessionPersister.Email ?? "(no user)", sqlTxt);
 
-            File.WriteAllText(fileName, contents);
+            try
+            {
+                File.WriteAllText(fileName, contents);
+            }
+            catch(Exception exp)
+            {
+                string expMsg = exp.Message;
+                string expText = string.Format("{0} - {1} {2}", DateTime.Now, SessionPersister.Email ?? "(no user)", expMsg);
+
+                File.WriteAllText($"{queryLogDir}Exception", expText);
+            }
         }
     }
 }

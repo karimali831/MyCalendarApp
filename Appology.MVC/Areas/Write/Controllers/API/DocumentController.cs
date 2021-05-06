@@ -46,7 +46,7 @@ namespace Appology.Areas.Write.Controllers.API
         public async Task<HttpResponseMessage> UserDocumentFoldersAndTitles()
         {
             var user = await GetUser();
-            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, TypeGroup.DocumentFolders, userCreatedOnly: false);
+            var userTypes = await typeService.GetAllByUserIdAsync(user.UserID, TypeGroup.DocumentFolders, userCreatedOnly: false, creatorAsCollaborator: true);
             var documents = await documentService.GetDocumentTitles(user.UserID);
 
             var tags = documents

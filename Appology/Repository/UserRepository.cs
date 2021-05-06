@@ -99,12 +99,12 @@ namespace Appology.Repository
         public async Task<IEnumerable<Tag>> GetTagsByUserAsync(Guid userID)
         {
             string sqlTxt = $@"
-                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.WeeklyHourlyTarget, COUNT(*) AS Count
+                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.TargetFrequency, t.TargetValue, t.TargetUnit, t.StartDayOfWeek, t.EndDayOfWeek, COUNT(*) AS Count
                 FROM {Tables.Name(Table.Events)} AS e
                 RIGHT JOIN {Tables.Name(Table.Tags)} AS t
                 ON e.TagID = t.Id
                 WHERE t.UserId = '{userID}'
-                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.WeeklyHourlyTarget
+                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.TargetFrequency, t.TargetValue, t.TargetUnit, t.StartDayOfWeek, t.EndDayOfWeek
                 ORDER BY Count DESC
             ";
 

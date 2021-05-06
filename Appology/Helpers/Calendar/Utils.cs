@@ -2,29 +2,37 @@
 using System.Drawing;
 using System.Globalization;
 using System.IO;
+using System.Configuration;
 
 namespace Appology.MiCalendar.Helpers
 {
     public static class CalendarUtils
     {
 
-        public static string AvatarSrc(Guid userId, string avatar, string name)
+        public static string AvatarSrc(Guid userId, string avatar, string name, bool absoluteUrl = false)
         {
+            string avatarSrc;
+
             if (!string.IsNullOrEmpty(avatar))
             {
                 if (avatar.StartsWith("0"))
                 {
-                    return $"/Content/img/avatar/pk1/{Path.GetFileName(avatar)}";
+                    avatarSrc = $"/Content/img/avatar/pk1/{Path.GetFileName(avatar)}";
                 }
                 else
                 {
-                    return $"/Content/img/avatar/user/{userId.ToString().ToLower()}/{avatar}";
+                    avatarSrc = $"/Content/img/avatar/user/{userId.ToString().ToLower()}/{avatar}";
                 }
+
+                avatarSrc = $"{(absoluteUrl ? ConfigurationManager.AppSettings["RootUrl"] : "")}{avatarSrc}";
             }
             else
             {
-                return name.ToUpper().Substring(0, 2);
+                avatarSrc = name.ToUpper().Substring(0, 2);
             }
+
+
+            return avatarSrc;
         }
 
         public static Color GetSystemDrawingColorFromHexString(string hexString)

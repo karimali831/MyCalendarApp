@@ -9,11 +9,49 @@ namespace Appology.Helpers
 {
     public static class MVCSections
     {
-        public static string GetActionName(string url) => url.Split('/').Last();
-        public static string GetControllerName(string url) => url.Split('/').Reverse().Skip(1).First();
-        public static string GetAreaName(string url) => url.Split('/').Reverse().Skip(2).FirstOrDefault() ?? "";
+        public static IList<string> Areas = new List<string> { 
+            "calendar", 
+            "write", 
+            "errandrunner", 
+            "admin", 
+            "finance"
+        };
 
-        public static IList<KeyValuePair<Section, string>> MvcRoutes()
+        public static (string Controller, string Action, string Area) GetRouting(string url)
+        {
+            string controller;
+            string action;
+            string area;
+
+            string[] route = url.Split('/');
+
+            if (route.Length == 2)
+            {
+                area = "";
+                controller = route[1];
+                action = "index";
+            }
+            else
+            {
+                if (Areas.Contains(route[0]))
+                {
+                    area = route[1];
+                    action = route.Length == 3 ? "index" : route[3];
+                    controller = route[2];
+                }
+                else
+                {
+                    area = "";
+                    action = route[2];
+                    controller = route[1];
+                }
+            }
+
+            return (controller, action, area);
+        }
+
+
+        private static IList<KeyValuePair<Section, string>> MvcRoutes()
         {
             return  new List<KeyValuePair<Section, string>>() {
                 // base
@@ -29,6 +67,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.ActivityHub, "/calendar/activityhub"),
                 new KeyValuePair<Section, string>(Section.ActivityHubFilter, "/calendar/activityhub/filter"),
                 new KeyValuePair<Section, string>(Section.ActivityHubAdd, "/calendar/activityhub/add"),
+                new KeyValuePair<Section, string>(Section.ActivityHubDelete, "/calendar/activityhub/delete"),
                 new KeyValuePair<Section, string>(Section.CronofyProfiles, "/calendar/cronofy/profiles"),
                 // write app
                 new KeyValuePair<Section, string>(Section.Document, "/write/document"),
@@ -68,7 +107,8 @@ namespace Appology.Helpers
         public static (string AreaName, string ActionName, string ControllerName, string RouteUrl) MvcRoute(this UrlHelper helper, Section route)
         {
             var getSection = MvcRoutes().First(x => x.Key == route);
-            return (GetAreaName(getSection.Value), GetActionName(getSection.Value), GetControllerName(getSection.Value), getSection.Value);
+            var getRoute = GetRouting(getSection.Value);
+            return (getRoute.Area, getRoute.Action, getRoute.Controller, getSection.Value);
         }
 
         public static object Login(this UrlHelper helper, Guid? inviteeId = null, Guid? docId = null)
@@ -78,6 +118,7 @@ namespace Appology.Helpers
             return new { 
                 action = route.ActionName,
                 controller = route.ControllerName, 
+                area = "",
                 inviteeId = inviteeId,
                 docId = docId
             };

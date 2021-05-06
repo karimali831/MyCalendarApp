@@ -194,6 +194,7 @@
     <Compile Include="DTOs\Finance\SpendingDTO.cs" />
     <Compile Include="DTOs\Finance\SpendingSummaryDTO.cs" />
     <Compile Include="DTOs\ProfileDTO.cs" />
+    <Compile Include="Enums\TimeFrequency.cs" />
     <Compile Include="Enums\Finance\MonzoTransactionStatus.cs" />
     <Compile Include="Enums\NotificationType.cs" />
     <Compile Include="Enums\Variant.cs" />
@@ -249,7 +250,6 @@
     <Compile Include="Model\Group.cs" />
     <Compile Include="Model\FeatureRole.cs" />
     <Compile Include="Model\Calendar\Tag.cs" />
-    <Compile Include="DTOs\Calendar\Tags.cs" />
     <Compile Include="Model\Write\Document.cs" />
     <Compile Include="Model\Role.cs" />
     <Compile Include="Model\Type.cs" />

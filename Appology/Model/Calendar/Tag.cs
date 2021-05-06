@@ -1,4 +1,5 @@
 ﻿using Appology.Enums;
+using Appology.MiCalendar.Enums;
 using Appology.Model;
 using DFM.Utils;
 using System;
@@ -15,7 +16,11 @@ namespace Appology.MiCalendar.Model
         public int TypeID { get; set; }
         public string Name { get; set; }
         public string ThemeColor { get; set; }
-        public int WeeklyHourlyTarget { get; set; }
+        public TimeFrequency? TargetFrequency { get; set; }
+        public int? TargetValue { get; set; }
+        public string TargetUnit { get; set; }
+        public DayOfWeek StartDayOfWeek { get; set; }
+        public DayOfWeek EndDayOfWeek { get; set; }
         [DbIgnore]
         public string TypeName { get; set; }
         [DbIgnore]
