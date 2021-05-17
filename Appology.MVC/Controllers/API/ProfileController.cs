@@ -112,8 +112,7 @@ namespace Appology.Controllers.Api
                         x.TargetFrequency,
                         x.TargetValue,
                         x.TargetUnit,
-                        x.StartDayOfWeek,
-                        x.EndDayOfWeek
+                        x.StartDayOfWeek
                     }),
                     calendarSettings = new
                     {

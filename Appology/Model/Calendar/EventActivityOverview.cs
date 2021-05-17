@@ -30,6 +30,10 @@ namespace Appology.MiCalendar.Model
         public double PreviousMonthTotalValue { get; set; }
         public double PreviousSecondMonthTotalValue { get; set; }
         public double ThisWeekTotalValue { get; set; }
+        public double LastWeekTotalValue { get; set; }
+        public bool PreviousMonthSuccess { get; set; }
+        public bool PreviousSecondMonthSuccess { get; set; }
+        public bool LastWeekSuccess { get; set; }
 
     }
 

@@ -151,14 +151,7 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
         const value = activity.targetValue?.toString();
         const frequency = activity.targetFrequency?.toString();
  
-        if (activity.startDayOfWeek.toString() === activity.endDayOfWeek.toString()) {
-            this.setState({ 
-                activityHubTargetFrequencyError: "",
-                activityHubDayOfWeekError: "Week start and end days cannot be the same",
-                activityHubTargetValueError: ""
-            })
-        }
-        else if (value === "0" || !Number(value)) {
+        if (value === "0" || !Number(value)) {
             this.setState({ 
                 activityHubTargetFrequencyError: "",
                 activityHubDayOfWeekError: "",
@@ -240,14 +233,6 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                         id="startDayOfWeek"
                         icon="&#xf32f;"
                         selected={activity.startDayOfWeek?.toString() ?? DayOfWeek[DayOfWeek.Monday]}
-                        selectorOptions={days}
-                        onSelectChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.handleSelectChange(e, this.state.editActivityHubId ?? 0)} 
-                    />
-                    <SelectElement 
-                        label="End Day of Week"
-                        id="endDayOfWeek"
-                        icon="&#xf32f;"
-                        selected={activity.endDayOfWeek?.toString() ?? DayOfWeek[DayOfWeek.Sunday]}
                         selectorOptions={days}
                         onSelectChange={(e: React.ChangeEvent<HTMLSelectElement>) => this.handleSelectChange(e, this.state.editActivityHubId ?? 0)} 
                     />
@@ -385,7 +370,6 @@ export class CalendarTags extends React.Component<IOwnProps, IOwnState> {
                     targetValue: undefined,
                     targetUnit: "disable",
                     startDayOfWeek: DayOfWeek.Monday,
-                    endDayOfWeek: DayOfWeek.Sunday,
                     typeID: 0,
                     id: ""
                 }

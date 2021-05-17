@@ -20,7 +20,6 @@ namespace Appology.MiCalendar.Model
         public int? TargetValue { get; set; }
         public string TargetUnit { get; set; }
         public DayOfWeek StartDayOfWeek { get; set; }
-        public DayOfWeek EndDayOfWeek { get; set; }
         [DbIgnore]
         public string TypeName { get; set; }
         [DbIgnore]

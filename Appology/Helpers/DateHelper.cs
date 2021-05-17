@@ -10,29 +10,36 @@ namespace Appology.Helpers
 {
     public static class DateUtils
     {
-        public static (DateTime Start, DateTime End) GetWeek(DayOfWeek endDayOfWeek, DayOfWeek startDayOfWeek)
+        public static (DateTime Start, DateTime End) GetWeek(DayOfWeek dayOfWeek, int? adjustDays = null)
         {
+
             DateTime nextDay = DateTime().AddDays(1);
-            while (nextDay.DayOfWeek != endDayOfWeek)
+            while (nextDay.DayOfWeek != dayOfWeek)
                 nextDay = nextDay.AddDays(1);
             DateTime lastDay = DateTime().AddDays(-1);
-            while (lastDay.DayOfWeek != startDayOfWeek)
+            while (lastDay.DayOfWeek != dayOfWeek)
                 lastDay = lastDay.AddDays(-1);
+
+            if (adjustDays.HasValue)
+            {
+                lastDay = lastDay.AddDays(adjustDays.Value);
+                nextDay = nextDay.AddDays(adjustDays.Value);
+            }
+
+            var todaysDay = DateTime().DayOfWeek;
+
+            if (todaysDay == dayOfWeek)
+            {
+                lastDay = lastDay.AddDays(7);
+            }
 
             return (lastDay, nextDay);
         }
 
         public static double GetHoursFromMinutes(double minutes)
         {
-            int rtnNo = 0;
             TimeSpan span = TimeSpan.FromMinutes(minutes);
-
-            if (span.TotalHours >= 1)
-            {
-                rtnNo = (int)Math.Floor(span.TotalHours);
-            }
-
-            return rtnNo;
+            return Math.Round(span.TotalHours, 1);
         }
 
 
@@ -60,7 +67,7 @@ namespace Appology.Helpers
             return rtnString;
         }
 
-        public static string GetPrettyDate(DateTime d)
+        public static string GetPrettyDate(DateTime d, bool showDateAfterYesterday = true)
         {
             // 1.
             // Get time span elapsed since the date.
@@ -124,15 +131,23 @@ namespace Appology.Helpers
             {
                 return "yesterday";
             }
-            if (dayDiff < 7)
+
+            if (showDateAfterYesterday)
             {
-                return string.Format("{0} days ago",
-                    dayDiff);
+                return d.ToString("dd/MM/yyyy");
             }
-            if (dayDiff < 31)
+            else
             {
-                return string.Format("{0} weeks ago",
-                    Math.Ceiling((double)dayDiff / 7));
+                if (dayDiff < 7)
+                {
+                    return string.Format("{0} days ago",
+                        dayDiff);
+                }
+                if (dayDiff < 31)
+                {
+                    return string.Format("{0} weeks ago",
+                        Math.Ceiling((double)dayDiff / 7));
+                }
             }
             return null;
         }
@@ -249,19 +264,57 @@ namespace Appology.Helpers
                        $"AND [{dateFilter.DateField}] < DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()) + 1, 0)";
             }
 
-            var filteredDate = dateFilter.Frequency switch
+            string filteredDate;
+            if (dateFilter.Frequency == DateFrequency.DayOfWeek)
             {
-                DateFrequency.DateRange => $"{dateFilter.DateField} >= '{dateFilter.FromDateRange.Value:yyyy-MM-dd HH:mm}' AND {dateFilter.DateField} < '{dateFilter.ToDateRange.Value.AddDays(1):yyyy-MM-dd HH:mm}'",
-                DateFrequency.Today => $"[{dateFilter.DateField}] >= DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), 0) AND [{dateFilter.DateField}] < DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), 1)",
-                DateFrequency.Yesterday => $"[{dateFilter.DateField}] >= DATEADD(DAY, DATEDIFF(DAY, 1, GETDATE()), 0) AND [{dateFilter.DateField}] < DATEADD(DAY, DATEDIFF(DAY, 1, GETUTCDATE()), 1)",
-                DateFrequency.Upcoming => $"[{dateFilter.DateField}] > DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), 0)",
-                DateFrequency.LastXDays => $"[{dateFilter.DateField}] >= DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), - {dateFilter.Interval})",
-                DateFrequency.LastXMonths => $"[{dateFilter.DateField}] >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETUTCDATE()) - {dateFilter.Interval}, DAY(GETUTCDATE()) - 1)",
-                DateFrequency.CurrentYear => $"YEAR([{dateFilter.DateField}]) = YEAR(GETUTCDATE())",
-                DateFrequency.PreviousYear => $"YEAR([{dateFilter.DateField}]) = YEAR(DATEADD(YEAR, -1, GETUTCDATE()))",
-                DateFrequency.AllTime => $"[{dateFilter.DateField}] <= GETUTCDATE()",
-                _ => "",
-            };
+                int? adjustDays = dateFilter.Interval;
+                var sun = GetWeek(DayOfWeek.Sunday, adjustDays);
+                var mon = GetWeek(DayOfWeek.Monday, adjustDays);
+                var tue = GetWeek(DayOfWeek.Tuesday, adjustDays);
+                var wed = GetWeek(DayOfWeek.Wednesday, adjustDays);
+                var thu = GetWeek(DayOfWeek.Thursday, adjustDays);
+                var fri = GetWeek(DayOfWeek.Friday, adjustDays);
+                var sat = GetWeek(DayOfWeek.Saturday, adjustDays);
+
+                filteredDate = $@"
+                    CAST([{dateFilter.DateField}] as Date) >= 
+	                    CASE t.StartDayOfWeek
+		                    WHEN 0 THEN '{sun.Start:yyyy-MM-dd}'
+		                    WHEN 1 THEN '{mon.Start:yyyy-MM-dd}'
+		                    WHEN 2 THEN '{tue.Start:yyyy-MM-dd}'
+		                    WHEN 3 THEN '{wed.Start:yyyy-MM-dd}'
+		                    WHEN 4 THEN '{thu.Start:yyyy-MM-dd}'
+		                    WHEN 5 THEN '{fri.Start:yyyy-MM-dd}'
+		                    WHEN 6 THEN '{sat.Start:yyyy-MM-dd}'
+	                    END
+                    AND CAST([{dateFilter.DateField}] as Date) <=
+	                    CASE t.StartDayOfWeek
+		                    WHEN 1 THEN '{sun.End:yyyy-MM-dd}'
+		                    WHEN 2 THEN '{mon.End:yyyy-MM-dd}'
+		                    WHEN 3 THEN '{tue.End:yyyy-MM-dd}'
+		                    WHEN 4 THEN '{wed.End:yyyy-MM-dd}'
+		                    WHEN 5 THEN '{thu.End:yyyy-MM-dd}'
+		                    WHEN 6 THEN '{fri.End:yyyy-MM-dd}'
+		                    WHEN 0 THEN '{sat.End:yyyy-MM-dd}'
+	                END";
+            }
+            else
+            {
+
+                filteredDate = dateFilter.Frequency switch
+                {
+                    DateFrequency.DateRange => $"{dateFilter.DateField} >= '{dateFilter.FromDateRange.Value:yyyy-MM-dd HH:mm}' AND {dateFilter.DateField} < '{dateFilter.ToDateRange.Value.AddDays(1):yyyy-MM-dd HH:mm}'",
+                    DateFrequency.Today => $"[{dateFilter.DateField}] >= DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), 0) AND [{dateFilter.DateField}] < DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), 1)",
+                    DateFrequency.Yesterday => $"[{dateFilter.DateField}] >= DATEADD(DAY, DATEDIFF(DAY, 1, GETDATE()), 0) AND [{dateFilter.DateField}] < DATEADD(DAY, DATEDIFF(DAY, 1, GETUTCDATE()), 1)",
+                    DateFrequency.Upcoming => $"[{dateFilter.DateField}] > DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), 0)",
+                    DateFrequency.LastXDays => $"[{dateFilter.DateField}] >= DATEADD(DAY, DATEDIFF(DAY, 0, GETUTCDATE()), - {dateFilter.Interval})",
+                    DateFrequency.LastXMonths => $"[{dateFilter.DateField}] >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETUTCDATE()) - {dateFilter.Interval}, DAY(GETUTCDATE()) - 1)",
+                    DateFrequency.CurrentYear => $"YEAR([{dateFilter.DateField}]) = YEAR(GETUTCDATE())",
+                    DateFrequency.PreviousYear => $"YEAR([{dateFilter.DateField}]) = YEAR(DATEADD(YEAR, -1, GETUTCDATE()))",
+                    DateFrequency.AllTime => $"[{dateFilter.DateField}] <= GETUTCDATE()",
+                    _ => "",
+                };
+            }
 
             if (dateFilter.UpcomingIncEndDate)
             {

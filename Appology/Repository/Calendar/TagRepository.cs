@@ -69,8 +69,7 @@ namespace Appology.MiCalendar.Repository
                             targetValue = t.TargetUnit != "disable" ? t.TargetValue : null,
                             targetUnit = t.TargetUnit,
                             targetFrequency = t.TargetUnit != "disable" ? t.TargetFrequency : null,
-                            startDayOfWeek = t.StartDayOfWeek,
-                            endDayOfWeek = t.EndDayOfWeek
+                            startDayOfWeek = t.StartDayOfWeek
                         };
 
                     var existing = await UserTagExists(tag.Id);

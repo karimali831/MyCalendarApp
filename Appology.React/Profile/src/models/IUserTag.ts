@@ -9,6 +9,5 @@ export interface IUserTag {
     targetFrequency?: TimeFrequency
     targetValue?: number,
     targetUnit: string,
-    startDayOfWeek: DayOfWeek,
-    endDayOfWeek: DayOfWeek
+    startDayOfWeek: DayOfWeek
 }

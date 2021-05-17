@@ -11,6 +11,7 @@
         CurrentYear,
         DateRange,
         Upcoming,
+        DayOfWeek,
         January,
         February,
         March,

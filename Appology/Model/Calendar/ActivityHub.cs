@@ -48,8 +48,6 @@ namespace Appology.MiCalendar.Model
     public class ActivityHubStatsMonth
     {
         public Guid TagId { get; set; }
-        public DayOfWeek StartDayOfWeek { get; set; }
-        public DayOfWeek EndDayOfWeek { get; set; }
         public string TargetUnit { get; set; }
         public string TagName { get; set; }
         public double TotalValue { get; set; }
@@ -60,6 +58,7 @@ namespace Appology.MiCalendar.Model
         public IEnumerable<ActivityHubStatsMonth> PrevMonth { get; set; }
         public IEnumerable<ActivityHubStatsMonth> PrevSecondMonth { get; set; }
         public IEnumerable<ActivityHubStatsMonth> ThisWeek { get; set; }
+        public IEnumerable<ActivityHubStatsMonth> LastWeek { get; set; }
     }
 
     public class ActivityHubMap : EntityTypeConfiguration<ActivityHub>

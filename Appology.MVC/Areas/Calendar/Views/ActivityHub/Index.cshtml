@@ -50,10 +50,10 @@
                 </div>
                 <div id="activity-hub-form" style="display:none ">
                     <div class="form-group">
-                        <input type="date" id="date" class="form-control"  style="display:inline" />
+                        <input type="date" id="date" class="form-control" />
                     </div>
                     <div class="form-group">
-                        <select id="value" class="form-control"  style="display:inline">
+                        <select id="value" class="form-control">
                             <option value="0"></option>
                         </select>
                     </div>
@@ -83,7 +83,7 @@
                  
                                 <td><span class="fas fa-tag" style="color: @act.ThemeColor"></span> @act.Subject</td>
                                 <td>@act.Value @(act.TargetUnit == "hours" ? "minutes" : act.TargetUnit)</td>
-                                <td>@act.Date.ToString("dd/MM/yyyy")</td>
+                                <td>@DateUtils.GetPrettyDate(act.Date)</td>
                                 <td data-model-id="@act.Id" onclick="deleteActivity(this)">
                                     <div class="deleting-@act.Id" style="display: none">
                                         <div class="loader loader-small"></div>
@@ -126,27 +126,38 @@
                                         {
                                             <div>
                                                 <div class="ah-stats">
-                                                    <span class="ah-badge badge badge-@(e.PreviousSecondMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "success" : "danger")">
-                                                        <i class="fas fa-arrow-@(e.PreviousSecondMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "up" : "down")"></i>
-                                                        <span class="prev-secondmonth-desktop">@e.PreviousSecondMonthTotalValue @e.TargetUnit in @Model.PrevSecondMonthName</span>
-                                                        <span class="prev-secondmonth-mobile">@Model.PrevSecondMonthNameAbbrev @e.PreviousSecondMonthTotalValue</span>
-                                                    </span>
-                                                    <span class="ah-badge badge badge-@(e.PreviousMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "success" : "danger")">
-                                                        <i class="fas fa-arrow-@(e.PreviousMonthTotalValue >= e.ProgressBar.TargetValue * 4 ? "up" : "down")"></i>
-                                                        <span class="prev-month-desktop">@e.PreviousMonthTotalValue @e.TargetUnit in @Model.PrevMonthName</span>
-                                                        <span class="prev-month-mobile">@Model.PrevMonthNameAbbrev @e.PreviousMonthTotalValue</span>
+                                                    @if (e.PreviousSecondMonthTotalValue > 0)
+                                                    {
+                                                        <span class="ah-badge badge badge-@(e.PreviousSecondMonthSuccess ? "success" : "danger")">
+                                                            <i class="fas fa-arrow-@(e.PreviousSecondMonthSuccess ? "up" : "down")"></i>
+                                                            <span class="prev-secondmonth-desktop">@e.PreviousSecondMonthTotalValue @e.TargetUnit in @Model.PrevSecondMonthName</span>
+                                                            <span class="prev-secondmonth-mobile">@Model.PrevSecondMonthNameAbbrev @e.PreviousSecondMonthTotalValue</span>
+                                                        </span>
+                                                    }
+                                                    @if (e.PreviousMonthTotalValue > 0)
+                                                    {
+                                                        <span class="ah-badge badge badge-@(e.PreviousMonthSuccess ? "success" : "danger")">
+                                                            <i class="fas fa-arrow-@(e.PreviousMonthSuccess ? "up" : "down")"></i>
+                                                            <span class="prev-month-desktop">@e.PreviousMonthTotalValue @e.TargetUnit in @Model.PrevMonthName</span>
+                                                            <span class="prev-month-mobile">@Model.PrevMonthNameAbbrev @e.PreviousMonthTotalValue</span>
+                                                        </span>
+                                                    }
+                                                    <span class="ah-badge badge badge-@(e.LastWeekSuccess ? "success" : "danger")">
+                                                        <i class="fas fa-arrow-@(e.LastWeekSuccess ? "up" : "down")"></i>
+                                                        <span class="prev-month-desktop">@e.LastWeekTotalValue @e.TargetUnit previous week</span>
+                                                        <span class="prev-month-mobile">PW @e.LastWeekTotalValue</span>
                                                     </span>
                                                     <span class="ah-badge badge badge-info">
                                                         <i class="fas fa-clock"></i>
-                                                        <span class="this-week-desktop">@e.ThisWeekTotalValue @e.TargetUnit this week</span>
-                                                        <span class="this-week-mobile">@e.ThisWeekTotalValue Week</span>
+                                                        <span class="this-week-desktop">@e.ThisWeekTotalValue @e.TargetUnit current week</span>
+                                                        <span class="this-week-mobile">CW @e.ThisWeekTotalValue</span>
                                                     </span>
                                                     <span class="ah-badge badge badge-primary">
                                                         <i class="fas fa-bullseye"></i>
                                                         <span class="target-desktop">@e.ProgressBar.TargetFrequency Target @e.ProgressBar.TargetValue @e.ProgressBar.TargetUnit</span>
                                                         <span class="target-mobile">Target  @e.ProgressBar.TargetValue</span>
                                                     </span>
-                                                </div>
+                                                    </div>
                                                 <div class="progress" style="height: 20px">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBar.ProgressBarColor" role="progressbar" aria-valuenow="@e.ProgressBar.ActualValue" aria-valuemin="0" aria-valuemax="@e.ProgressBar.TargetValue.Value" style="width: @(e.ProgressBar.ProgressBarPercentage)%; padding: 10px">
                                                         Averaging @e.ProgressBar.ActualValue @e.ProgressBar.TargetUnit @e.ProgressBar.TargetFrequency.ToString().ToLower()
@@ -389,7 +400,7 @@
                         $('#hub').append(trHTML);
                     },
                     error: function (result) {
-                        alert("Error: " + result.status);
+                        //alert("Error: " + result.status);
                     }
                 })
             }

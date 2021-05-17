@@ -2,9 +2,9 @@
 
 namespace Appology.MiCalendar.DTOs
 {
-    public class DateFilter : BaseDateFilter
+    public class ActivityHubDateFilter : BaseDateFilter
     {
-        public override string DateField { get; set; } = "StartDate";
+        public override string DateField { get; set; } = "Date";
         public override bool UpcomingIncEndDate { get; set; } = true; 
     }
 }

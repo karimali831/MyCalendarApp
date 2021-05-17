@@ -36,7 +36,7 @@ namespace Appology.Areas.MiCalendar.Controllers
             string currentMonth = DateUtils.DateTime().ToString("MMMM");
             DateFrequency currentFrequency = Utils.ParseEnum<DateFrequency>(currentMonth);
 
-            var dateFilter = new DateFilter
+            var dateFilter = new ActivityHubDateFilter
             {
                 Frequency = DateFrequency.LastXMonths,
                 Interval = 1
@@ -108,7 +108,7 @@ namespace Appology.Areas.MiCalendar.Controllers
             await BaseViewModel(new MenuItem { ActivityHub = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
 
-            var dateFilter = new DateFilter
+            var dateFilter = new ActivityHubDateFilter
             {
                 Frequency = frequency,
                 Interval = interval,
@@ -135,7 +135,7 @@ namespace Appology.Areas.MiCalendar.Controllers
 
                 hubHtml += $"<td>{act.Value} {(act.TargetUnit == "hours" ? "minutes" : act.TargetUnit)}</td>";
 
-                hubHtml += $"<td>{act.Date:dd/MM/yyyy}</td>";
+                hubHtml += $"<td>{DateUtils.GetPrettyDate(act.Date)}</td>";
 
                 hubHtml += $"<td data-model-id='{act.Id}' onclick='deleteActivity(this)'> <div class='deleting-{act.Id}' style='display: none'> <div class='loader loader-small'></div></div><div class='delete-{act.Id}'> <i class='fas fa-times'></i> </div></td>";
 
@@ -168,11 +168,19 @@ namespace Appology.Areas.MiCalendar.Controllers
 
                             html += $"<div class='ah-stats'>";
 
-                            html += $"<span class='ah-badge badge badge-{(e.PreviousSecondMonthTotalValue >=e.ProgressBar.TargetValue * 4 ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.PreviousSecondMonthTotalValue >=e.ProgressBar.TargetValue * 4 ? "up" : "down")}'></i> <span class='prev-secondmonth-desktop'>{e.PreviousSecondMonthTotalValue} {e.TargetUnit} in {prevSecondMonthName}</span> <span class='prev-secondmonth-mobile'>{prevSecondMonthNameAbbrev} {e.PreviousSecondMonthTotalValue}</span> </span>";
+                            if (e.PreviousSecondMonthTotalValue > 0)
+                            {
+                                html += $"<span class='ah-badge badge badge-{(e.PreviousSecondMonthSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.PreviousSecondMonthSuccess ? "up" : "down")}'></i> <span class='prev-secondmonth-desktop'>{e.PreviousSecondMonthTotalValue} {e.TargetUnit} in {prevSecondMonthName}</span> <span class='prev-secondmonth-mobile'>{prevSecondMonthNameAbbrev} {e.PreviousSecondMonthTotalValue}</span> </span>";
+                            }
 
-                            html += $"<span class='ah-badge badge badge-{(e.PreviousMonthTotalValue >=e.ProgressBar.TargetValue * 4 ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.PreviousMonthTotalValue >=e.ProgressBar.TargetValue * 4 ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.PreviousMonthTotalValue} {e.TargetUnit} in {prevMonthName}</span> <span class='prev-month-mobile'>{prevMonthNameAbbrev} {e.PreviousMonthTotalValue}</span> </span>";
+                            if (e.PreviousMonthTotalValue > 0)
+                            {
+                                html += $"<span class='ah-badge badge badge-{(e.PreviousMonthSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.PreviousMonthSuccess ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.PreviousMonthTotalValue} {e.TargetUnit} in {prevMonthName}</span> <span class='prev-month-mobile'>{prevMonthNameAbbrev} {e.PreviousMonthTotalValue}</span> </span>";
+                            }
 
-                            html += $"<span class='ah-badge badge badge-info'> <i class='fas fa-clock'></i> <span class='this-week-desktop'>{e.ThisWeekTotalValue} {e.TargetUnit} this week</span> <span class='this-week-mobile'>{e.ThisWeekTotalValue} Week</span> </span>";
+                            html += $"<span class='ah-badge badge badge-{(e.LastWeekSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.LastWeekSuccess ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.LastWeekTotalValue} {e.TargetUnit} previous week</span> <span class='prev-month-mobile'>PW {e.LastWeekTotalValue}</span> </span>";
+                            
+                            html += $"<span class='ah-badge badge badge-info'> <i class='fas fa-clock'></i> <span class='this-week-desktop'>{e.ThisWeekTotalValue} {e.TargetUnit} current week</span> <span class='this-week-mobile'>CW {e.ThisWeekTotalValue}</span> </span>";
 
                             html += $"<span class='ah-badge badge badge-primary'> <i class='fas fa-bullseye'></i> <span class='target-desktop'>{e.ProgressBar.TargetFrequency} Target {e.ProgressBar.TargetValue} {e.ProgressBar.TargetUnit}</span> <span class='target-mobile'>Target {e.ProgressBar.TargetValue}</span> </span>";
 

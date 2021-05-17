@@ -17,7 +17,7 @@ namespace Appology.MiCalendar.Repository
         Task<ActivityHub> GetAsync(Guid Id);
         Task<bool> DeleteAsync(Guid Id);
         Task<bool> AddAsync(ActivityHub activity);
-        Task<IEnumerable<ActivityHubStatsMonth>> GetStats(Guid userId, BaseDateFilter dateFilter);
+        Task<IEnumerable<ActivityHubStatsMonth>> GetStats(Guid userId, BaseDateFilter dateFilter = null);
         Task<IEnumerable<ActivityHub>> GetAllByUserIdAsync(Guid userId, BaseDateFilter dateFilter);
     }
 
@@ -62,52 +62,47 @@ namespace Appology.MiCalendar.Repository
             return await QueryAsync<ActivityHub>(sqlTxt, new { userId });
         }
 
-        public async Task<IEnumerable<ActivityHubStatsMonth>> GetStats(Guid userId, BaseDateFilter dateFilter)
+        public async Task<IEnumerable<ActivityHubStatsMonth>> GetStats(Guid userId, BaseDateFilter dateFilter = null)
         {
-
-            //--AND MONTH(StartDate) = DATEPART(MONTH, DATEADD(MONTH, @prevMonthInt, GETDATE()))
-            //--AND YEAR(StartDate) = YEAR(GETDATE())
-
-            var eventDateFilter = new DateFilter
+    
+            var eventDateFilter = new EventDateFilter
             {
                 DateField = "StartDate",
                 Frequency = dateFilter.Frequency,
-                FromDateRange = dateFilter.FromDateRange,
-                ToDateRange = dateFilter.ToDateRange
+                Interval = dateFilter.Interval
             };
 
-            var hubDateFilter = new DateFilter
+            var hubDateFilter = new ActivityHubDateFilter
             {
                 DateField = "Date",
                 Frequency = dateFilter.Frequency,
-                FromDateRange = dateFilter.FromDateRange,
-                ToDateRange = dateFilter.ToDateRange
+                Interval = dateFilter.Interval
             };
 
             string sqlTxt = $@"
-                SELECT TagId, Name AS TagName, TargetUnit, StartDayOfWeek, EndDayOfWeek, SUM(TotalValue) AS TotalValue
+                SELECT TagId, Name AS TagName, TargetUnit, SUM(TotalValue) AS TotalValue
                 FROM
                 (
-                    SELECT e.TagID, t.Name, t.TargetUnit, t.StartDayOfWeek, t.EndDayOfWeek, SUM(DATEDIFF(MINUTE, e.StartDate, e.EndDate)) AS TotalValue
+                    SELECT e.TagID, t.Name, t.TargetUnit, SUM(DATEDIFF(MINUTE, e.StartDate, e.EndDate)) AS TotalValue
                     FROM {Tables.Name(Table.Events)}  AS e
 	                LEFT JOIN {Tables.Name(Table.Tags)}  AS t
 	                ON e.TagID = t.Id
 	                WHERE e.Reminder = 0 AND e.UserID = @userId
                     AND {DateUtils.FilterDateSql(eventDateFilter)}
-	                GROUP BY e.TagID, t.Name, t.TargetUnit, t.StartDayOfWeek, t.EndDayOfWeek
+	                GROUP BY e.TagID, t.Name, t.TargetUnit
 
                     UNION ALL
 
-                    SELECT h.TagId, t.Name, t.TargetUnit, t.StartDayOfWeek, t.EndDayOfWeek, SUM(h.Value)
+                    SELECT h.TagId, t.Name, t.TargetUnit, SUM(h.Value)
                     FROM {TABLE} as h
 	                LEFT JOIN {Tables.Name(Table.Tags)} AS t
 	                ON h.TagId = t.Id
                     WHERE h.UserId = @userId
                     AND {DateUtils.FilterDateSql(hubDateFilter)}
-	                GROUP BY h.TagId, t.Name, t.TargetUnit, t.StartDayOfWeek, t.EndDayOfWeek
+	                GROUP BY h.TagId, t.Name, t.TargetUnit
                 ) t
                 WHERE TargetUnit != 'disable'
-                GROUP BY TagID, Name, TargetUnit, StartDayOfWeek, EndDayOfWeek
+                GROUP BY TagID, Name, TargetUnit
             ";
 
             return await QueryAsync<ActivityHubStatsMonth>(sqlTxt, new { userId });
