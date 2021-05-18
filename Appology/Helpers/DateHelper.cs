@@ -287,15 +287,15 @@ namespace Appology.Helpers
 		                    WHEN 5 THEN '{fri.Start:yyyy-MM-dd}'
 		                    WHEN 6 THEN '{sat.Start:yyyy-MM-dd}'
 	                    END
-                    AND CAST([{dateFilter.DateField}] as Date) <=
+                    AND CAST([{dateFilter.DateField}] as Date) <
 	                    CASE t.StartDayOfWeek
-		                    WHEN 1 THEN '{sun.End:yyyy-MM-dd}'
-		                    WHEN 2 THEN '{mon.End:yyyy-MM-dd}'
-		                    WHEN 3 THEN '{tue.End:yyyy-MM-dd}'
-		                    WHEN 4 THEN '{wed.End:yyyy-MM-dd}'
-		                    WHEN 5 THEN '{thu.End:yyyy-MM-dd}'
-		                    WHEN 6 THEN '{fri.End:yyyy-MM-dd}'
-		                    WHEN 0 THEN '{sat.End:yyyy-MM-dd}'
+		                    WHEN 0 THEN '{sun.End:yyyy-MM-dd}'
+		                    WHEN 1 THEN '{mon.End:yyyy-MM-dd}'
+		                    WHEN 2 THEN '{tue.End:yyyy-MM-dd}'
+		                    WHEN 3 THEN '{wed.End:yyyy-MM-dd}'
+		                    WHEN 4 THEN '{thu.End:yyyy-MM-dd}'
+		                    WHEN 5 THEN '{fri.End:yyyy-MM-dd}'
+		                    WHEN 6 THEN '{sat.End:yyyy-MM-dd}'
 	                END";
             }
             else
