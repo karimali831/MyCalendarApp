@@ -89,6 +89,7 @@ namespace Appology.MiCalendar.Repository
 	                ON e.TagID = t.Id
 	                WHERE e.Reminder = 0 AND e.UserID = @userId
                     AND {DateUtils.FilterDateSql(eventDateFilter)}
+                    AND t.TargetUnit = 'hours'
 	                GROUP BY e.TagID, t.Name, t.TargetUnit
 
                     UNION ALL
@@ -106,6 +107,7 @@ namespace Appology.MiCalendar.Repository
             ";
 
             return await QueryAsync<ActivityHubStatsMonth>(sqlTxt, new { userId });
+        
         }
     }
 }

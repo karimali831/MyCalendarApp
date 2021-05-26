@@ -59,7 +59,7 @@ namespace Appology.Areas.MiCalendar.Controllers
                 });
         }
 
-        public async Task<JsonResult> Add(Guid tagId, int value, string dateStr)
+        public async Task<JsonResult> Add(Guid tagId, double value, string dateStr)
         {
             await BaseViewModel(new MenuItem { ActivityHub = true });
             var baseVM = ViewData[nameof(BaseVM)] as BaseVM;
@@ -178,11 +178,15 @@ namespace Appology.Areas.MiCalendar.Controllers
                                 html += $"<span class='ah-badge badge badge-{(e.PreviousMonthSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.PreviousMonthSuccess ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.PreviousMonthTotalValue} {e.TargetUnit} in {prevMonthName}</span> <span class='prev-month-mobile'>{prevMonthNameAbbrev} {e.PreviousMonthTotalValue}</span> </span>";
                             }
 
-                            html += $"<span class='ah-badge badge badge-{(e.LastWeekSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.LastWeekSuccess ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.LastWeekTotalValue} {e.TargetUnit} previous week</span> <span class='prev-month-mobile'>PW {e.LastWeekTotalValue}</span> </span>";
-                            
-                            html += $"<span class='ah-badge badge badge-info'> <i class='fas fa-clock'></i> <span class='this-week-desktop'>{e.ThisWeekTotalValue} {e.TargetUnit} current week</span> <span class='this-week-mobile'>CW {e.ThisWeekTotalValue}</span> </span>";
+                            // last period only for last week 
+                            if (e.LastPeriodTotalValue != 0)
+                            {
+                                html += $"<span class='ah-badge badge badge-{(e.LastPeriodSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.LastPeriodSuccess ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.LastPeriodTotalValue} {e.TargetUnit} previous week</span> <span class='prev-month-mobile'>PW {e.LastPeriodTotalValue}</span> </span>";
+                            }
 
-                            html += $"<span class='ah-badge badge badge-primary'> <i class='fas fa-bullseye'></i> <span class='target-desktop'>{e.ProgressBar.TargetFrequency} Target {e.ProgressBar.TargetValue} {e.ProgressBar.TargetUnit}</span> <span class='target-mobile'>Target {e.ProgressBar.TargetValue}</span> </span>";
+                            html += $"<span class='ah-badge badge badge-info'> <i class='fas fa-clock'></i> <span class='this-period-desktop'>{e.ThisPeriodTotalValue} {e.TargetUnit} current {(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")}</span> <span class='this-period-mobile'>{(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "CW" : "CM")} {e.ThisPeriodTotalValue}</span> </span>";
+
+                            html += $"<span class='ah-badge badge badge-primary'> <i class='fas fa-bullseye'></i> <span class='target-desktop'>{e.ProgressBar.TargetValue} {e.ProgressBar.TargetUnit} {e.ProgressBar.TargetFrequency.ToString().ToLower()} target</span> <span class='target-mobile'>Target {e.ProgressBar.TargetValue}</span> </span>";
 
                             html += $"</div>";
 

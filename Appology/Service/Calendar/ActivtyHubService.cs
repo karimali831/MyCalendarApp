@@ -65,7 +65,7 @@ namespace Appology.MiCalendar.Service
             eventRequest.DateFilter.DateField = "StartDate";
 
             return (await eventService.GetEventsAsync(eventRequest, cacheRemove))
-                .Where(x => (x.UserID == userId || x.InviteeIdsList.Contains(userId)) && !x.Reminder && x.EndDate.HasValue && x.TagID.HasValue && x.TargetUnit != "disable")
+                .Where(x => (x.UserID == userId || x.InviteeIdsList.Contains(userId)) && !x.Reminder && x.EndDate.HasValue && x.TagID.HasValue && x.TargetUnit == "hours")
                 .Select(x => new ActivityHub
                 {
                     Id = x.EventID,
@@ -173,27 +173,55 @@ namespace Appology.MiCalendar.Service
                             {
                                 double previousSecondMonthTotalValue = stats.PrevSecondMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
                                 double previousMonthTotalValue = stats.PrevMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
-                                double thisWeekTotalValue = stats.ThisWeek.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
-                                double lastWeekTotalValue = stats.LastWeek.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
+                                double thisPeriodTotalValue;
+                                double lastPeriodTotalValue = 0;
 
-                                bool previousSecondMonthSuccess;
-                                bool previousMonthSuccess;
-                                bool lastWeekSuccess;
-
-                                bool reverse = tag.TargetValue.Value < 0;
-                                int actualTargetValue = reverse ? tag.TargetValue.Value * -1 : tag.TargetValue.Value;
-
-                                if (!reverse)
+                                if (tag.TargetFrequency == TimeFrequency.Monthly)
                                 {
-                                    previousSecondMonthSuccess = previousSecondMonthTotalValue >= actualTargetValue * 4;
-                                    previousMonthSuccess = previousMonthTotalValue >= actualTargetValue * 4;
-                                    lastWeekSuccess = lastWeekTotalValue >= actualTargetValue;
+                                    thisPeriodTotalValue = stats.ThisMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
                                 }
                                 else
                                 {
-                                    previousSecondMonthSuccess = previousSecondMonthTotalValue <= actualTargetValue * 4;
-                                    previousMonthSuccess = previousMonthTotalValue <= actualTargetValue * 4;
-                                    lastWeekSuccess = lastWeekTotalValue <= actualTargetValue;
+                                    thisPeriodTotalValue = stats.ThisWeek.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
+                                    lastPeriodTotalValue = stats.LastWeek.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
+                                }
+
+
+                                bool lastPeriodSuccess;
+                                bool previousSecondMonthSuccess;
+                                bool previousMonthSuccess;
+
+                                bool reverse = tag.TargetValue.Value < 0;
+                                double actualTargetValue = reverse ? tag.TargetValue.Value * -1 : tag.TargetValue.Value;
+
+                                double targetValueByFrequency = actualTargetValue;
+                                double targetValueByMonth = actualTargetValue;
+
+                                if (tag.TargetFrequency == TimeFrequency.Monthly)
+                                {
+                                    targetValueByFrequency /= 4;
+                                }
+                                else if (tag.TargetFrequency == TimeFrequency.Daily)
+                                {
+                                    targetValueByFrequency /= 4 / 7;
+                                    targetValueByMonth *= 7 * 4;
+                                }
+                                else if (tag.TargetFrequency == TimeFrequency.Weekly)
+                                {
+                                    targetValueByMonth *= 4;
+                                }
+
+                                if (!reverse)
+                                {
+                                    previousSecondMonthSuccess = previousSecondMonthTotalValue >= targetValueByMonth;
+                                    previousMonthSuccess = previousMonthTotalValue >= targetValueByMonth;
+                                    lastPeriodSuccess = lastPeriodTotalValue != 0 && lastPeriodTotalValue >= targetValueByFrequency;
+                                }
+                                else
+                                {
+                                    previousSecondMonthSuccess = previousSecondMonthTotalValue <= targetValueByMonth;
+                                    previousMonthSuccess = previousMonthTotalValue <= targetValueByMonth;
+                                    lastPeriodSuccess = lastPeriodTotalValue != 0 && lastPeriodTotalValue <= targetValueByFrequency;
                                 }
 
                                 ActivityTagProgress.Add(new ActivityTagProgress
@@ -209,11 +237,11 @@ namespace Appology.MiCalendar.Service
                                     ProgressBar = ProgressBar(additionalInfo.Hours, tag.TargetFrequency.Value, actualTargetValue, tag.TargetUnit, reverse),
                                     PreviousMonthTotalValue = previousMonthTotalValue,
                                     PreviousSecondMonthTotalValue = previousSecondMonthTotalValue,
-                                    ThisWeekTotalValue = thisWeekTotalValue,
-                                    LastWeekTotalValue = lastWeekTotalValue,
+                                    ThisPeriodTotalValue = thisPeriodTotalValue,
+                                    LastPeriodTotalValue = lastPeriodTotalValue,
                                     PreviousMonthSuccess = previousMonthSuccess,
                                     PreviousSecondMonthSuccess = previousSecondMonthSuccess,
-                                    LastWeekSuccess = lastWeekSuccess
+                                    LastPeriodSuccess = lastPeriodSuccess
                                 });
                             }
                         }
@@ -261,6 +289,7 @@ namespace Appology.MiCalendar.Service
 
         public async Task<ActivityHubStats> GetStats(Guid userId)
         {
+            string thisMonth = DateUtils.DateTime().ToString("MMMM");
             string prevMonth = DateUtils.DateTime().AddMonths(-1).ToString("MMMM");
             string prevSecondMonth = DateUtils.DateTime().AddMonths(-2).ToString("MMMM");
 
@@ -268,18 +297,21 @@ namespace Appology.MiCalendar.Service
             var prevSecondMonthFilter = new ActivityHubDateFilter { Frequency = Utils.ParseEnum<DateFrequency>(prevSecondMonth)};
             var thisWeekFilter = new ActivityHubDateFilter { Frequency = DateFrequency.DayOfWeek, Interval = 0 };
             var lastWeekFilter = new ActivityHubDateFilter { Frequency = DateFrequency.DayOfWeek, Interval = -7 };
+            var thisMonthFilter = new ActivityHubDateFilter { Frequency = Utils.ParseEnum<DateFrequency>(thisMonth) };
 
             var prevMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, prevMonthDateFilter));
             var prevSecondMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, prevSecondMonthFilter));
             var thisWeekStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, thisWeekFilter));
             var lastWeekStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, lastWeekFilter));
+            var thisMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, thisMonthFilter));
 
             return new ActivityHubStats
             {
                 PrevMonth = prevMonthStats,
                 PrevSecondMonth = prevSecondMonthStats,
                 ThisWeek = thisWeekStats,
-                LastWeek = lastWeekStats
+                LastWeek = lastWeekStats,
+                ThisMonth = thisMonthStats
             };
         }
 
@@ -297,7 +329,7 @@ namespace Appology.MiCalendar.Service
             return await cache.GetAsync(cacheName, async () => await activtyHubRepository.GetAllByUserIdAsync(userId, dateFilter));
         }
 
-        private ProgressBar ProgressBar(double actualHours, TimeFrequency targetFrequency, int targetValue, string targetUnit, bool reverse)
+        private ProgressBar ProgressBar(double actualHours, TimeFrequency targetFrequency, double targetValue, string targetUnit, bool reverse)
         {
             int progressBarPercentage = (int)Math.Round((double)(100 * actualHours) / targetValue);
             string progressBarColor = "";

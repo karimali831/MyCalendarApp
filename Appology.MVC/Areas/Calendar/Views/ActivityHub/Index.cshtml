@@ -53,7 +53,8 @@
                         <input type="date" id="date" class="form-control" />
                     </div>
                     <div class="form-group">
-                        <select id="value" class="form-control">
+                        <input type="number" class="form-control" id="input-value" style="display: none" />
+                        <select id="select-value" class="form-control" style="display: none" >
                             <option value="0"></option>
                         </select>
                     </div>
@@ -142,19 +143,22 @@
                                                             <span class="prev-month-mobile">@Model.PrevMonthNameAbbrev @e.PreviousMonthTotalValue</span>
                                                         </span>
                                                     }
-                                                    <span class="ah-badge badge badge-@(e.LastWeekSuccess ? "success" : "danger")">
-                                                        <i class="fas fa-arrow-@(e.LastWeekSuccess ? "up" : "down")"></i>
-                                                        <span class="prev-month-desktop">@e.LastWeekTotalValue @e.TargetUnit previous week</span>
-                                                        <span class="prev-month-mobile">PW @e.LastWeekTotalValue</span>
-                                                    </span>
+                                                    @if (e.LastPeriodTotalValue != 0)
+                                                    {
+                                                        <span class="ah-badge badge badge-@(e.LastPeriodSuccess ? "success" : "danger")">
+                                                            <i class="fas fa-arrow-@(e.LastPeriodSuccess ? "up" : "down")"></i>
+                                                            <span class="prev-month-desktop">@e.LastPeriodTotalValue @e.TargetUnit previous week</span>
+                                                            <span class="prev-month-mobile">PW @e.LastPeriodTotalValue</span>
+                                                        </span>
+                                                    }
                                                     <span class="ah-badge badge badge-info">
                                                         <i class="fas fa-clock"></i>
-                                                        <span class="this-week-desktop">@e.ThisWeekTotalValue @e.TargetUnit current week</span>
-                                                        <span class="this-week-mobile">CW @e.ThisWeekTotalValue</span>
+                                                        <span class="this-period-desktop">@e.ThisPeriodTotalValue @e.TargetUnit current @(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")</span>
+                                                        <span class="this-period-mobile">@(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "CW" : "CM") @e.ThisPeriodTotalValue</span>
                                                     </span>
                                                     <span class="ah-badge badge badge-primary">
                                                         <i class="fas fa-bullseye"></i>
-                                                        <span class="target-desktop">@e.ProgressBar.TargetFrequency Target @e.ProgressBar.TargetValue @e.ProgressBar.TargetUnit</span>
+                                                        <span class="target-desktop">@e.ProgressBar.TargetValue @e.ProgressBar.TargetUnit @e.ProgressBar.TargetFrequency.ToString().ToLower() target</span>
                                                         <span class="target-mobile">Target  @e.ProgressBar.TargetValue</span>
                                                     </span>
                                                     </div>
@@ -207,7 +211,7 @@
                         $('.delete-' + Id).show();
                         ele.closest("tr").remove();
 
-                        if (!respose) {
+                        if (!response) {
                             alert("An error occured");
                         }
                     },
@@ -241,26 +245,26 @@
                     $('#activity-hub-form').show(500);
 
                     var unit = $('#tagId').val().split(".")[0];
-                    $("#value option:first").text("Select " + unit);
-                    $("#value").find('option').not(':first').remove();
                     $("#date").val(new Date().toISOString().split('T')[0]);
 
                     if (unit == "hours") {
+                        $('#select-value').show(500);
+                        $('#input-value').hide(500);
+
+                        $("#select-value option:first").text("Select time");
+                        $("#select-value").find('option').not(':first').remove();
+
                         for (var i = 1; i <= 300; i++) {
                             jQuery('<option/>', {
                                 value: i,
                                 html: convertMinsToHrsMins(i)
-                            }).appendTo('#value');
+                            }).appendTo('#select-value');
                         }
                     }
                     else {
-
-                        for (var i = 1; i <= 300; i++) {
-                            jQuery('<option/>', {
-                                value: i,
-                                html: i + " " + unit
-                            }).appendTo('#value');
-                        }
+                        $('#input-value').show(500);
+                        $('#select-value').hide(500);
+                        $('#input-value').attr('placeholder', 'Enter ' + unit);
                     }
 
                 }
@@ -269,12 +273,23 @@
                 }
             });
 
-            $("#value").change(function () {
-                if ($(this).val() != 0 && $("#tagId").val() != 0) {
-                    addActivity();
-                    getEventsActivity();
-                }
+            $("#select-value").change(function () {
+                addActivityFormElement($(this).val());
             });
+
+            $('#input-value').keypress(function (e) {
+                var key = e.which;
+                if (key == 13)  // the enter key code
+                {
+                    addActivityFormElement($(this).val());
+                }
+            });   
+
+            function addActivityFormElement(value) {
+                if (value != 0 && $("#tagId").val() != 0) {
+                    addActivity(value);
+                }
+            }
 
             $("#interval").change(function () {
                 getEventsActivity();
@@ -323,11 +338,16 @@
                 }
             }
 
-            function addActivity() {
+            function addActivity(value) {
+                var unit = $('#tagId').val().split(".")[0];
                 var tagId = $('#tagId').val().split(".")[1];
-                var value = $('#value').val();
+                var tagName = $("#tagId option:selected").text();
 
-                if (confirm('Add ' + value + ' to this tag?')) {
+                if (unit == "hours") {
+                    unit = "minutes";
+                }
+     
+                if (confirm('Add ' + value + ' ' + unit +  ' for ' + tagName + '?')) {
                     $.ajax({
                         type: "GET",
                         data: {
@@ -339,8 +359,9 @@
                         contentType: "application/json; charset=utf-8",
                         dataType: "json",
                         success: function (response) {
-                            $('#value').val(0)
-                            $('#tagId').val(0)
+                            $('#select-value').val(0);
+                            $('#input-value').val('');
+                            $('#tagId').val(0);
                             $('#activity-hub-form').hide(500);
 
                             if (!response) {
@@ -348,12 +369,15 @@
                             }
                         },
                         error: function (result) {
-                            $('#value').val(0)
-                            $('#tagId').val(0)
+                            $('#select-value').val(0);
+                            $('#input-value').val('');
+                            $('#tagId').val(0);
                             $('#activity-hub-form').hide(500);
                             alert("Error: " + result.status);
                         }
                     });
+
+                    getEventsActivity();
                 }
             }
 

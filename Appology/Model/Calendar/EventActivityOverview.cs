@@ -29,18 +29,18 @@ namespace Appology.MiCalendar.Model
         public ProgressBar ProgressBar { get; set; }
         public double PreviousMonthTotalValue { get; set; }
         public double PreviousSecondMonthTotalValue { get; set; }
-        public double ThisWeekTotalValue { get; set; }
-        public double LastWeekTotalValue { get; set; }
+        public double ThisPeriodTotalValue { get; set; }
+        public double LastPeriodTotalValue { get; set; }
         public bool PreviousMonthSuccess { get; set; }
         public bool PreviousSecondMonthSuccess { get; set; }
-        public bool LastWeekSuccess { get; set; }
+        public bool LastPeriodSuccess { get; set; }
 
     }
 
     public class ProgressBar
     {
         public TimeFrequency? TargetFrequency { get; set; }
-        public int? TargetValue { get; set; }
+        public double? TargetValue { get; set; }
         public string TargetUnit { get; set; }
         public double ActualValue { get; set; }
         public int ProgressBarPercentage { get; set; }

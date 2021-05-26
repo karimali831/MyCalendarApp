@@ -17,7 +17,7 @@ namespace Appology.MiCalendar.Model
         public string Name { get; set; }
         public string ThemeColor { get; set; }
         public TimeFrequency? TargetFrequency { get; set; }
-        public int? TargetValue { get; set; }
+        public double? TargetValue { get; set; }
         public string TargetUnit { get; set; }
         public DayOfWeek StartDayOfWeek { get; set; }
         [DbIgnore]

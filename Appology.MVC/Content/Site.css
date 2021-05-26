@@ -317,17 +317,17 @@ h4:after {
     margin-right: 3px;
 }
 
-.prev-secondmonth-mobile, .prev-month-mobile, .this-week-mobile, .target-mobile {
+.prev-secondmonth-mobile, .prev-month-mobile, .this-period-mobile, .target-mobile {
     display: none;
 }
 
 /* tablet or smaller */
 @media (max-width: 1024px) {
-    .prev-secondmonth-desktop, .prev-month-desktop, .this-week-desktop, .target-desktop {
+    .prev-secondmonth-desktop, .prev-month-desktop, .this-period-desktop, .target-desktop {
         display: none;
     }
 
-    .prev-secondmonth-mobile, .prev-month-mobile, .this-week-mobile, .target-mobile {
+    .prev-secondmonth-mobile, .prev-month-mobile, .this-period-mobile, .target-mobile {
         display: block;
     }
 }

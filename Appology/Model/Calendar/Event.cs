@@ -36,7 +36,7 @@ namespace Appology.MiCalendar.Model
         [DbIgnore]
         public TimeFrequency? TargetFrequency { get; set; }
         [DbIgnore]
-        public int? TargetValue { get; set; }
+        public double? TargetValue { get; set; }
         [DbIgnore]
         public string TargetUnit { get; set; }
         [DbIgnore]

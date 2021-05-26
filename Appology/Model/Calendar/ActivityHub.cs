@@ -24,7 +24,7 @@ namespace Appology.MiCalendar.Model
         [DbIgnore]
         public TimeFrequency? TargetFrequency { get; set; }
         [DbIgnore]
-        public int? TargetValue { get; set; }
+        public double? TargetValue { get; set; }
         [DbIgnore]
         public string TargetUnit { get; set; }
         [DbIgnore]
@@ -59,6 +59,7 @@ namespace Appology.MiCalendar.Model
         public IEnumerable<ActivityHubStatsMonth> PrevSecondMonth { get; set; }
         public IEnumerable<ActivityHubStatsMonth> ThisWeek { get; set; }
         public IEnumerable<ActivityHubStatsMonth> LastWeek { get; set; }
+        public IEnumerable<ActivityHubStatsMonth> ThisMonth { get; set; }
     }
 
     public class ActivityHubMap : EntityTypeConfiguration<ActivityHub>
