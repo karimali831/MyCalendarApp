@@ -173,6 +173,8 @@ namespace Appology.MiCalendar.Service
                             {
                                 double previousSecondMonthTotalValue = stats.PrevSecondMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
                                 double previousMonthTotalValue = stats.PrevMonth.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
+                                double upomingTotalValue = stats.Upcoming.FirstOrDefault(x => x.TagId == tag.TagId)?.TotalValue ?? 0;
+
                                 double thisPeriodTotalValue;
                                 double lastPeriodTotalValue = 0;
 
@@ -239,6 +241,7 @@ namespace Appology.MiCalendar.Service
                                     PreviousSecondMonthTotalValue = previousSecondMonthTotalValue,
                                     ThisPeriodTotalValue = thisPeriodTotalValue,
                                     LastPeriodTotalValue = lastPeriodTotalValue,
+                                    UpcomingTotalValue = upomingTotalValue,
                                     PreviousMonthSuccess = previousMonthSuccess,
                                     PreviousSecondMonthSuccess = previousSecondMonthSuccess,
                                     LastPeriodSuccess = lastPeriodSuccess
@@ -298,12 +301,14 @@ namespace Appology.MiCalendar.Service
             var thisWeekFilter = new ActivityHubDateFilter { Frequency = DateFrequency.DayOfWeek, Interval = 0 };
             var lastWeekFilter = new ActivityHubDateFilter { Frequency = DateFrequency.DayOfWeek, Interval = -7 };
             var thisMonthFilter = new ActivityHubDateFilter { Frequency = Utils.ParseEnum<DateFrequency>(thisMonth) };
+            var upcomingFilter = new ActivityHubDateFilter { Frequency = DateFrequency.Upcoming };
 
             var prevMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, prevMonthDateFilter));
             var prevSecondMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, prevSecondMonthFilter));
             var thisWeekStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, thisWeekFilter));
             var lastWeekStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, lastWeekFilter));
             var thisMonthStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, thisMonthFilter));
+            var upcomingStats = GetStatsFilter(await activtyHubRepository.GetStats(userId, upcomingFilter));
 
             return new ActivityHubStats
             {
@@ -311,7 +316,8 @@ namespace Appology.MiCalendar.Service
                 PrevSecondMonth = prevSecondMonthStats,
                 ThisWeek = thisWeekStats,
                 LastWeek = lastWeekStats,
-                ThisMonth = thisMonthStats
+                ThisMonth = thisMonthStats,
+                Upcoming = upcomingStats
             };
         }
 

@@ -184,9 +184,20 @@ namespace Appology.Areas.MiCalendar.Controllers
                                 html += $"<span class='ah-badge badge badge-{(e.LastPeriodSuccess ? "success" : "danger")}'> <i class='fas fa-arrow-{(e.LastPeriodSuccess ? "up" : "down")}'></i> <span class='prev-month-desktop'>{e.LastPeriodTotalValue} {e.TargetUnit} previous week</span> <span class='prev-month-mobile'>PW {e.LastPeriodTotalValue}</span> </span>";
                             }
 
-                            html += $"<span class='ah-badge badge badge-info'> <i class='fas fa-clock'></i> <span class='this-period-desktop'>{e.ThisPeriodTotalValue} {e.TargetUnit} current {(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")}</span> <span class='this-period-mobile'>{(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "CW" : "CM")} {e.ThisPeriodTotalValue}</span> </span>";
+                            html += $"<span class='ah-badge badge badge-primary'> <i class='fas fa-clock'></i> <span class='this-period-desktop'>{e.ThisPeriodTotalValue} {e.TargetUnit} current {(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")}</span> <span class='this-period-mobile'>{(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "CW" : "CM")} {e.ThisPeriodTotalValue}</span> </span>";
 
-                            html += $"<span class='ah-badge badge badge-primary'> <i class='fas fa-bullseye'></i> <span class='target-desktop'>{e.ProgressBar.TargetValue} {e.ProgressBar.TargetUnit} {e.ProgressBar.TargetFrequency.ToString().ToLower()} target</span> <span class='target-mobile'>Target {e.ProgressBar.TargetValue}</span> </span>";
+                            if (e.UpcomingTotalValue > 0)
+                            {
+                                html += $"<span class='ah-badge badge badge-info'><i class='fas fa-calendar-check'></i> ";
+
+                                html += $"<span class='this-period-desktop'>{e.UpcomingTotalValue} {e.TargetUnit} upcoming {(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")}</span>";
+
+                                html += $"<span class='this-period-mobile'>{(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "UW" : "UM")} {e.UpcomingTotalValue}</span>";
+
+                                html += $"</span>";
+                            }
+
+                            html += $"<span class='ah-badge badge badge-light float-right'> <i class='fas fa-bullseye'></i> <span class='target-desktop'>{e.ProgressBar.TargetValue} {e.ProgressBar.TargetUnit} {e.ProgressBar.TargetFrequency.ToString().ToLower()} target</span> <span class='target-mobile'>Target {e.ProgressBar.TargetValue}</span> </span>";
 
                             html += $"</div>";
 

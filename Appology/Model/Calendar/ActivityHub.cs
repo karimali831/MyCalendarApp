@@ -60,6 +60,7 @@ namespace Appology.MiCalendar.Model
         public IEnumerable<ActivityHubStatsMonth> ThisWeek { get; set; }
         public IEnumerable<ActivityHubStatsMonth> LastWeek { get; set; }
         public IEnumerable<ActivityHubStatsMonth> ThisMonth { get; set; }
+        public IEnumerable<ActivityHubStatsMonth> Upcoming { get; set; }
     }
 
     public class ActivityHubMap : EntityTypeConfiguration<ActivityHub>

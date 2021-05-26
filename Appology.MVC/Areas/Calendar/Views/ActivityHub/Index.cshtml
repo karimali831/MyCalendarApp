@@ -151,17 +151,25 @@
                                                             <span class="prev-month-mobile">PW @e.LastPeriodTotalValue</span>
                                                         </span>
                                                     }
-                                                    <span class="ah-badge badge badge-info">
+                                                    <span class="ah-badge badge badge-primary">
                                                         <i class="fas fa-clock"></i>
                                                         <span class="this-period-desktop">@e.ThisPeriodTotalValue @e.TargetUnit current @(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")</span>
                                                         <span class="this-period-mobile">@(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "CW" : "CM") @e.ThisPeriodTotalValue</span>
                                                     </span>
-                                                    <span class="ah-badge badge badge-primary">
+                                                     @if (e.UpcomingTotalValue > 0)
+                                                     {
+                                                        <span class="ah-badge badge badge-info">
+                                                            <i class="fas fa-calendar-check"></i>
+                                                            <span class="this-period-desktop">@e.UpcomingTotalValue @e.TargetUnit upcoming @(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "week" : "month")</span>
+                                                            <span class="this-period-mobile">@(e.ProgressBar.TargetFrequency == TimeFrequency.Weekly ? "UW" : "UM") @e.UpcomingTotalValue</span>
+                                                        </span>
+                                                     }
+                                                    <span class="ah-badge badge badge-light float-right">
                                                         <i class="fas fa-bullseye"></i>
                                                         <span class="target-desktop">@e.ProgressBar.TargetValue @e.ProgressBar.TargetUnit @e.ProgressBar.TargetFrequency.ToString().ToLower() target</span>
                                                         <span class="target-mobile">Target  @e.ProgressBar.TargetValue</span>
                                                     </span>
-                                                    </div>
+                                                </div>
                                                 <div class="progress" style="height: 20px">
                                                     <div class="progress-bar progress-bar-striped progress-bar-animated @e.ProgressBar.ProgressBarColor" role="progressbar" aria-valuenow="@e.ProgressBar.ActualValue" aria-valuemin="0" aria-valuemax="@e.ProgressBar.TargetValue.Value" style="width: @(e.ProgressBar.ProgressBarPercentage)%; padding: 10px">
                                                         Averaging @e.ProgressBar.ActualValue @e.ProgressBar.TargetUnit @e.ProgressBar.TargetFrequency.ToString().ToLower()
