@@ -178,8 +178,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\BaseDateFilter.cs" />
+    <Compile Include="DTOs\Calendar\ActivityHubDateFilter.cs" />
     <Compile Include="DTOs\Write\Collaborator.cs" />
-    <Compile Include="DTOs\Calendar\DateFilter.cs" />
+    <Compile Include="DTOs\Calendar\EventDateFilter.cs" />
     <Compile Include="DTOs\Write\Document.cs" />
     <Compile Include="DTOs\Calendar\Event.cs" />
     <Compile Include="DTOs\Calendar\EventRequest.cs" />

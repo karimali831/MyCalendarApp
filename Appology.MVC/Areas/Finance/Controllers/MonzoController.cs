@@ -177,22 +177,29 @@ namespace Appology.Areas.MiFinance.Controllers
                 //var pots = await client.GetPotsAsync();
                 var balance = await client.GetBalanceAsync(accounts[0].Id);
                 var savingsBalance = await client.GetBalanceAsync(accounts[0].Id);
-                var lastSyncedAccountSummary = await monzoService.MonzoAccountSummary();
 
-                var getTransactions = 
-                    (
-                        await client.GetTransactionsAsync(
-                            accounts[0].Id, 
-                            expand: "merchant",
-                            paginationOptions: new PaginationOptions
-                            {
-                                BeforeTime = DateUtils.DateTime(),
-                                SinceTime = lastSyncedAccountSummary.Created
-                            }
-                        )
-                    )
+                var getTransactions = (await client.GetTransactionsAsync(accounts[0].Id, expand: "merchant"))
                     .OrderByDescending(x => x.Created)
+                    .Take(150)
                     .ToList();
+
+
+                //var lastSyncedAccountSummary = await monzoService.MonzoAccountSummary();
+
+                //var getTransactions = 
+                //    (
+                //        await client.GetTransactionsAsync(
+                //            accounts[0].Id, 
+                //            expand: "merchant",
+                //            paginationOptions: new PaginationOptions
+                //            {
+                //                BeforeTime = DateUtils.DateTime(),
+                //                SinceTime = lastSyncedAccountSummary.Created
+                //            }
+                //        )
+                //    )
+                //    .OrderByDescending(x => x.Created)
+                //    .ToList();
 
                 var spentToday = getTransactions
                     .Where(x => x.Created.Date == DateTime.UtcNow.Date && x.Amount < 0)
@@ -255,21 +262,13 @@ namespace Appology.Areas.MiFinance.Controllers
             viewModel.LastSynced = data.Created;
             viewModel.ShowPotAndTags = showPotAndTags;
 
+            var modalTasks = new List<string>();
+
             if (deletedTrans != null)
             {
-                viewModel.Modal = new BootBox
-                {
-                    Reload = true,
-                    Title = "Void Unsycned Transaction",
-                    Description = new string[] {
-                        deletedTrans.Value ?
-                            "Monzo transaction successfully void" :
-                            "Unable to void Monzo transaction"
-                    },
-                    Redirect = ("ApproveDataAccess", "Monzo")
-                };
-
-                return View("_Bootbox", viewModel.Modal);
+                modalTasks.Add(deletedTrans.Value ?
+                    "Monzo transaction successfully void" :
+                    "Unable to void Monzo transaction");
             }
 
             // sync settled transactions date format being : 2020-05-31T07:06:18.533Z
@@ -290,12 +289,7 @@ namespace Appology.Areas.MiFinance.Controllers
                         syncTransactions.First(x => x.Key == CategoryType.Spendings).Value.Syncables
                     };
 
-                    viewModel.Modal = new BootBox
-                    {
-                        Reload = true,
-                        Title = "Please wait while Monzo transactions are synced...",
-                        Description = description.ToArray()
-                    };
+                    modalTasks.Concat(description);
                 };
             }
 
@@ -366,28 +360,29 @@ namespace Appology.Areas.MiFinance.Controllers
 
             if (monzoTransactions != null && monzoTransactions.Any())
             {
-                var toRemove = new List<string>();
+
                 foreach (var trans in monzoTransactions)
                 {
                     if (await monzoService.SpendingTransactionExists(trans.Id))
                     {
-                        toRemove.Add($"Removing unsynced -- {trans.Name}");
+                        modalTasks.Add($"Removing unsynced -- {trans.Name}");
                         await monzoService.DeleteMonzoTransaction(trans.Id);
                     }
                 }
 
-                if (toRemove.Any())
-                {
-                    viewModel.Modal = new BootBox
-                    {
-                        Reload = true,
-                        Title = "Monzo transactions sync",
-                        Description = toRemove.ToArray(),
-                        Redirect = ("ApproveDataAccess", "Monzo")
-                    };
+            }
 
-                    return View("_Bootbox", viewModel.Modal);
-                }
+            if (modalTasks.Any())
+            {
+                viewModel.Modal = new BootBox
+                {
+                    Reload = true,
+                    Title = "Please wait while Monzo transactions are synced...",
+                    Description = modalTasks.ToArray(),
+                    Redirect = ("ApproveDataAccess", "Monzo")
+                };
+
+                return View("_Bootbox", viewModel.Modal);
             }
 
             viewModel.Transactions = new Dictionary<MonzoTransactionStatus, IList<MonzoTransaction>>

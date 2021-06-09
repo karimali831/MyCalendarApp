@@ -54,27 +54,31 @@
 
         foreach (var transaction in Model.Transactions.Where(x => x.Key == entry).SelectMany(x => x.Value))
         {
-            string plus = (transaction.Amount > 0 ? "+" : null);
-            string color = (transaction.Amount > 0 ? "green" : null);
-            string status = "active";
-
-            switch (entry)
+            if ((!Model.ShowPotAndTags && string.IsNullOrEmpty(transaction.DeclineReason)) || Model.ShowPotAndTags)
             {
-                case MonzoTransactionStatus.Pending:
-                    status = "waiting";
-                    break;
-                case MonzoTransactionStatus.Unsynced:
-                    status = "danger";
-                    break;
-                case MonzoTransactionStatus.Settled:
-                    status = "active";
-                    break;
-            }
 
-            rowsContent.Add(
+                string plus = (transaction.Amount > 0 ? "+" : null);
+                string color = (transaction.Amount > 0 ? "green" : null);
+                string status = "active";
+
+                switch (entry)
+                {
+                    case MonzoTransactionStatus.Pending:
+                        status = "waiting";
+                        break;
+                    case MonzoTransactionStatus.Unsynced:
+                        status = "danger";
+                        break;
+                    case MonzoTransactionStatus.Settled:
+                        status = "active";
+                        break;
+                }
+
+                rowsContent.Add(
                 @<tr class="alert" role="alert">
                     <td class="d-flex align-items-center">
-                        @if (!Model.ShowPotAndTags) {
+                        @if (!Model.ShowPotAndTags)
+                        {
                             <div class="img" style="background-image: url(@transaction.Logo)"></div>
                         }
                         <div class="pl-3 email">
@@ -87,7 +91,8 @@
                                 }
                             </span>
                             <span>@transaction.Created.ToShortDateString() @transaction.Created.ToShortTimeString()</span>
-                            @if (Model.ShowPotAndTags) { 
+                            @if (Model.ShowPotAndTags)
+                            {
                                 <small>(@transaction.Category) @transaction.Description - @transaction.Id <font color="red">@transaction.DeclineReason</font></small>
                             }
                         </div>
@@ -96,7 +101,8 @@
                         <span class="@status">@plus@Utils.ToCurrency(transaction.Amount / 100m)</span>
                     </td>
                 </tr>
-            );
+                );
+            }
         }
     }
 
