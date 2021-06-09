@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Configuration;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using Appology.Helpers;
+using Appology.MiCalendar.Helpers;
 using Appology.MiCalendar.Service;
 using Appology.Model;
 using Appology.Service;
@@ -53,5 +56,30 @@ namespace Appology.Controllers.Api
             return Request.CreateResponse(HttpStatusCode.OK, user);
         }
 
+        [Route("users")]
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetUsers()
+        {
+            var users = await userService.GetAllAsync();
+
+            //limit=10&offset=0&order=%7B"order":"desc","orderBy":"createdAt"%7D
+
+            return Request.CreateResponse(HttpStatusCode.OK, new
+            {
+                users = users.Select(x => new
+                {
+                    id = x.UserID,
+                    firstName = x.Name.Contains(' ') ? x.Name.Split(' ')[0] : x.Name,
+                    lastName = x.Name.Contains(' ') ? x.Name.Split(' ')[1] : "",
+                    displayName = x.Name,
+                    userName = (string)null,
+                    email = x.Email,
+                    password = "",
+                    avatarUrl = CalendarUtils.AvatarSrc(x.UserID, x.Avatar, x.Name, absoluteUrl: true),
+                    globalRole = ""
+                }),
+                count = users.Count()
+            });
+        }
     }
 }
