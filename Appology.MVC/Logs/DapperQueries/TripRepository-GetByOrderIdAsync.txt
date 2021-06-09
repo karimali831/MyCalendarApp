@@ -1,1 +1,0 @@
-11/04/2021 20:18:51 - (no user) SELECT TripId, OrderId, AssignedRunnerId, PickupId, PickupPlace, PickupLat, PickupLng, Distance, Duration, DropOffAddress, DropOffPostcode, Modified FROM [ER.Trips]  WHERE OrderId = @orderId

@@ -1,1 +1,1 @@
-20/04/2021 14:01:08 - karimali831@googlemail.com SELECT Id, DocId, UserId, Date FROM DocumentChangelog WHERE DocId = @docId
+31/05/2021 00:13:25 - karimali831@googlemail.com SELECT Id, DocId, UserId, Date FROM DocumentChangelog WHERE DocId = @docId

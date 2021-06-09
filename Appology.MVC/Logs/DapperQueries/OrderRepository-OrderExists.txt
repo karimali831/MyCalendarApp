@@ -1,1 +1,0 @@
-11/04/2021 20:18:54 - (no user) SELECT count(1) FROM [ER.Orders] WHERE OrderId = @orderId

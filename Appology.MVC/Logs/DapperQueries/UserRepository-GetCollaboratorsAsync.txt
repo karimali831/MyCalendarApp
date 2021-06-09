@@ -1,1 +1,1 @@
-12/04/2021 11:31:16 - karimali831@googlemail.com SELECT UserId AS CollaboratorId, Avatar, Name FROM Users WHERE UserID IN @inviteeIds
+31/05/2021 00:13:26 - karimali831@googlemail.com SELECT UserId AS CollaboratorId, Avatar, Name FROM Users WHERE UserID IN @inviteeIds

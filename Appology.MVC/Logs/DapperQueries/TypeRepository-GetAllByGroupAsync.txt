@@ -1,1 +1,1 @@
-20/04/2021 14:01:07 - karimali831@googlemail.com SELECT Id, GroupId, Name, UserCreatedId, InviteeIds, SuperTypeId FROM Types  WHERE GroupID = @groupId ORDER BY SuperTypeId, Name ASC
+31/05/2021 00:13:25 - karimali831@googlemail.com SELECT Id, GroupId, Name, UserCreatedId, InviteeIds, SuperTypeId FROM Types  WHERE GroupID = @groupId ORDER BY SuperTypeId, Name ASC

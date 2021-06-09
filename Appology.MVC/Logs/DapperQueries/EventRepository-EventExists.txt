@@ -1,1 +1,1 @@
-11/04/2021 14:53:34 - karimali831@googlemail.com SELECT count(1) FROM Events WHERE EventID = @EventId
+26/05/2021 11:16:55 - karimali831@googlemail.com SELECT count(1) FROM Events WHERE EventID = @EventId

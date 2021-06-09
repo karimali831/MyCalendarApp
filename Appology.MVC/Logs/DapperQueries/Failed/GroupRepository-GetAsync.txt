@@ -1,1 +1,0 @@
-12/04/2021 12:52:49 - karimali831@googlemail.com SELECT Id, Name, Description, InviteDescription, FeatureId, FaIcon, Nodes FROM Groups  WHERE Id = @Id

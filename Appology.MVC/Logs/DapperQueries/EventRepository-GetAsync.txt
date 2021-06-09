@@ -1,5 +1,5 @@
-11/04/2021 14:53:34 - karimali831@googlemail.com 
-                SELECT e.EventID, e.CalendarId, e.Reminder, u.Name, u.Avatar, e.Description, t.Name AS Subject, e.StartDate, e.EndDate, e.IsFullDay, t.ThemeColor, e.UserId, e.TagID, e.Tentative, e.EventUid, e.CalendarUid, e.Alarm, e.Provider
+26/05/2021 11:16:56 - karimali831@googlemail.com 
+                SELECT e.EventID, e.CalendarId, e.Reminder, u.Name, u.Avatar, e.Description, t.Name AS Subject, e.StartDate, e.EndDate, e.IsFullDay, t.ThemeColor, t.TargetFrequency, t.TargetValue, t.TargetUnit, e.UserId, e.TagID, e.Tentative, e.EventUid, e.CalendarUid, e.Alarm, e.Provider
                 FROM Events e
                 LEFT JOIN Users u
                 ON e.UserID = u.UserID

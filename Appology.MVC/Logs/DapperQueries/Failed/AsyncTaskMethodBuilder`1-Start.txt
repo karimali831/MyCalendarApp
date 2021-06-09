@@ -1,8 +1,0 @@
-22/04/2021 10:20:09 - karimali831@googlemail.com 
-                SELECT d.Id, d.TypeId, d.Title, d.Text, d.DraftText, d.CreatedDate, d.EditedDate, d.UserCreatedId, d.EditedById, d.EditedAuto, d.Tags
-                FROM Documents AS d
-                LEFT JOIN Types AS t
-                ON d.TypeId = t.Id
-                WHERE d.Id = '74e67346-7859-4fe2-b770-8f3daa9dce82'
-                AND (t.UserCreatedId = 'e252d5b5-63a5-4432-9a5e-d6ac16a8a45b'
-                OR (',' + RTRIM(t.InviteeIds) + ',') LIKE '%,e252d5b5-63a5-4432-9a5e-d6ac16a8a45b,%')

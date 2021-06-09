@@ -1,4 +1,4 @@
-20/04/2021 14:01:08 - karimali831@googlemail.com 
+31/05/2021 00:13:26 - karimali831@googlemail.com 
                 SELECT e.EventID, e.CalendarId, e.UserID, e.TagID, e.Description, e.StartDate, e.EndDate, t.Name AS Subject, ty.InviteeIds
                 FROM Events e
                 LEFT JOIN Tags t

@@ -1,4 +1,4 @@
-20/04/2021 14:06:11 - karimali831@googlemail.com 
+31/05/2021 00:14:26 - karimali831@googlemail.com 
                 SELECT n.Id, n.UserId, n.Text, n.HasRead, u.Avatar, u.Name, f.FaIcon
                 FROM Notifications AS n
                 LEFT JOIN Users AS u

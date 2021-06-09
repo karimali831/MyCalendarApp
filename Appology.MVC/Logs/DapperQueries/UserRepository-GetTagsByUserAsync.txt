@@ -1,9 +1,9 @@
-12/04/2021 11:31:09 - karimali831@googlemail.com 
-                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, COUNT(*) AS Count
+26/05/2021 11:53:08 - karimali831@googlemail.com 
+                SELECT t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.TargetFrequency, t.TargetValue, t.TargetUnit, t.StartDayOfWeek, COUNT(*) AS Count
                 FROM Events AS e
                 RIGHT JOIN Tags AS t
                 ON e.TagID = t.Id
                 WHERE t.UserId = 'e252d5b5-63a5-4432-9a5e-d6ac16a8a45b'
-                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor
+                GROUP BY t.Id, t.UserID, t.TypeID, t.Name, t.ThemeColor, t.TargetFrequency, t.TargetValue, t.TargetUnit, t.StartDayOfWeek
                 ORDER BY Count DESC
             
