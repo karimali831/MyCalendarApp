@@ -17,6 +17,7 @@
         Logout,
         // ER
         ErrandRunnerNewOrder,
+        ErrandRunnerDriverApp,
         // Finance
         FinanceApp,
         FinanceAppAddSpending,

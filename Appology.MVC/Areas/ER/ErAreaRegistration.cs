@@ -24,7 +24,7 @@ namespace Appology.Website.Areas.Calendar
                 "er_default",
                 "errandrunner/{controller}/{action}/{id}",
                 new { action = "Index", id = UrlParameter.Optional },
-                new { controller = "Order" },
+                new { controller = "Order|Driver" },
                 new[] { "Appology.Areas.ER.Controllers" }
             );
         }

@@ -74,6 +74,7 @@ namespace Appology.Helpers
                 new KeyValuePair<Section, string>(Section.DocLink, "/write/document/id"),
                 // errand runner app
                 new KeyValuePair<Section, string>(Section.ErrandRunnerNewOrder, "/errandrunner/order/new"),
+                new KeyValuePair<Section, string>(Section.ErrandRunnerDriverApp, "/errandrunner/driver"),
                 // finance app
                 new KeyValuePair<Section, string>(Section.FinanceAppAddSpending, "/finance/app/addspending"),
                 new KeyValuePair<Section, string>(Section.FinanceApp, "/finance/app"),

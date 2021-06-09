@@ -397,6 +397,7 @@
     <Compile Include="Areas\Admin\Controllers\CacheController.cs" />
     <Compile Include="Areas\Admin\ViewModels\CacheVM.cs" />
     <Compile Include="Areas\Calendar\Controllers\ActivityHubController.cs" />
+    <Compile Include="Areas\ER\Controllers\DriverController.cs" />
     <Compile Include="Areas\Write\WriteAreaRegistration.cs" />
     <Compile Include="Areas\Write\WriteModule.cs" />
     <Compile Include="Areas\Write\Controllers\API\DocumentController.cs" />
@@ -860,6 +861,7 @@
     <Content Include="Areas\Admin\Views\Cache\Index.cshtml" />
     <Content Include="Areas\Admin\Views\App\Index.cshtml" />
     <Content Include="libman.json" />
+    <Content Include="Areas\ER\Views\Driver\Index.cshtml" />
     <None Include="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -867,6 +869,14 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\dist\admin\bundle.js" />
+    <Content Include="Scripts\dist\erdriverapp\app\favicon.ico" />
+    <Content Include="Scripts\dist\erdriverapp\app\index.css" />
+    <Content Include="Scripts\dist\erdriverapp\app\index.html" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\2.f713ab20.chunk.js" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\2.f713ab20.chunk.js.LICENSE.txt" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\main.b3347a1c.chunk.js" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\runtime-main.4c2cd82c.js" />
+    <Content Include="Scripts\dist\erdriverapp\loadme.js" />
     <Content Include="Scripts\dist\errandrunner\bundle.js" />
     <Content Include="Scripts\dist\finance\bundle.js" />
     <Content Include="Scripts\dist\fullcalendar\bundle.js" />
@@ -974,6 +984,11 @@
     <Content Include="Scripts\dist\profile\bundle.js.map" />
     <Content Include="Scripts\dist\write\bundle.js.map" />
     <Content Include="Scripts\dist\admin\bundle.js.map" />
+    <Content Include="Scripts\dist\erdriverapp\app\asset-manifest.json" />
+    <Content Include="Scripts\dist\erdriverapp\app\manifest.json" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\2.f713ab20.chunk.js.map" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\main.b3347a1c.chunk.js.map" />
+    <Content Include="Scripts\dist\erdriverapp\app\static\js\runtime-main.4c2cd82c.js.map" />
     <None Include="Scripts\jquery-3.3.1.intellisense.js" />
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="Scripts\jquery-3.3.1.min.js" />
